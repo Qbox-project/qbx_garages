@@ -11,6 +11,7 @@ local currentGarageIndex = nil
 local garageZones = {}
 local lasthouse = nil
 local blipsZonesLoaded = false
+local HouseGarages = {}
 
 -- Menus
 local function MenuGarage(type, garage, indexgarage)
@@ -56,8 +57,8 @@ end
 
 local function DestroyZone(type, index)
     if garageZones[type .. "_" .. index] then
-        garageZones[type .. "_" .. index].zonecombo:destroy()
-        garageZones[type .. "_" .. index].zone:destroy()
+        garageZones[type .. "_" .. index].zonecombo:remove()
+        garageZones[type .. "_" .. index].zone:remove()
     end
 end
 
@@ -70,31 +71,31 @@ local function CreateZone(type, garage, index)
 
     if type == 'in' then
         size = 4
-        coords = vector3(garage.putVehicle.x, garage.putVehicle.y, garage.putVehicle.z)
+        coords = vec3(garage.putVehicle.x, garage.putVehicle.y, garage.putVehicle.z)
         heading = garage.spawnPoint.w
         minz = coords.z - 1.0
         maxz = coords.z + 2.0
     elseif type == 'out' then
         size = 2
-        coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
+        coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = garage.spawnPoint.w
         minz = coords.z - 1.0
         maxz = coords.z + 2.0
     elseif type == 'marker' then
         size = 60
-        coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
+        coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = garage.spawnPoint.w
         minz = coords.z - 7.5
         maxz = coords.z + 7.0
     elseif type == 'hmarker' then
         size = 20
-        coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
+        coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = 0
         minz = coords.z - 4.0
         maxz = coords.z + 2.0
     elseif type == 'house' then
         size = 2
-        coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
+        coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = 0
         minz = coords.z - 1.0
         maxz = coords.z + 2.0
@@ -192,54 +193,6 @@ local function CreateZone(type, garage, index)
             end
         end
     end)
-end
-
-local function doCarDamage(currentVehicle, veh)
-    local engine = veh.engine + 0.0
-    local body = veh.body + 0.0
-
-    Wait(100)
-
-    if VisuallyDamageCars then
-        if body < 900.0 then
-            SmashVehicleWindow(currentVehicle, 0)
-            SmashVehicleWindow(currentVehicle, 1)
-            SmashVehicleWindow(currentVehicle, 2)
-            SmashVehicleWindow(currentVehicle, 3)
-            SmashVehicleWindow(currentVehicle, 4)
-            SmashVehicleWindow(currentVehicle, 5)
-            SmashVehicleWindow(currentVehicle, 6)
-            SmashVehicleWindow(currentVehicle, 7)
-        end
-
-        if body < 800.0 then
-            SetVehicleDoorBroken(currentVehicle, 0, true)
-            SetVehicleDoorBroken(currentVehicle, 1, true)
-            SetVehicleDoorBroken(currentVehicle, 2, true)
-            SetVehicleDoorBroken(currentVehicle, 3, true)
-            SetVehicleDoorBroken(currentVehicle, 4, true)
-            SetVehicleDoorBroken(currentVehicle, 5, true)
-            SetVehicleDoorBroken(currentVehicle, 6, true)
-        end
-
-        if engine < 700.0 then
-            SetVehicleTyreBurst(currentVehicle, 1, false, 990.0)
-            SetVehicleTyreBurst(currentVehicle, 2, false, 990.0)
-            SetVehicleTyreBurst(currentVehicle, 3, false, 990.0)
-            SetVehicleTyreBurst(currentVehicle, 4, false, 990.0)
-        end
-
-        if engine < 500.0 then
-            SetVehicleTyreBurst(currentVehicle, 0, false, 990.0)
-            SetVehicleTyreBurst(currentVehicle, 5, false, 990.0)
-            SetVehicleTyreBurst(currentVehicle, 6, false, 990.0)
-            SetVehicleTyreBurst(currentVehicle, 7, false, 990.0)
-        end
-    end
-
-    SetVehicleEngineHealth(currentVehicle, engine)
-    SetVehicleBodyHealth(currentVehicle, body)
-
 end
 
 local function CheckPlayers(vehicle, garage)
@@ -389,8 +342,6 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
 
                 SetVehicleFuelLevel(veh, vehicle.fuel)
 
-                doCarDamage(veh, vehicle)
-
                 TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
 
                 lib.hideContext()
@@ -456,7 +407,7 @@ local function CreateBlipsZones()
     PlayerGang = PlayerData.gang
     PlayerJob = PlayerData.job
 
-    for index, garage in pairs(Garages) do
+    for index, garage in pairs(Config.Garages) do
         if garage.showBlip then
             local Garage = AddBlipForCoord(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
 
@@ -562,22 +513,21 @@ CreateThread(function()
         if InputIn or InputOut then
             if IsControlJustReleased(0, 38) then
                 if InputIn then
-                    local curVeh = GetVehiclePedIsIn(cache.ped)
-                    local vehClass = GetVehicleClass(curVeh)
+                    local vehClass = GetVehicleClass(cache.vehicle)
 
                     -- Check vehicle type for garage
                     if currentGarage.vehicle == "car" or not currentGarage.vehicle then
                         if vehClass ~= 14 and vehClass ~= 15 and vehClass ~= 16 then
                             if currentGarage.type == "job" then
                                 if PlayerJob.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type)
                                 end
                             elseif currentGarage.type == "gang" then
                                 if PlayerGang.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type)
                                 end
                             else
-                                enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type)
                             end
                         else
                             QBCore.Functions.Notify(Lang:t("error.not_correct_type"), "error", 3500)
@@ -586,14 +536,14 @@ CreateThread(function()
                         if vehClass == 15 or vehClass == 16 then
                             if currentGarage.type == "job" then
                                 if PlayerJob.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type)
                                 end
                             elseif currentGarage.type == "gang" then
                                 if PlayerGang.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type)
                                 end
                             else
-                                enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type)
                             end
                         else
                             QBCore.Functions.Notify(Lang:t("error.not_correct_type"), "error", 3500)
@@ -602,14 +552,14 @@ CreateThread(function()
                         if vehClass == 14 then
                             if currentGarage.type == "job" then
                                 if PlayerJob.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
+                                    enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type, currentGarage)
                                 end
                             elseif currentGarage.type == "gang" then
                                 if PlayerGang.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
+                                    enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type, currentGarage)
                                 end
                             else
-                                enterVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
+                                enterVehicle(cache.vehicle, currentGarageIndex, currentGarage.type, currentGarage)
                             end
                         else
                             QBCore.Functions.Notify(Lang:t("error.not_correct_type"), "error", 3500)
