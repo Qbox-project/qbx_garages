@@ -16,18 +16,15 @@ local HouseGarages = {}
 -- Menus
 local function MenuGarage(type, garage, indexgarage)
     local header
-    local leave
 
     if type == "house" then
         header = Lang:t("menu.header." .. type .. "_car", {
             value = garage.label
         })
-        leave = Lang:t("menu.leave.car")
     else
         header = Lang:t("menu.header." .. type .. "_" .. garage.vehicle, {
             value = garage.label
         })
-        leave = Lang:t("menu.leave." .. garage.vehicle)
     end
 
     lib.registerContext({
@@ -37,18 +34,13 @@ local function MenuGarage(type, garage, indexgarage)
             {
                 title = Lang:t("menu.header.vehicles"),
                 description = Lang:t("menu.text.vehicles"),
+                icon = "fa-solid fa-car",
                 event = "qb-garages:client:VehicleList",
                 args = {
                     type = type,
                     garage = garage,
                     index = indexgarage
                 }
-            },
-            {
-                title = leave,
-                onSelect = function(_)
-                    lib.hideContext()
-                end
             }
         }
     })
@@ -225,22 +217,19 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     local garage = data.garage
     local indexgarage = data.index
     local header
-    local leave
 
     if type == "house" then
         header = Lang:t("menu.header." .. type .. "_car", {
             value = garage.label
         })
-        leave = Lang:t("menu.leave.car")
     else
         header = Lang:t("menu.header." .. type .. "_" .. garage.vehicle, {
             value = garage.label
         })
-        leave = Lang:t("menu.leave." .. garage.vehicle)
     end
 
     QBCore.Functions.TriggerCallback("qb-garage:server:GetGarageVehicles", function(result)
-        if result == nil then
+        if not result then
             QBCore.Functions.Notify(Lang:t("error.no_vehicles"), "error", 5000)
         else
             local MenuGarageOptions = {}
@@ -301,13 +290,6 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
                     }
                 end
             end
-
-            MenuGarageOptions[#MenuGarageOptions + 1] = {
-                title = leave,
-                onSelect = function(_)
-                    lib.hideContext()
-                end
-            }
 
             lib.registerContext({
                 id = 'open_garageVehicleList',
