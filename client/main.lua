@@ -213,7 +213,6 @@ local function doCarDamage(currentVehicle, veh)
     for k, v in pairs(data.windowStatus) do
         if not v then
             SmashVehicleWindow(currentVehicle, tonumber(k))
-
         end
     end
     SetVehicleEngineHealth(currentVehicle, engine)
