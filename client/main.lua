@@ -200,7 +200,7 @@ local function doCarDamage(currentVehicle, veh)
     local body = veh.body + 0.0
     local data = json.decode(veh.mods)
 
-    if Config.VisuallyDamageCars then
+    if VisuallyDamageCars then
         for k, v in pairs(data.doorStatus) do
             if v then
                 SetVehicleDoorBroken(currentVehicle, tonumber(k), true)
