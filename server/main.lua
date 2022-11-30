@@ -266,7 +266,10 @@ RegisterNetEvent('qb-garage:server:updateVehicle', function(state, fuel, engine,
                 end
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_owned"), 'error')
+            TriggerClientEvent('ox_lib:notify', src, {
+                description = Lang:t("error.not_owned"),
+                type = 'error'
+            })
         end
     end, plate, type, garage, gang)
 end)
@@ -289,7 +292,10 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
                 })
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_owned"), 'error')
+            TriggerClientEvent('ox_lib:notify', src, {
+                description = Lang:t("error.not_owned"),
+                type = 'error'
+            })
         end
     end, garage, type, plate)
 end)
@@ -322,20 +328,23 @@ RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
     local bankBalance = Player.PlayerData.money.bank
     local vehicle = data.vehicle
 
-    MySQL.query('SELECT * FROM player_vehicles WHERE plate = ?', {
+    MySQL.single('SELECT * FROM player_vehicles WHERE plate = ?', {
         vehicle.plate
     }, function(result)
-        if result[1] then
-            if cashBalance >= result[1].depotprice then
-                Player.Functions.RemoveMoney("cash", result[1].depotprice, "paid-depot")
+        if result then
+            if cashBalance >= result.depotprice then
+                Player.Functions.RemoveMoney("cash", result.depotprice, "paid-depot")
 
                 TriggerClientEvent("qb-garages:client:takeOutGarage", src, data)
-            elseif bankBalance >= result[1].depotprice then
-                Player.Functions.RemoveMoney("bank", result[1].depotprice, "paid-depot")
+            elseif bankBalance >= result.depotprice then
+                Player.Functions.RemoveMoney("bank", result.depotprice, "paid-depot")
 
                 TriggerClientEvent("qb-garages:client:takeOutGarage", src, data)
             else
-                TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough"), 'error')
+                TriggerClientEvent('ox_lib:notify', src, {
+                    description = Lang:t("error.not_owned"),
+                    type = 'error'
+                })
             end
         end
     end)
