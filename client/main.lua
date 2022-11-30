@@ -49,7 +49,6 @@ end
 
 local function DestroyZone(type, index)
     if garageZones[type .. "_" .. index] then
-        garageZones[type .. "_" .. index].zonecombo:remove()
         garageZones[type .. "_" .. index].zone:remove()
     end
 end
@@ -58,57 +57,35 @@ local function CreateZone(type, garage, index)
     local size
     local coords
     local heading
-    local minz
-    local maxz
 
     if type == 'in' then
         size = 4
         coords = vec3(garage.putVehicle.x, garage.putVehicle.y, garage.putVehicle.z)
         heading = garage.spawnPoint.w
-        minz = coords.z - 1.0
-        maxz = coords.z + 2.0
     elseif type == 'out' then
         size = 2
         coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = garage.spawnPoint.w
-        minz = coords.z - 1.0
-        maxz = coords.z + 2.0
     elseif type == 'marker' then
         size = 60
         coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = garage.spawnPoint.w
-        minz = coords.z - 7.5
-        maxz = coords.z + 7.0
     elseif type == 'hmarker' then
         size = 20
         coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = 0
-        minz = coords.z - 4.0
-        maxz = coords.z + 2.0
     elseif type == 'house' then
         size = 2
         coords = vec3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = 0
-        minz = coords.z - 1.0
-        maxz = coords.z + 2.0
     end
 
     garageZones[type .. "_" .. index] = {}
-    garageZones[type .. "_" .. index].zone = BoxZone:Create(
-        coords, size, size, {
-        minZ = minz,
-        maxZ = maxz,
-        name = type,
-        heading = heading
-    })
-
-    garageZones[type .. "_" .. index].zonecombo = ComboZone:Create({
-        garageZones[type .. "_" .. index].zone
-    }, {
-        name = "box" .. type
-    })
-    garageZones[type .. "_" .. index].zonecombo:onPlayerInOut(function(isPointInside)
-        if isPointInside then
+    garageZones[type .. "_" .. index].zone = lib.zones.box({
+        coords = coords,
+        size = vec3(size, size, size),
+        rotation = heading,
+        onEnter = function(_)
             if type == "in" then
                 lib.showTextUI(Lang:t("info.park_e"))
 
@@ -149,7 +126,8 @@ local function CreateZone(type, garage, index)
                     InputOut = true
                 end
             end
-        else
+        end,
+        onExit = function(_)
             if type == "marker" then
                 if currentGarage == garage then
                     if garage.type ~= "depot" then
@@ -184,7 +162,7 @@ local function CreateZone(type, garage, index)
                 InputOut = false
             end
         end
-    end)
+    })
 end
 
 local function CheckPlayers(vehicle, garage)
