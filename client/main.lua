@@ -116,7 +116,7 @@ local function CreateZone(type, garage, index)
 
                 HouseMarkers = true
             elseif type == "house" then
-                if IsPedInAnyVehicle(cache.ped, false) then
+                if cache.vehicle then
                     lib.showTextUI(Lang:t("info.park_e"))
 
                     InputIn = true
