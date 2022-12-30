@@ -285,7 +285,7 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
                     registeredMenu.options[#registeredMenu.options + 1] = {
                         title = Lang:t('menu.header.garage', { value = vname, value2 = v.plate }),
                         description = '',
-                        event = 'qb-garages:client:takeoutGarage',
+                        event = 'qb-garages:client:takeOutGarage',
                         args = {
                             vehicle = v,
                             type = type,
