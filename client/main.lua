@@ -116,7 +116,7 @@ local function CreateZone(type, garage, index)
                 CreateZone("house", garage, index)
                 HouseMarkers = true
             elseif type == "house" then
-                if IsPedInAnyVehicle(cache.ped, false) then
+                if cache.vehicle then
                     exports['qb-core']:DrawText(Lang:t("info.park_e"), 'left')
                     InputIn = true
                 else
