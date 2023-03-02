@@ -17,13 +17,10 @@ local blipsZonesLoaded = false
 --Menus
 local function MenuGarage(type, garage, indexgarage)
     local header
-    local leave
     if type == "house" then
         header = Lang:t("menu.header." .. type .. "_car", { value = garage.label })
-        leave = Lang:t("menu.leave.car")
     else
         header = Lang:t("menu.header." .. type .. "_" .. garage.vehicle, { value = garage.label })
-        leave = Lang:t("menu.leave." .. garage.vehicle)
     end
     lib.registerContext({
         id = 'qb_garage_menu',
@@ -46,8 +43,7 @@ end
 
 local function DestroyZone(type, index)
     if garageZones[type .. "_" .. index] then
-        garageZones[type .. "_" .. index].zonecombo:destroy()
-        garageZones[type .. "_" .. index].zone:destroy()
+        garageZones[type .. "_" .. index].zone:remove()
     end
 end
 
@@ -55,54 +51,36 @@ local function CreateZone(type, garage, index)
     local size
     local coords
     local heading
-    local minz
-    local maxz
 
     if type == 'in' then
-        size = 4
+        size = vec3(4, 4, 4)
         coords = vector3(garage.putVehicle.x, garage.putVehicle.y, garage.putVehicle.z)
         heading = garage.spawnPoint.w
-        minz = coords.z - 1.0
-        maxz = coords.z + 2.0
     elseif type == 'out' then
-        size = 2
+        size = vec3(2, 2, 4)
         coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = garage.spawnPoint.w
-        minz = coords.z - 1.0
-        maxz = coords.z + 2.0
     elseif type == 'marker' then
-        size = 60
+        size = vec3(60, 60, 4)
         coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = garage.spawnPoint.w
-        minz = coords.z - 7.5
-        maxz = coords.z + 7.0
     elseif type == 'hmarker' then
-        size = 20
+        size = vec3(20, 20, 4)
         coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = 0
-        minz = coords.z - 4.0
-        maxz = coords.z + 2.0
     elseif type == 'house' then
-        size = 2
+        size = vec3(2, 2, 4)
         coords = vector3(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
         heading = 0
-        minz = coords.z - 1.0
-        maxz = coords.z + 2.0
     end
-    garageZones[type .. "_" .. index] = {}
-    garageZones[type .. "_" .. index].zone = BoxZone:Create(
-        coords, size, size, {
-        minZ = minz,
-        maxZ = maxz,
-        name = type,
-        debugPoly = false,
-        heading = heading
-    })
 
-    garageZones[type .. "_" .. index].zonecombo = ComboZone:Create({ garageZones[type .. "_" .. index].zone },
-        { name = "box" .. type, debugPoly = false })
-    garageZones[type .. "_" .. index].zonecombo:onPlayerInOut(function(isPointInside)
-        if isPointInside then
+    garageZones[type .. "_" .. index] = {}
+    garageZones[type .. "_" .. index].zone = lib.zones.box({
+        coords = coords,
+        size = size,
+        rotation = heading,
+        debug = false,
+        onEnter = function()
             local text
             if type == "in" then
                 if garage.type == "house" then
@@ -116,7 +94,7 @@ local function CreateZone(type, garage, index)
                 if garage.type == "house" then
                     text = Lang:t("info.car_e")
                 else
-                    text = Lang:t("info." .. garage.vehicle .. "_e") .. "<br>" .. garage.label
+                    text = Lang:t("info." .. garage.vehicle .. "_e") .. "\n" .. garage.label
                 end
 
                 exports['qb-core']:DrawText(text, 'left')
@@ -138,7 +116,7 @@ local function CreateZone(type, garage, index)
                 CreateZone("house", garage, index)
                 HouseMarkers = true
             elseif type == "house" then
-                if IsPedInAnyVehicle(PlayerPedId(), false) then
+                if IsPedInAnyVehicle(cache.ped, false) then
                     exports['qb-core']:DrawText(Lang:t("info.park_e"), 'left')
                     InputIn = true
                 else
@@ -146,7 +124,8 @@ local function CreateZone(type, garage, index)
                     InputOut = true
                 end
             end
-        else
+        end,
+        onExit = function()
             if type == "marker" then
                 if currentGarage == garage then
                     if garage.type ~= "depot" then
@@ -173,8 +152,8 @@ local function CreateZone(type, garage, index)
                 exports['qb-core']:HideText()
                 InputOut = false
             end
-        end
-    end)
+        end,
+    })
 end
 
 local function doCarDamage(currentVehicle, veh)
@@ -185,23 +164,23 @@ local function doCarDamage(currentVehicle, veh)
     if VisuallyDamageCars then
         for k, v in pairs(data.doorStatus) do
             if v then
-                SetVehicleDoorBroken(currentVehicle, tonumber(k), true)
+                SetVehicleDoorBroken(currentVehicle, k, true)
             end
         end
         for k, v in pairs(data.tireBurstState) do
             if v then
-                SetVehicleTyreBurst(currentVehicle, tonumber(k), true)
+                local random = math.random(1, 1000)
+                SetVehicleTyreBurst(currentVehicle, k, true, random)
             end
         end
         for k, v in pairs(data.windowStatus) do
             if not v then
-                SmashVehicleWindow(currentVehicle, tonumber(k))
+                SmashVehicleWindow(currentVehicle, k)
             end
         end
     end
     SetVehicleEngineHealth(currentVehicle, engine)
     SetVehicleBodyHealth(currentVehicle, body)
-
 end
 
 local function CheckPlayers(vehicle, garage)
@@ -210,11 +189,11 @@ local function CheckPlayers(vehicle, garage)
         if seat then
             TaskLeaveVehicle(seat, vehicle, 0)
             if garage then
-                SetEntityCoords(seat, garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
+                SetEntityCoords(seat, garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z, false, false, false, true)
             end
         end
     end
-    SetVehicleDoorsLocked(vehicle)
+    SetVehicleDoorsLocked(vehicle, 2)
     Wait(1500)
     QBCore.Functions.DeleteVehicle(vehicle)
 end
@@ -229,13 +208,11 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     local garage = data.garage
     local indexgarage = data.index
     local header
-    local leave
+
     if type == "house" then
         header = Lang:t("menu.header." .. type .. "_car", { value = garage.label })
-        leave = Lang:t("menu.leave.car")
     else
         header = Lang:t("menu.header." .. type .. "_" .. garage.vehicle, { value = garage.label })
-        leave = Lang:t("menu.leave." .. garage.vehicle)
     end
 
     QBCore.Functions.TriggerCallback("qb-garage:server:GetGarageVehicles", function(result)
@@ -279,7 +256,7 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
                             {label = 'Body', value = bodyPercent .. ' %'},
                         },
                     }
-                    
+
 
                 else
                     registeredMenu.options[#registeredMenu.options + 1] = {
@@ -324,12 +301,12 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
             end
             QBCore.Functions.TriggerCallback('qb-garage:server:spawnvehicle', function(netId, properties)
                 local veh = NetToVeh(netId)
-                QBCore.Functions.SetVehicleProperties(veh, properties)
+                lib.setVehicleProperties(veh, properties)
                 exports['LegacyFuel']:SetFuel(veh, vehicle.fuel)
                 doCarDamage(veh, vehicle)
                 TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
                 TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
-                SetVehicleEngineOn(veh, true, true)
+                SetVehicleEngineOn(veh, true, true, false)
                 if type == "house" then
                     exports['qb-core']:DrawText(Lang:t("info.park_e"), 'left')
                     InputOut = false
@@ -350,7 +327,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
                 local bodyDamage = math.ceil(GetVehicleBodyHealth(veh))
                 local engineDamage = math.ceil(GetVehicleEngineHealth(veh))
                 local totalFuel = exports['LegacyFuel']:GetFuel(veh)
-                TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", QBCore.Functions.GetVehicleProperties(veh))
+                TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", lib.getVehicleProperties(veh))
                 TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
                 CheckPlayers(veh, garage)
                 if type == "house" then
@@ -460,18 +437,17 @@ CreateThread(function()
     while true do
         sleep = 2000
         if Markers then
-            DrawMarker(2, currentGarage.putVehicle.x, currentGarage.putVehicle.y, currentGarage.putVehicle.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 255, 255, 255, 255, false, false, false, true, false, false, false)
-            DrawMarker(2, currentGarage.takeVehicle.x, currentGarage.takeVehicle.y, currentGarage.takeVehicle.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 200, 0, 0, 222, false, false, false, true, false, false, false)
+            DrawMarker(2, currentGarage.putVehicle.x, currentGarage.putVehicle.y, currentGarage.putVehicle.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 255, 255, 255, 255, false, false, 0, true, false, false, false)
+            DrawMarker(2, currentGarage.takeVehicle.x, currentGarage.takeVehicle.y, currentGarage.takeVehicle.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 200, 0, 0, 222, false, false, 0, true, false, false, false)
             sleep = 0
         elseif HouseMarkers then
-            DrawMarker(2, currentGarage.takeVehicle.x, currentGarage.takeVehicle.y, currentGarage.takeVehicle.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 200, 0, 0, 222, false, false, false, true, false, false, false)
+            DrawMarker(2, currentGarage.takeVehicle.x, currentGarage.takeVehicle.y, currentGarage.takeVehicle.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 200, 0, 0, 222, false, false, 0, true, false, false, false)
             sleep = 0
         end
         if InputIn or InputOut then
             if IsControlJustReleased(0, 38) then
                 if InputIn then
-                    local ped = PlayerPedId()
-                    local curVeh = GetVehiclePedIsIn(ped)
+                    local curVeh = cache.vehicle
                     local vehClass = GetVehicleClass(curVeh)
                     --Check vehicle type for garage
                     if currentGarage.vehicle == "car" or not currentGarage.vehicle then
