@@ -86,7 +86,7 @@ local function CreateZone(type, garage, index)
                 if garage.type == "house" then
                     text = Lang:t("info.park_e")
                 else
-                    text = Lang:t("info.park_e") .. "<br>" .. garage.label
+                    text = Lang:t("info.park_e") .. "  \n" .. garage.label
                 end
                 exports['qb-core']:DrawText(text, 'left')
                 InputIn = true
@@ -94,7 +94,7 @@ local function CreateZone(type, garage, index)
                 if garage.type == "house" then
                     text = Lang:t("info.car_e")
                 else
-                    text = Lang:t("info." .. garage.vehicle .. "_e") .. "\n" .. garage.label
+                    text = Lang:t("info." .. garage.vehicle .. "_e") .. "  \n" .. garage.label
                 end
 
                 exports['qb-core']:DrawText(text, 'left')
