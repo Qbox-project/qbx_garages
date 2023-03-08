@@ -183,17 +183,17 @@ local function doCarDamage(currentVehicle, veh)
     local data = json.decode(veh.mods)
 
     if VisuallyDamageCars then
-        for k, v in pairs(data.doorStatus) do
+        for k, v in pairs(data.doors) do
             if v then
                 SetVehicleDoorBroken(currentVehicle, tonumber(k), true)
             end
         end
-        for k, v in pairs(data.tireBurstState) do
+        for k, v in pairs(data.tyres) do
             if v then
                 SetVehicleTyreBurst(currentVehicle, tonumber(k), true)
             end
         end
-        for k, v in pairs(data.windowStatus) do
+        for k, v in pairs(data.windows) do
             if not v then
                 SmashVehicleWindow(currentVehicle, tonumber(k))
             end
