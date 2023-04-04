@@ -1,4 +1,4 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+local QBCore = exports['qbx-core']:GetCoreObject()
 local PlayerData = {}
 local PlayerGang = {}
 local PlayerJob = {}
@@ -88,7 +88,7 @@ local function CreateZone(type, garage, index)
                 else
                     text = Lang:t("info.park_e") .. "  \n" .. garage.label
                 end
-                exports['qb-core']:DrawText(text, 'left')
+                exports['qbx-core']:DrawText(text, 'left')
                 InputIn = true
             elseif type == "out" then
                 if garage.type == "house" then
@@ -97,7 +97,7 @@ local function CreateZone(type, garage, index)
                     text = Lang:t("info." .. garage.vehicle .. "_e") .. "  \n" .. garage.label
                 end
 
-                exports['qb-core']:DrawText(text, 'left')
+                exports['qbx-core']:DrawText(text, 'left')
                 InputOut = true
             elseif type == "marker" then
                 currentGarage = garage
@@ -117,10 +117,10 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = true
             elseif type == "house" then
                 if cache.vehicle then
-                    exports['qb-core']:DrawText(Lang:t("info.park_e"), 'left')
+                    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
                     InputIn = true
                 else
-                    exports['qb-core']:DrawText(Lang:t("info.car_e"), 'left')
+                    exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
                     InputOut = true
                 end
             end
@@ -142,14 +142,14 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = false
                 DestroyZone("house", index)
             elseif type == "house" then
-                exports['qb-core']:HideText()
+                exports['qbx-core']:HideText()
                 InputIn = false
                 InputOut = false
             elseif type == "in" then
-                exports['qb-core']:HideText()
+                exports['qbx-core']:HideText()
                 InputIn = false
             elseif type == "out" then
-                exports['qb-core']:HideText()
+                exports['qbx-core']:HideText()
                 InputOut = false
             end
         end,
@@ -308,7 +308,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
                 TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
                 SetVehicleEngineOn(veh, true, true, false)
                 if type == "house" then
-                    exports['qb-core']:DrawText(Lang:t("info.park_e"), 'left')
+                    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
                     InputOut = false
                     InputIn = true
                 end
@@ -331,7 +331,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
                 TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
                 CheckPlayers(veh, garage)
                 if type == "house" then
-                    exports['qb-core']:DrawText(Lang:t("info.car_e"), 'left')
+                    exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
                     InputOut = true
                     InputIn = false
                 end
