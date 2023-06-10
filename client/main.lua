@@ -215,75 +215,75 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
         header = Lang:t("menu.header." .. type .. "_" .. garage.vehicle, { value = garage.label })
     end
 
-    QBCore.Functions.TriggerCallback("qb-garage:server:GetGarageVehicles", function(result)
-        if result == nil then
-            QBCore.Functions.Notify(Lang:t("error.no_vehicles"), "error", 5000)
-        else
-            local registeredMenu = {
-                id = 'qb_garage_vehicle_list',
-                title = header,
-                options = {}
+    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, indexgarage, type, garage.vehicle)
+    if not result then
+        QBCore.Functions.Notify(Lang:t("error.no_vehicles"), "error", 5000)
+        return
+    end
+
+    local registeredMenu = {
+        id = 'qb_garage_vehicle_list',
+        title = header,
+        options = {}
+    }
+
+    for _, v in pairs(result) do
+        local enginePercent = round(v.engine / 10, 0)
+        local bodyPercent = round(v.body / 10, 0)
+        local currentFuel = v.fuel
+        local vname = QBCore.Shared.Vehicles[v.vehicle].name
+
+        if v.state == 0 then
+            v.state = Lang:t("status.out")
+        elseif v.state == 1 then
+            v.state = Lang:t("status.garaged")
+        elseif v.state == 2 then
+            v.state = Lang:t("status.impound")
+        end
+        if type == "depot" then
+            registeredMenu.options[#registeredMenu.options + 1] = {
+                title = Lang:t('menu.header.depot', { value = vname, value2 = v.depotprice }),
+                description = '',
+                event = 'qb-garages:client:TakeOutDepot',
+                args = {
+                    vehicle = v,
+                    type = type,
+                    garage = garage,
+                    index = indexgarage,
+                    },
+                metadata = {
+                    {label = 'Plate', value = v.plate .. ' '},
+                    {label = 'Engine', value = enginePercent .. ' %'},
+                    {label = 'Fuel', value = currentFuel .. ' %'},
+                    {label = 'Body', value = bodyPercent .. ' %'},
+                },
             }
 
-            for _, v in pairs(result) do
-                local enginePercent = round(v.engine / 10, 0)
-                local bodyPercent = round(v.body / 10, 0)
-                local currentFuel = v.fuel
-                local vname = QBCore.Shared.Vehicles[v.vehicle].name
 
-                if v.state == 0 then
-                    v.state = Lang:t("status.out")
-                elseif v.state == 1 then
-                    v.state = Lang:t("status.garaged")
-                elseif v.state == 2 then
-                    v.state = Lang:t("status.impound")
-                end
-                if type == "depot" then
-                    registeredMenu.options[#registeredMenu.options + 1] = {
-                        title = Lang:t('menu.header.depot', { value = vname, value2 = v.depotprice }),
-                        description = '',
-                        event = 'qb-garages:client:TakeOutDepot',
-                        args = {
-                            vehicle = v,
-                            type = type,
-                            garage = garage,
-                            index = indexgarage,
-                            },
-                        metadata = {
-                            {label = 'Plate', value = v.plate .. ' '},
-                            {label = 'Engine', value = enginePercent .. ' %'},
-                            {label = 'Fuel', value = currentFuel .. ' %'},
-                            {label = 'Body', value = bodyPercent .. ' %'},
-                        },
-                    }
+        else
+            registeredMenu.options[#registeredMenu.options + 1] = {
+                title = Lang:t('menu.header.garage', { value = vname, value2 = v.plate }),
+                description = '',
+                event = 'qb-garages:client:takeOutGarage',
+                args = {
+                    vehicle = v,
+                    type = type,
+                    garage = garage,
+                    index = indexgarage,
+                    },
+                metadata = {
+                    {label = 'State', value = v.state .. ' '},
+                    {label = 'Plate', value = v.plate .. ' '},
+                    {label = 'Engine', value = enginePercent .. ' %'},
+                    {label = 'Fuel', value = currentFuel .. ' %'},
+                    {label = 'Body', value = bodyPercent .. ' %'},
+                },
+            }
 
-
-                else
-                    registeredMenu.options[#registeredMenu.options + 1] = {
-                        title = Lang:t('menu.header.garage', { value = vname, value2 = v.plate }),
-                        description = '',
-                        event = 'qb-garages:client:takeOutGarage',
-                        args = {
-                            vehicle = v,
-                            type = type,
-                            garage = garage,
-                            index = indexgarage,
-                            },
-                        metadata = {
-                            {label = 'State', value = v.state .. ' '},
-                            {label = 'Plate', value = v.plate .. ' '},
-                            {label = 'Engine', value = enginePercent .. ' %'},
-                            {label = 'Fuel', value = currentFuel .. ' %'},
-                            {label = 'Body', value = bodyPercent .. ' %'},
-                        },
-                    }
-
-                end
-            end
-            lib.registerContext(registeredMenu)
-            lib.showContext('qb_garage_vehicle_list')
         end
-    end, indexgarage, type, garage.vehicle)
+    end
+    lib.registerContext(registeredMenu)
+    lib.showContext('qb_garage_vehicle_list')
 end)
 
 RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
@@ -291,61 +291,55 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     local vehicle = data.vehicle
     local garage = data.garage
     local index = data.index
-    QBCore.Functions.TriggerCallback('qb-garage:server:IsSpawnOk', function(spawn)
-        if spawn then
-            local location
-            if type == "house" then
-                location = garage.takeVehicle
-            else
-                location = garage.spawnPoint
-            end
-            QBCore.Functions.TriggerCallback('qb-garage:server:spawnvehicle', function(netId, properties)
-                local veh = NetToVeh(netId)
-                lib.setVehicleProperties(veh, properties)
-                exports['LegacyFuel']:SetFuel(veh, vehicle.fuel)
-                doCarDamage(veh, vehicle)
-                TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
-                TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
-                SetVehicleEngineOn(veh, true, true, false)
-                if type == "house" then
-                    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
-                    InputOut = false
-                    InputIn = true
-                end
-            end, vehicle, location, true)
-        else
-            QBCore.Functions.Notify(Lang:t("error.not_impound"), "error", 5000)
-        end
-    end, vehicle.plate, type)
+    local spawn = lib.callback.await('qb-garage:server:IsSpawnOk', false, vehicle.plate, type)
+    if not spawn then
+        QBCore.Functions.Notify(Lang:t("error.not_impound"), "error", 5000)
+        return
+    end
+
+    local netId, properties = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == "house" and garage.takeVehicle or garage.spawnPoint, true)
+    local veh = NetToVeh(netId)
+    lib.setVehicleProperties(veh, properties)
+    SetVehicleFuelLevel(veh, vehicle.fuel)
+    doCarDamage(veh, vehicle)
+    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
+    TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
+    SetVehicleEngineOn(veh, true, true, false)
+
+    if type ~= "house" then return end
+
+    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
+    InputOut = false
+    InputIn = true
 end)
 
 local function enterVehicle(veh, indexgarage, type, garage)
     local plate = QBCore.Functions.GetPlate(veh)
     if GetVehicleNumberOfPassengers(veh) == 0 then
-        QBCore.Functions.TriggerCallback('qb-garage:server:checkOwnership', function(owned)
-            if owned then
-                local bodyDamage = math.ceil(GetVehicleBodyHealth(veh))
-                local engineDamage = math.ceil(GetVehicleEngineHealth(veh))
-                local totalFuel = exports['LegacyFuel']:GetFuel(veh)
-                TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", lib.getVehicleProperties(veh))
-                TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
-                CheckPlayers(veh, garage)
-                if type == "house" then
-                    exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
-                    InputOut = true
-                    InputIn = false
-                end
+        local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, type, indexgarage, PlayerGang.name)
+        if not owned then
+            QBCore.Functions.Notify(Lang:t("error.vehicle_occupied"), "error", 5000)
+            return
+        end
 
-                if plate then
-                    TriggerServerEvent('qb-garages:server:UpdateOutsideVehicle', plate, nil)
-                end
-                QBCore.Functions.Notify(Lang:t("success.vehicle_parked"), "primary", 4500)
-            else
-                QBCore.Functions.Notify(Lang:t("error.not_owned"), "error", 3500)
-            end
-        end, plate, type, indexgarage, PlayerGang.name)
+        local bodyDamage = math.ceil(GetVehicleBodyHealth(veh))
+        local engineDamage = math.ceil(GetVehicleEngineHealth(veh))
+        local totalFuel = GetVehicleFuelLevel(veh)
+        TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", lib.getVehicleProperties(veh))
+        TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
+        CheckPlayers(veh, garage)
+        if type == "house" then
+            exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
+            InputOut = true
+            InputIn = false
+        end
+
+        if plate then
+            TriggerServerEvent('qb-garages:server:UpdateOutsideVehicle', plate, nil)
+        end
+        QBCore.Functions.Notify(Lang:t("success.vehicle_parked"), "primary", 4500)
     else
-        QBCore.Functions.Notify(Lang:t("error.vehicle_occupied"), "error", 5000)
+        QBCore.Functions.Notify(Lang:t("error.not_owned"), "error", 3500)
     end
 end
 
