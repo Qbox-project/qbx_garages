@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 version '1.0.0'
-repository 'https://github.com/Qbox-project/qb-garages'
+repository 'https://github.com/Qbox-project/qbx-garages'
 
 shared_scripts {
     'config.lua',
@@ -23,4 +23,6 @@ server_scripts {
 
 dependency 'ox_lib'
 
+provide 'qb-garages'
 lua54 'yes'
+use_experimental_fxv2_oal 'yes'
