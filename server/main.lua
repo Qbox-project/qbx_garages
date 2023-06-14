@@ -78,7 +78,7 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
     local vehProps = {}
     local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
     if result[1] then vehProps = json.decode(result[1].mods) end
-    local netId = NetworkGetNetworkIdFromEntity(veh)
+    local netId = veh
     OutsideVehicles[plate] = {netID = netId, entity = veh}
     return netId, vehProps
 end)
