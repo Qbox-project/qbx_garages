@@ -298,13 +298,23 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     end
 
     local netId, properties = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == "house" and garage.takeVehicle or garage.spawnPoint, true)
+    local timeout = 100
+    while not NetworkDoesEntityExistWithNetworkId(netId) and timeout > 0 do
+        Wait(10)
+        timeout -= 1
+    end
     local veh = NetToVeh(netId)
-    lib.setVehicleProperties(veh, properties)
+    if veh == 0 then
+        QBCore.Functions.Notify('Something went wrong spawning the vehicle', 'error')
+        return
+    end
     SetVehicleFuelLevel(veh, vehicle.fuel)
     doCarDamage(veh, vehicle)
     TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
     TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
     SetVehicleEngineOn(veh, true, true, false)
+    Wait(500)
+    lib.setVehicleProperties(veh, properties)
 
     if type ~= "house" then return end
 
