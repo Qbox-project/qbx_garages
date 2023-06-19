@@ -1,12 +1,12 @@
 local QBCore = exports['qbx-core']:GetCoreObject()
 local OutsideVehicles = {}
 
-lib.callback.register("qb-garage:server:GetGarageVehicles", function(source, garage, _type, category)
+lib.callback.register("qb-garage:server:GetGarageVehicles", function(source, garage, type, category)
     local pData = QBCore.Functions.GetPlayer(source)
-    if _type == "public" then        --Public garages give player cars in the garage only
+    if type == "public" then        --Public garages give player cars in the garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ?', {pData.PlayerData.citizenid, garage, 1})
         return result[1] and result
-    elseif _type == "depot" then    --Depot give player cars that are not in garage only
+    elseif type == "depot" then    --Depot give player cars that are not in garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ?)', {pData.PlayerData.citizenid, 0})
         local toSend = {}
         if not result[1] then return false end
@@ -24,22 +24,22 @@ lib.callback.register("qb-garage:server:GetGarageVehicles", function(source, gar
         end
         return toSend
     else                            --House give all cars in the garage, Job and Gang depend of config
-        local shared = SharedGarages and _type ~= 'house' and '' or " AND citizenid = '"..pData.PlayerData.citizenid.."'"
+        local shared = SharedGarages and type ~= 'house' and '' or " AND citizenid = '"..pData.PlayerData.citizenid.."'"
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ?'..shared, {garage, 1})
         return result[1] and result
     end
 end)
 
-local function validateGarageVehicle(source, garage, _type, plate)
+local function validateGarageVehicle(source, garage, type, plate)
     local pData = QBCore.Functions.GetPlayer(source)
-    if _type == "public" then --Public garages give player cars in the garage only
+    if type == "public" then --Public garages give player cars in the garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND plate = ?', {pData.PlayerData.citizenid, garage, 1, plate})
         return result[1]
-    elseif _type == "depot" then --Depot give player cars that are not in garage only
+    elseif type == "depot" then --Depot give player cars that are not in garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND plate = ?', {pData.PlayerData.citizenid, 0, 2, plate})
         return result[1]
     else
-        local shared = SharedGarages and _type ~= 'house' and '' or " AND citizenid = '"..pData.PlayerData.citizenid.."'"
+        local shared = SharedGarages and type ~= 'house' and '' or " AND citizenid = '"..pData.PlayerData.citizenid.."'"
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND plate = ?'..shared, {garage, 1, plate})
         return result[1]
     end
@@ -47,14 +47,14 @@ end
 
 lib.callback.register("qb-garage:server:validateGarageVehicle", validateGarageVehicle)
 
-local function checkOwnership(source, plate, _type, house, gang)
+local function checkOwnership(source, plate, type, house, gang)
     local pData = QBCore.Functions.GetPlayer(source)
-    if _type == "public" then --Public garages only for player cars
+    if type == "public" then --Public garages only for player cars
         return MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, pData.PlayerData.citizenid})
-    elseif _type == "house" then --House garages only for player cars that have keys of the house
+    elseif type == "house" then --House garages only for player cars that have keys of the house
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         return result[1] and exports['qb-houses']:hasKey(result[1].license, result[1].citizenid, house)
-    elseif _type == "gang" then --Gang garages only for gang members cars (for sharing)
+    elseif type == "gang" then --Gang garages only for gang members cars (for sharing)
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         if not result[1] then return false end
         --Check if found owner is part of the gang
@@ -74,7 +74,6 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
     local plate = vehInfo.plate
     local netId = QBCore.Functions.CreateVehicle(source, vehInfo.vehicle, coords, warp)
     local veh = NetworkGetEntityFromNetworkId(netId)
-    SetEntityHeading(veh, coords.w)
     SetVehicleNumberPlateText(veh, plate)
     local vehProps = {}
     local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
@@ -88,8 +87,8 @@ lib.callback.register("qb-garage:server:GetVehicleProperties", function(_, plate
     return result[1] and json.decode(result[1].mods) or {}
 end)
 
-lib.callback.register("qb-garage:server:IsSpawnOk", function(_, plate, _type)
-    if _type == "depot" then --If depot, check if vehicle is not already spawned on the map
+lib.callback.register("qb-garage:server:IsSpawnOk", function(_, plate, type)
+    if type == "depot" then --If depot, check if vehicle is not already spawned on the map
         return OutsideVehicles[plate] and DoesEntityExist(OutsideVehicles[plate].entity)
     end
 
