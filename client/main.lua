@@ -325,10 +325,10 @@ end)
 
 local function enterVehicle(veh, indexgarage, type, garage)
     local plate = QBCore.Functions.GetPlate(veh)
-    if GetVehicleNumberOfPassengers(veh) == 0 then
+    if GetVehicleNumberOfPassengers(veh) ~= 0 then
         local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, type, indexgarage, PlayerGang.name)
         if not owned then
-            QBCore.Functions.Notify(Lang:t("error.vehicle_occupied"), "error", 5000)
+            QBCore.Functions.Notify(Lang:t("error.not_owned"), "error", 5000)
             return
         end
 
@@ -349,7 +349,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
         end
         QBCore.Functions.Notify(Lang:t("success.vehicle_parked"), "primary", 4500)
     else
-        QBCore.Functions.Notify(Lang:t("error.not_owned"), "error", 3500)
+        QBCore.Functions.Notify(Lang:t("error.vehicle_occupied"), "error", 3500)
     end
 end
 
