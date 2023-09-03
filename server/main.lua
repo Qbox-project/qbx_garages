@@ -50,7 +50,8 @@ lib.callback.register("qb-garage:server:validateGarageVehicle", validateGarageVe
 local function checkOwnership(source, plate, type, house, gang)
     local pData = QBCore.Functions.GetPlayer(source)
     if type == "public" then --Public garages only for player cars
-        return MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, pData.PlayerData.citizenid})
+         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, pData.PlayerData.citizenid})
+         return result[1] or false
     elseif type == "house" then --House garages only for player cars that have keys of the house
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         return result[1] and exports['qb-houses']:hasKey(result[1].license, result[1].citizenid, house)
