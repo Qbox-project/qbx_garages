@@ -12,11 +12,11 @@ lib.callback.register("qb-garage:server:GetGarageVehicles", function(source, gar
         --Check vehicle type against depot type
         for _, vehicle in pairs(result) do
             if not OutsideVehicles[vehicle.plate] or not DoesEntityExist(OutsideVehicles[vehicle.plate].entity) then
-                if category == "air" and ( QBCore.Shared.Vehicles[vehicle.vehicle].category == "helicopters" or QBCore.Shared.Vehicles[vehicle.vehicle].category == "planes" ) then
+                if category == "air" and ( exports.qbx_core:GetVehiclesByName()[vehicle.vehicle].category == "helicopters" or exports.qbx_core:GetVehiclesByName()[vehicle.vehicle].category == "planes" ) then
                     toSend[#toSend + 1] = vehicle
-                elseif category == "sea" and QBCore.Shared.Vehicles[vehicle.vehicle].category == "boats" then
+                elseif category == "sea" and exports.qbx_core:GetVehiclesByName()[vehicle.vehicle].category == "boats" then
                     toSend[#toSend + 1] = vehicle
-                elseif category == "car" and QBCore.Shared.Vehicles[vehicle.vehicle].category ~= "helicopters" and QBCore.Shared.Vehicles[vehicle.vehicle].category ~= "planes" and QBCore.Shared.Vehicles[vehicle.vehicle].category ~= "boats" then
+                elseif category == "car" and exports.qbx_core:GetVehiclesByName()[vehicle.vehicle].category ~= "helicopters" and exports.qbx_core:GetVehiclesByName()[vehicle.vehicle].category ~= "planes" and exports.qbx_core:GetVehiclesByName()[vehicle.vehicle].category ~= "boats" then
                     toSend[#toSend + 1] = vehicle
                 end
             end
@@ -185,7 +185,7 @@ lib.callback.register('qb-garage:server:GetPlayerVehicles', function(source)
     local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ?', {player.PlayerData.citizenid})
     if result[1] then
         for _, v in pairs(result) do
-            local vehicleData = QBCore.Shared.Vehicles[v.vehicle]
+            local vehicleData = exports.qbx_core:GetVehiclesByName()[v.vehicle]
 
             local vehicleGarage = Lang:t("error.no_garage")
             if v.garage then
