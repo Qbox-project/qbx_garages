@@ -194,7 +194,7 @@ local function CheckPlayers(vehicle, garage)
     end
     SetVehicleDoorsLocked(vehicle, 2)
     Wait(1500)
-    exports.qbx_core:DeleteVehicle(vehicle)
+    DeleteVehicle(vehicle)
 end
 
 -- Functions
