@@ -141,14 +141,14 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = false
                 DestroyZone("house", index)
             elseif type == "house" then
-                exports['qbx-core']:HideText()
+                lib.hideTextUI()
                 InputIn = false
                 InputOut = false
             elseif type == "in" then
-                exports['qbx-core']:HideText()
+                lib.hideTextUI()
                 InputIn = false
             elseif type == "out" then
-                exports['qbx-core']:HideText()
+                lib.hideTextUI()
                 InputOut = false
             end
         end,
