@@ -72,7 +72,7 @@ lib.callback.register("qb-garage:server:checkOwnership", checkOwnership)
 
 lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords, warp)
     local plate = vehInfo.plate
-    local netId = exports.qbx_core:CreateVehicle(source, vehInfo.vehicle, coords, warp)
+    local netId = exports.qbx_core:SpawnVehicle(source, vehInfo.vehicle, coords, warp)
     local veh = NetworkGetEntityFromNetworkId(netId)
     SetVehicleNumberPlateText(veh, plate)
     local vehProps = {}
