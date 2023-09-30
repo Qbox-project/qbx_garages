@@ -87,7 +87,7 @@ local function CreateZone(type, garage, index)
                 else
                     text = Lang:t("info.park_e") .. "  \n" .. garage.label
                 end
-                exports['qbx-core']:DrawText(text, 'left')
+                lib.showTextUI(text, {position = left})
                 InputIn = true
             elseif type == "out" then
                 if garage.type == "house" then
@@ -96,7 +96,7 @@ local function CreateZone(type, garage, index)
                     text = Lang:t("info." .. garage.vehicle .. "_e") .. "  \n" .. garage.label
                 end
 
-                exports['qbx-core']:DrawText(text, 'left')
+                lib.showTextUI(text, {position = left})
                 InputOut = true
             elseif type == "marker" then
                 currentGarage = garage
