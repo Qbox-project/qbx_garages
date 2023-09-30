@@ -28,7 +28,7 @@ local function MenuGarage(type, garage, indexgarage)
             {
                 title = Lang:t("menu.header.vehicles"),
                 description = Lang:t("menu.text.vehicles"),
-                event = "qb-garages:client:VehicleList",
+                event = "qbx_garages:client:VehicleList",
                 args = {
                     type = type,
                     garage = garage,
@@ -202,7 +202,7 @@ local function round(num, numDecimalPlaces)
     return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
 end
 
-RegisterNetEvent("qb-garages:client:VehicleList", function(data)
+RegisterNetEvent("qbx_garages:client:VehicleList", function(data)
     local type = data.type
     local garage = data.garage
     local indexgarage = data.index
@@ -214,7 +214,7 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
         header = Lang:t("menu.header." .. type .. "_" .. garage.vehicle, { value = garage.label })
     end
 
-    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, indexgarage, type, garage.vehicle)
+    local result = lib.callback.await('qbx_garage:server:GetGarageVehicles', false, indexgarage, type, garage.vehicle)
     if not result then
         exports.qbx_core:Notify(Lang:t("error.no_vehicles"), "error", 5000)
         return
@@ -243,7 +243,7 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
             registeredMenu.options[#registeredMenu.options + 1] = {
                 title = Lang:t('menu.header.depot', { value = vname, value2 = v.depotprice }),
                 description = '',
-                event = 'qb-garages:client:TakeOutDepot',
+                event = 'qbx_garages:client:TakeOutDepot',
                 args = {
                     vehicle = v,
                     type = type,
@@ -263,7 +263,7 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
             registeredMenu.options[#registeredMenu.options + 1] = {
                 title = Lang:t('menu.header.garage', { value = vname, value2 = v.plate }),
                 description = '',
-                event = 'qb-garages:client:takeOutGarage',
+                event = 'qbx_garages:client:takeOutGarage',
                 args = {
                     vehicle = v,
                     type = type,
@@ -285,18 +285,18 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     lib.showContext('qb_garage_vehicle_list')
 end)
 
-RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
+RegisterNetEvent('qbx_garages:client:takeOutGarage', function(data)
     local type = data.type
     local vehicle = data.vehicle
     local garage = data.garage
     local index = data.index
-    local spawn = lib.callback.await('qb-garage:server:IsSpawnOk', false, vehicle.plate, type)
+    local spawn = lib.callback.await('qbx_garage:server:IsSpawnOk', false, vehicle.plate, type)
     if not spawn then
         exports.qbx_core:Notify(Lang:t("error.not_impound"), "error", 5000)
         return
     end
 
-    local netId, properties = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == "house" and garage.takeVehicle or garage.spawnPoint, true)
+    local netId, properties = lib.callback.await('qbx_garage:server:spawnvehicle', false, vehicle, type == "house" and garage.takeVehicle or garage.spawnPoint, true)
     local timeout = 100
     while not NetworkDoesEntityExistWithNetworkId(netId) and timeout > 0 do
         Wait(10)
@@ -309,7 +309,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     end
     SetVehicleFuelLevel(veh, vehicle.fuel)
     doCarDamage(veh, vehicle)
-    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
+    TriggerServerEvent('qbx_garage:server:updateVehicleState', 0, vehicle.plate, index)
     TriggerEvent("vehiclekeys:client:SetOwner", GetPlate(veh))
     SetVehicleEngineOn(veh, true, true, false)
     Wait(500)
@@ -325,7 +325,7 @@ end)
 local function enterVehicle(veh, indexgarage, type, garage)
     local plate = GetPlate(veh)
     if GetVehicleNumberOfPassengers(veh) ~= 1 then
-        local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, type, indexgarage, PlayerGang.name)
+        local owned = lib.callback.await('qbx_garage:server:checkOwnership', false, plate, type, indexgarage, PlayerGang.name)
         if not owned then
             exports.qbx_core:Notify(Lang:t("error.not_owned"), "error", 5000)
             return
@@ -334,8 +334,8 @@ local function enterVehicle(veh, indexgarage, type, garage)
         local bodyDamage = math.ceil(GetVehicleBodyHealth(veh))
         local engineDamage = math.ceil(GetVehicleEngineHealth(veh))
         local totalFuel = GetVehicleFuelLevel(veh)
-        TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", lib.getVehicleProperties(veh))
-        TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
+        TriggerServerEvent("qbx_vehicletuning:server:SaveVehicleProps", lib.getVehicleProperties(veh))
+        TriggerServerEvent('qbx_garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
         CheckPlayers(veh, garage)
         if type == "house" then
             exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
@@ -344,7 +344,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
         end
 
         if plate then
-            TriggerServerEvent('qb-garages:server:UpdateOutsideVehicle', plate, nil)
+            TriggerServerEvent('qbx_garages:server:UpdateOutsideVehicle', plate, nil)
         end
         exports.qbx_core:Notify(Lang:t("success.vehicle_parked"), "primary", 4500)
     else
@@ -385,7 +385,7 @@ local function CreateBlipsZones()
     blipsZonesLoaded = true
 end
 
-RegisterNetEvent('qb-garages:client:setHouseGarage', function(house, hasKey)
+RegisterNetEvent('qbx_garages:client:setHouseGarage', function(house, hasKey)
     if HouseGarages[house] then
         if lasthouse ~= house then
             if lasthouse then
@@ -399,11 +399,11 @@ RegisterNetEvent('qb-garages:client:setHouseGarage', function(house, hasKey)
     end
 end)
 
-RegisterNetEvent('qb-garages:client:houseGarageConfig', function(garageConfig)
+RegisterNetEvent('qbx_garages:client:houseGarageConfig', function(garageConfig)
     HouseGarages = garageConfig
 end)
 
-RegisterNetEvent('qb-garages:client:addHouseGarage', function(house, garageInfo)
+RegisterNetEvent('qbx_garages:client:addHouseGarage', function(house, garageInfo)
     HouseGarages[house] = garageInfo
 end)
 
@@ -424,13 +424,13 @@ RegisterNetEvent('QBCore:Client:OnJobUpdate', function(job)
     PlayerJob = job
 end)
 
-RegisterNetEvent('qb-garages:client:TakeOutDepot', function(data)
+RegisterNetEvent('qbx_garages:client:TakeOutDepot', function(data)
     local vehicle = data.vehicle
 
     if vehicle.depotprice ~= 0 then
-        TriggerServerEvent("qb-garage:server:PayDepotPrice", data)
+        TriggerServerEvent("qbx_garage:server:PayDepotPrice", data)
     else
-        TriggerEvent("qb-garages:client:takeOutGarage", data)
+        TriggerEvent("qbx_garages:client:takeOutGarage", data)
     end
 end)
 
