@@ -116,10 +116,10 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = true
             elseif type == "house" then
                 if cache.vehicle then
-                    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
+                    lib.showTextUI(Lang:t("info.park_e"), {position = 'left'})
                     InputIn = true
                 else
-                    exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
+                    lib.showTextUI(Lang:t("info.car_e"), {position = 'left'})
                     InputOut = true
                 end
             end
@@ -317,7 +317,7 @@ RegisterNetEvent('qbx_garages:client:takeOutGarage', function(data)
 
     if type ~= "house" then return end
 
-    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
+    lib.showTextUI(Lang:t("info.park_e"), {position = 'left'})
     InputOut = false
     InputIn = true
 end)
@@ -338,7 +338,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
         TriggerServerEvent('qbx_garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, PlayerGang.name)
         CheckPlayers(veh, garage)
         if type == "house" then
-            exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
+            ib.showTextUI(Lang:t("info.car_e"), {position = 'left'})
             InputOut = true
             InputIn = false
         end
