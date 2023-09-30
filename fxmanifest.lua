@@ -7,6 +7,7 @@ repository 'https://github.com/Qbox-project/qbx_garages'
 shared_scripts {
     'config.lua',
     '@qbx_core/shared/locale.lua',
+    '@qbx_core/import.lua',
     'locales/en.lua',
     'locales/*.lua',
     '@ox_lib/init.lua'
