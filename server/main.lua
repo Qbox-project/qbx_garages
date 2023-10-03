@@ -157,12 +157,12 @@ RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
         if result[1] then
             if cashBalance >= result[1].depotprice then
                 player.Functions.RemoveMoney("cash", result[1].depotprice, "paid-depot")
-                TriggerClientEvent("qb-garages:client:takeOutGarage", src, data)
+                TriggerClientEvent("qb-garages:client:takeOutGarage", source, data)
             elseif bankBalance >= result[1].depotprice then
                 player.Functions.RemoveMoney("bank", result[1].depotprice, "paid-depot")
-                TriggerClientEvent("qb-garages:client:takeOutGarage", src, data)
+                TriggerClientEvent("qb-garages:client:takeOutGarage", source, data)
             else
-                TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough"), 'error')
+                TriggerClientEvent('QBCore:Notify', source, Lang:t("error.not_enough"), 'error')
             end
         end
     end)
