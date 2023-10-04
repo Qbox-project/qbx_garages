@@ -84,7 +84,7 @@ local function CreateZone(type, garage, index)
                 else
                     text = Lang:t("info.park_e") .. "  \n" .. garage.label
                 end
-                lib.showTextUI(text, {position = 'left'})
+                lib.showTextUI(text, {position = 'left-center'})
                 InputIn = true
             elseif type == "out" then
                 if garage.type == "house" then
@@ -93,7 +93,7 @@ local function CreateZone(type, garage, index)
                     text = Lang:t("info." .. garage.vehicle .. "_e") .. "  \n" .. garage.label
                 end
 
-                lib.showTextUI(text, {position = 'left'})
+                lib.showTextUI(text, {position = 'left-center'})
                 InputOut = true
             elseif type == "marker" then
                 currentGarage = garage
@@ -113,10 +113,10 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = true
             elseif type == "house" then
                 if cache.vehicle then
-                    lib.showTextUI(Lang:t("info.park_e"), {position = 'left'})
+                    lib.showTextUI(Lang:t("info.park_e"), {position = 'left-center'})
                     InputIn = true
                 else
-                    lib.showTextUI(Lang:t("info.car_e"), {position = 'left'})
+                    lib.showTextUI(Lang:t("info.car_e"), {position = 'left-center'})
                     InputOut = true
                 end
             end
@@ -313,7 +313,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     lib.setVehicleProperties(veh, properties)
 
     if type ~= "house" then return end
-    lib.showTextUI(Lang:t("info.park_e"), {position = 'left'})
+    lib.showTextUI(Lang:t("info.park_e"), {position = 'left-center'})
     InputOut = false
     InputIn = true
 end)
@@ -334,7 +334,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
         TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, QBX.PlayerData.gang.name)
         CheckPlayers(veh, garage)
         if type == "house" then
-            lib.showTextUI(Lang:t("info.car_e"), {position = 'left'})
+            lib.showTextUI(Lang:t("info.car_e"), {position = 'left-center'})
             InputOut = true
             InputIn = false
         end
