@@ -195,10 +195,6 @@ local function CheckPlayers(vehicle, garage)
 end
 
 -- Functions
-local function round(num, numDecimalPlaces)
-    return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
-end
-
 RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     local type = data.type
     local garage = data.garage
@@ -224,8 +220,8 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     }
 
     for _, v in pairs(result) do
-        local enginePercent = round(v.engine / 10, 0)
-        local bodyPercent = round(v.body / 10, 0)
+        local enginePercent = math.round(v.engine / 10)
+        local bodyPercent = math.round(v.body / 10)
         local currentFuel = v.fuel
         local vname = VEHICLES[v.vehicle].name
 
