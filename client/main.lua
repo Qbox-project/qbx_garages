@@ -84,7 +84,7 @@ local function CreateZone(type, garage, index)
                 else
                     text = Lang:t("info.park_e") .. "  \n" .. garage.label
                 end
-                exports['qbx-core']:DrawText(text, 'left')
+                lib.showTextUI(text, {position = 'left-center'})
                 InputIn = true
             elseif type == "out" then
                 if garage.type == "house" then
@@ -93,7 +93,7 @@ local function CreateZone(type, garage, index)
                     text = Lang:t("info." .. garage.vehicle .. "_e") .. "  \n" .. garage.label
                 end
 
-                exports['qbx-core']:DrawText(text, 'left')
+                lib.showTextUI(text, {position = 'left-center'})
                 InputOut = true
             elseif type == "marker" then
                 currentGarage = garage
@@ -113,10 +113,10 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = true
             elseif type == "house" then
                 if cache.vehicle then
-                    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
+                    lib.showTextUI(Lang:t("info.park_e"), {position = 'left-center'})
                     InputIn = true
                 else
-                    exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
+                    lib.showTextUI(Lang:t("info.car_e"), {position = 'left-center'})
                     InputOut = true
                 end
             end
@@ -138,14 +138,14 @@ local function CreateZone(type, garage, index)
                 HouseMarkers = false
                 DestroyZone("house", index)
             elseif type == "house" then
-                exports['qbx-core']:HideText()
+                lib.hideTextUI()
                 InputIn = false
                 InputOut = false
             elseif type == "in" then
-                exports['qbx-core']:HideText()
+                lib.hideTextUI()
                 InputIn = false
             elseif type == "out" then
-                exports['qbx-core']:HideText()
+                lib.hideTextUI()
                 InputOut = false
             end
         end,
@@ -195,10 +195,6 @@ local function CheckPlayers(vehicle, garage)
 end
 
 -- Functions
-local function round(num, numDecimalPlaces)
-    return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
-end
-
 RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     local type = data.type
     local garage = data.garage
@@ -224,8 +220,8 @@ RegisterNetEvent("qb-garages:client:VehicleList", function(data)
     }
 
     for _, v in pairs(result) do
-        local enginePercent = round(v.engine / 10, 0)
-        local bodyPercent = round(v.body / 10, 0)
+        local enginePercent = math.round(v.engine / 10)
+        local bodyPercent = math.round(v.body / 10)
         local currentFuel = v.fuel
         local vname = VEHICLES[v.vehicle].name
 
@@ -313,8 +309,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     lib.setVehicleProperties(veh, properties)
 
     if type ~= "house" then return end
-
-    exports['qbx-core']:DrawText(Lang:t("info.park_e"), 'left')
+    lib.showTextUI(Lang:t("info.park_e"), {position = 'left-center'})
     InputOut = false
     InputIn = true
 end)
@@ -335,7 +330,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
         TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, QBX.PlayerData.gang.name)
         CheckPlayers(veh, garage)
         if type == "house" then
-            exports['qbx-core']:DrawText(Lang:t("info.car_e"), 'left')
+            lib.showTextUI(Lang:t("info.car_e"), {position = 'left-center'})
             InputOut = true
             InputIn = false
         end

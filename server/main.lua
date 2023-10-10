@@ -99,7 +99,7 @@ end)
 RegisterNetEvent('qb-garage:server:updateVehicle', function(state, fuel, engine, body, plate, garage, type, gang)
     local owned = checkOwnership(source, plate, type, garage, gang) --Check ownership
     if not owned then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.not_owned"), 'error')
+        exports.qbx_core:Notify(source, Lang:t("error.not_owned"), 'error')
         return
     end
 
@@ -125,7 +125,7 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
 
     local owned = validateGarageVehicle(source, garage, type, plate) --Check ownership
     if not owned then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.not_owned"), 'error')
+        exports.qbx_core:Notify(source, Lang:t("error.not_owned"), 'error')
         return
     end
 
@@ -162,7 +162,7 @@ RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
                 player.Functions.RemoveMoney("bank", result[1].depotprice, "paid-depot")
                 TriggerClientEvent("qb-garages:client:takeOutGarage", source, data)
             else
-                TriggerClientEvent('QBCore:Notify', source, Lang:t("error.not_enough"), 'error')
+                exports.qbx_core:Notify(source, Lang:t("error.not_enough"), 'error')
             end
         end
     end)
