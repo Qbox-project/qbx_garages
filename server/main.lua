@@ -90,9 +90,8 @@ end)
 
 lib.callback.register("qb-garage:server:IsSpawnOk", function(_, plate, type)
     if type == "depot" then --If depot, check if vehicle is not already spawned on the map
-        return OutsideVehicles[plate] and DoesEntityExist(OutsideVehicles[plate].entity)
+        return not OutsideVehicles[plate] or not DoesEntityExist(OutsideVehicles[plate].entity)
     end
-
     return true
 end)
 
@@ -148,7 +147,8 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
-    local player = exports.qbx_core:GetPlayer(source)
+    local src = source
+    local player = exports.qbx_core:GetPlayer(src)
     local cashBalance = player.PlayerData.money.cash
     local bankBalance = player.PlayerData.money.bank
     local vehicle = data.vehicle
@@ -157,12 +157,12 @@ RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
         if result[1] then
             if cashBalance >= result[1].depotprice then
                 player.Functions.RemoveMoney("cash", result[1].depotprice, "paid-depot")
-                TriggerClientEvent("qb-garages:client:takeOutGarage", source, data)
+                TriggerClientEvent("qb-garages:client:takeOutGarage", src, data)
             elseif bankBalance >= result[1].depotprice then
                 player.Functions.RemoveMoney("bank", result[1].depotprice, "paid-depot")
-                TriggerClientEvent("qb-garages:client:takeOutGarage", source, data)
+                TriggerClientEvent("qb-garages:client:takeOutGarage", src, data)
             else
-                exports.qbx_core:Notify(source, Lang:t("error.not_enough"), 'error')
+                exports.qbx_core:Notify(src, Lang:t("error.not_enough"), 'error')
             end
         end
     end)
