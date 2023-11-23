@@ -1,4 +1,4 @@
-# qb-garages
+# qbx_garages
 
 **Public Garages**
 * Park owned cars in public garages.
