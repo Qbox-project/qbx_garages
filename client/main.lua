@@ -7,17 +7,18 @@ local InputIn = false
 local InputOut = false
 local currentGarage = nil
 local currentGarageIndex = nil
+local garageZones = {}
 local lasthouse = nil
 
 local function createBlips(garage)
     local blip = AddBlipForCoord(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
-    SetBlipSprite(blip, garage.blip.sprite or 357)
+    SetBlipSprite(blip, garage.blipSprite or 357)
     SetBlipDisplay(blip, 4)
     SetBlipScale(blip, 0.60)
     SetBlipAsShortRange(blip, true)
-    SetBlipColour(blip, garage.blip.color or 3)
+    SetBlipColour(blip, garage.blipColor or 3)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName(garage.blip.name or 'Public Parking')
+    AddTextComponentSubstringPlayerName(garage.blipName or 'Public Parking')
     EndTextCommandSetBlipName(blip)
 end
 
@@ -377,7 +378,7 @@ end
 
 local function createGarages()
     for index, garage in pairs(sharedConfig.garages) do
-        if garage.blip.enable then
+        if garage.showBlip or garage.showBlip == nil then
             createBlips(garage)
         end
         if garage.type == 'job' and QBX.PlayerData.job.name == garage.job or
