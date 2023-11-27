@@ -6,10 +6,10 @@ local OutsideVehicles = {}
 lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, garage, type, category)
     local player = exports.qbx_core:GetPlayer(source)
     if type == 'public' then        --Public garages give player cars in the garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ?', {player.PlayerData.citizenid, garage, 1})
+        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ?', {player.PlayerData.citizenid, garage})
         return result[1] and result
     elseif type == 'depot' then    --Depot give player cars that are not in garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ?)', {player.PlayerData.citizenid, 0})
+        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND state = ?', {player.PlayerData.citizenid, 0})
         local toSend = {}
         if not result[1] then return false end
         --Check vehicle type against depot type

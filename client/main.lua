@@ -11,41 +11,13 @@ local garageZones = {}
 local lasthouse = nil
 local blipsZonesLoaded = false
 
-
---Menus
-local function MenuGarage(type, garage, indexgarage)
-    local header
-    if type == 'house' then
-        header = Lang:t('menu.header.' .. type .. '_car', { value = garage.label })
-    else
-        header = Lang:t('menu.header.' .. type .. '_' .. garage.vehicle, { value = garage.label })
-    end
-    lib.registerContext({
-        id = 'qb_garage_menu',
-        title = header,
-        options = {
-            {
-                title = Lang:t('menu.header.vehicles'),
-                description = Lang:t('menu.text.vehicles'),
-                event = 'qb-garages:client:VehicleList',
-                args = {
-                    type = type,
-                    garage = garage,
-                    index = indexgarage,
-                }
-            }
-        },
-    })
-    lib.showContext('qb_garage_menu')
-end
-
-local function DestroyZone(type, index)
+local function destroyZone(type, index)
     if garageZones[type .. '_' .. index] then
         garageZones[type .. '_' .. index].zone:remove()
     end
 end
 
-local function CreateZone(type, garage, index)
+local function createZone(type, garage, index)
     local size
     local coords
     local heading
@@ -100,9 +72,9 @@ local function CreateZone(type, garage, index)
             elseif type == 'marker' then
                 currentGarage = garage
                 currentGarageIndex = index
-                CreateZone('out', garage, index)
+                createZone('out', garage, index)
                 if garage.type ~= 'depot' then
-                    CreateZone('in', garage, index)
+                    createZone('in', garage, index)
                     Markers = true
                 else
                     HouseMarkers = true
@@ -111,7 +83,7 @@ local function CreateZone(type, garage, index)
                 currentGarage = garage
                 currentGarage.type = 'house'
                 currentGarageIndex = index
-                CreateZone('house', garage, index)
+                createZone('house', garage, index)
                 HouseMarkers = true
             elseif type == 'house' then
                 if cache.vehicle then
@@ -131,14 +103,14 @@ local function CreateZone(type, garage, index)
                     else
                         HouseMarkers = false
                     end
-                    DestroyZone('in', index)
-                    DestroyZone('out', index)
+                    destroyZone('in', index)
+                    destroyZone('out', index)
                     currentGarage = nil
                     currentGarageIndex = nil
                 end
             elseif type == 'hmarker' then
                 HouseMarkers = false
-                DestroyZone('house', index)
+                destroyZone('house', index)
             elseif type == 'house' then
                 lib.hideTextUI()
                 InputIn = false
@@ -177,11 +149,12 @@ local function doCarDamage(currentVehicle, veh)
             end
         end
     end
+
     SetVehicleEngineHealth(currentVehicle, engine)
     SetVehicleBodyHealth(currentVehicle, body)
 end
 
-local function CheckPlayers(vehicle, garage)
+local function checkPlayers(vehicle, garage)
     for i = -1, 5, 1 do
         local seat = GetPedInVehicleSeat(vehicle, i)
         if seat then
@@ -196,89 +169,135 @@ local function CheckPlayers(vehicle, garage)
     DeleteVehicle(vehicle)
 end
 
--- Functions
-RegisterNetEvent('qb-garages:client:VehicleList', function(data)
-    local type = data.type
-    local garage = data.garage
-    local indexgarage = data.index
-    local header
-
-    if type == 'house' then
-        header = Lang:t('menu.header.' .. type .. '_car', { value = garage.label })
-    else
-        header = Lang:t('menu.header.' .. type .. '_' .. garage.vehicle, { value = garage.label })
+local function progressColor(percent)
+    if percent >= 75 then
+        return 'green.5'
+    elseif percent > 25 then
+        return 'yellow.5'
     end
+    return 'red.5'
+end
 
-    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, indexgarage, type, garage.vehicle)
-    if not result then
-        exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error', 5000)
-        return
-    end
-
-    local registeredMenu = {
-        id = 'qb_garage_vehicle_list',
-        title = header,
-        options = {}
+local function getStateLabel(state)
+    local stateLabels = {
+        [0] = Lang:t('status.out'),
+        [1] = Lang:t('status.garaged'),
+        [2] = Lang:t('status.impound'),
     }
+    
+    return stateLabels[state] or 'Unknown'
+end
 
-    for _, v in pairs(result) do
-        local enginePercent = math.round(v.engine / 10)
-        local bodyPercent = math.round(v.body / 10)
-        local currentFuel = v.fuel
-        local vname = VEHICLES[v.vehicle].name
+local function displayVehicleInfo(vehicle, type, garage, indexgarage)
+    local engine, body, fuel = math.round(vehicle.engine / 10), math.round(vehicle.body / 10), vehicle.fuel
+    local engineColor, bodyColor, fuelColor = progressColor(engine), progressColor(body), progressColor(fuel)
+    local vehLabel, stateLabel = VEHICLES[vehicle.vehicle].brand..' '..VEHICLES[vehicle.vehicle].name, getStateLabel(vehicle.state)
 
-        if v.state == 0 then
-            v.state = Lang:t('status.out')
-        elseif v.state == 1 then
-            v.state = Lang:t('status.garaged')
-        elseif v.state == 2 then
-            v.state = Lang:t('status.impound')
-        end
+    local options = {
+        {
+            title = 'Information',
+            icon = 'circle-info',
+            description = string.format('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s', vehLabel, vehicle.plate, stateLabel, CommaValue(vehicle.depotprice)),
+            readOnly = true,
+        },
+        {
+            title = 'Body',
+            icon = 'car-side',
+            readOnly = true,
+            progress = body,
+            colorScheme = bodyColor,
+        },
+        {
+            title = 'Engine',
+            icon = 'oil-can',
+            readOnly = true,
+            progress = engine,
+            colorScheme = engineColor,
+        },
+        {
+            title = 'Fuel',
+            icon = 'gas-pump',
+            readOnly = true,
+            progress = fuel,
+            colorScheme = fuelColor,
+        }
+    }
+    
+    if vehicle.state == 0 then
         if type == 'depot' then
-            registeredMenu.options[#registeredMenu.options + 1] = {
-                title = Lang:t('menu.header.depot', { value = vname, value2 = v.depotprice }),
-                description = '',
+            options[#options + 1] = {
+                title = 'Take out of Impound',
+                icon = 'fa-truck-ramp-box',
+                description = '$'..CommaValue(vehicle.depotprice),
                 event = 'qb-garages:client:TakeOutDepot',
                 args = {
-                    vehicle = v,
+                    vehicle = vehicle,
                     type = type,
                     garage = garage,
                     index = indexgarage,
-                    },
-                metadata = {
-                    {label = 'Plate', value = v.plate .. ' '},
-                    {label = 'Engine', value = enginePercent .. ' %'},
-                    {label = 'Fuel', value = currentFuel .. ' %'},
-                    {label = 'Body', value = bodyPercent .. ' %'},
                 },
             }
-
-
         else
-            registeredMenu.options[#registeredMenu.options + 1] = {
-                title = Lang:t('menu.header.garage', { value = vname, value2 = v.plate }),
-                description = '',
-                event = 'qb-garages:client:takeOutGarage',
-                args = {
-                    vehicle = v,
-                    type = type,
-                    garage = garage,
-                    index = indexgarage,
-                    },
-                metadata = {
-                    {label = 'State', value = v.state .. ' '},
-                    {label = 'Plate', value = v.plate .. ' '},
-                    {label = 'Engine', value = enginePercent .. ' %'},
-                    {label = 'Fuel', value = currentFuel .. ' %'},
-                    {label = 'Body', value = bodyPercent .. ' %'},
-                },
+            options[#options + 1] = {
+                title = 'Your vehicle is already out',
+                icon = 'car-on',
+                readOnly = true,
             }
-
         end
+    elseif vehicle.state == 1 then
+        options[#options + 1] = {
+            title = 'Take Out',
+            icon = 'car-rear',
+            event = 'qb-garages:client:takeOutGarage',
+            args = {
+                vehicle = vehicle,
+                type = type,
+                garage = garage,
+                index = indexgarage,
+            },
+        }
+    elseif vehicle.state == 2 then
+        options[#options + 1] = {
+            title = 'Your vehicle has been impounded by the police',
+            icon = 'building-shield',
+            readOnly = true,
+        }
     end
-    lib.registerContext(registeredMenu)
-    lib.showContext('qb_garage_vehicle_list')
-end)
+
+    lib.registerContext({
+        id = 'vehicleList',
+        title = vehLabel,
+        menu = 'garageMenu',
+        options = options,
+    })
+    lib.showContext('vehicleList')
+end
+
+local function menuGarage(type, garage, indexgarage)
+    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, indexgarage, type, garage.vehicle)
+    if not result then exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error') return end
+    
+    local options = {}
+
+    for _, v in pairs(result) do
+        local vehLabel, stateLabel = VEHICLES[v.vehicle].brand..' '..VEHICLES[v.vehicle].name, getStateLabel(v.state)
+
+        options[#options + 1] = {
+            title = vehLabel,
+            description = stateLabel..' | '..v.plate,
+            onSelect = function()
+                displayVehicleInfo(v, type, garage, indexgarage)
+            end,
+        }
+    end
+
+    lib.registerContext({
+        id = 'garageMenu',
+        title = garage.label,
+        options = options,
+    })
+    lib.showContext('garageMenu')
+end
 
 RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     local type = data.type
@@ -316,7 +335,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     InputIn = true
 end)
 
-local function enterVehicle(veh, indexgarage, type, garage)
+local function parkVehicle(veh, indexgarage, type, garage)
     local plate = GetPlate(veh)
     if GetVehicleNumberOfPassengers(veh) ~= 1 then
         local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, type, indexgarage, QBX.PlayerData.gang.name)
@@ -330,7 +349,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
         local totalFuel = GetVehicleFuelLevel(veh)
         TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', lib.getVehicleProperties(veh))
         TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, QBX.PlayerData.gang.name)
-        CheckPlayers(veh, garage)
+        checkPlayers(veh, garage)
         if type == 'house' then
             lib.showTextUI(Lang:t('info.car_e'), {position = 'left-center'})
             InputOut = true
@@ -346,7 +365,7 @@ local function enterVehicle(veh, indexgarage, type, garage)
     end
 end
 
-local function CreateBlipsZones()
+local function createBlipsZones()
     if blipsZonesLoaded then return end
 
     for index, garage in pairs(sharedConfig.garages) do
@@ -363,14 +382,14 @@ local function CreateBlipsZones()
         end
         if garage.type == 'job' then
             if QBX.PlayerData.job.name == garage.job then
-                CreateZone('marker', garage, index)
+                createZone('marker', garage, index)
             end
         elseif garage.type == 'gang' then
             if QBX.PlayerData.gang.name == garage.job then
-                CreateZone('marker', garage, index)
+                createZone('marker', garage, index)
             end
         else
-            CreateZone('marker', garage, index)
+            createZone('marker', garage, index)
         end
     end
     blipsZonesLoaded = true
@@ -380,10 +399,10 @@ RegisterNetEvent('qb-garages:client:setHouseGarage', function(house, hasKey)
     if sharedConfig.houseGarages[house] then
         if lasthouse ~= house then
             if lasthouse then
-                DestroyZone('hmarker', lasthouse)
+                destroyZone('hmarker', lasthouse)
             end
             if hasKey and sharedConfig.houseGarages[house].takeVehicle.x then
-                CreateZone('hmarker', sharedConfig.houseGarages[house], house)
+                createZone('hmarker', sharedConfig.houseGarages[house], house)
                 lasthouse = house
             end
         end
@@ -399,17 +418,16 @@ RegisterNetEvent('qb-garages:client:addHouseGarage', function(house, garageInfo)
 end)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-    CreateBlipsZones()
+    createBlipsZones()
 end)
 
 AddEventHandler('onResourceStart', function(res)
     if res ~= GetCurrentResourceName() then return end
-    CreateBlipsZones()
+    createBlipsZones()
 end)
 
 RegisterNetEvent('qb-garages:client:TakeOutDepot', function(data)
     local vehicle = data.vehicle
-
     if vehicle.depotprice ~= 0 then
         TriggerServerEvent('qb-garage:server:PayDepotPrice', data)
     else
@@ -417,7 +435,6 @@ RegisterNetEvent('qb-garages:client:TakeOutDepot', function(data)
     end
 end)
 
--- Threads
 CreateThread(function()
     local sleep
     while true do
@@ -440,14 +457,14 @@ CreateThread(function()
                         if vehClass ~= 14 and vehClass ~= 15 and vehClass ~= 16 then
                             if currentGarage.type == 'job' then
                                 if QBX.PlayerData.job.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    parkVehicle(curVeh, currentGarageIndex, currentGarage.type)
                                 end
                             elseif currentGarage.type == 'gang' then
                                 if QBX.PlayerData.gang.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    parkVehicle(curVeh, currentGarageIndex, currentGarage.type)
                                 end
                             else
-                                enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                parkVehicle(curVeh, currentGarageIndex, currentGarage.type)
                             end
                         else
                             exports.qbx_core:Notify(Lang:t('error.not_correct_type'), 'error', 3500)
@@ -456,14 +473,14 @@ CreateThread(function()
                         if vehClass == 15 or vehClass == 16 then
                             if currentGarage.type == 'job' then
                                 if QBX.PlayerData.job.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    parkVehicle(curVeh, currentGarageIndex, currentGarage.type)
                                 end
                             elseif currentGarage.type == 'gang' then
                                 if QBX.PlayerData.gang.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                    parkVehicle(curVeh, currentGarageIndex, currentGarage.type)
                                 end
                             else
-                                enterVehicle(curVeh, currentGarageIndex, currentGarage.type)
+                                parkVehicle(curVeh, currentGarageIndex, currentGarage.type)
                             end
                         else
                             exports.qbx_core:Notify(Lang:t('error.not_correct_type'), 'error', 3500)
@@ -472,14 +489,14 @@ CreateThread(function()
                         if vehClass == 14 then
                             if currentGarage.type == 'job' then
                                 if QBX.PlayerData.job.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
+                                    parkVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
                                 end
                             elseif currentGarage.type == 'gang' then
                                 if QBX.PlayerData.gang.name == currentGarage.job then
-                                    enterVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
+                                    parkVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
                                 end
                             else
-                                enterVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
+                                parkVehicle(curVeh, currentGarageIndex, currentGarage.type, currentGarage)
                             end
                         else
                             exports.qbx_core:Notify(Lang:t('error.not_correct_type'), 'error', 3500)
@@ -488,14 +505,14 @@ CreateThread(function()
                 elseif InputOut then
                     if currentGarage.type == 'job' then
                         if QBX.PlayerData.job.name == currentGarage.job then
-                            MenuGarage(currentGarage.type, currentGarage, currentGarageIndex)
+                            menuGarage(currentGarage.type, currentGarage, currentGarageIndex)
                         end
                     elseif currentGarage.type == 'gang' then
                         if QBX.PlayerData.gang.name == currentGarage.job then
-                            MenuGarage(currentGarage.type, currentGarage, currentGarageIndex)
+                            menuGarage(currentGarage.type, currentGarage, currentGarageIndex)
                         end
                     else
-                        MenuGarage(currentGarage.type, currentGarage, currentGarageIndex)
+                        menuGarage(currentGarage.type, currentGarage, currentGarageIndex)
                     end
                 end
             end
