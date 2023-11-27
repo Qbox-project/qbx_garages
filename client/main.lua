@@ -7,9 +7,19 @@ local InputIn = false
 local InputOut = false
 local currentGarage = nil
 local currentGarageIndex = nil
-local garageZones = {}
 local lasthouse = nil
-local blipsZonesLoaded = false
+
+local function createBlips(garage)
+    local blip = AddBlipForCoord(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
+    SetBlipSprite(blip, garage.blip.sprite or 357)
+    SetBlipDisplay(blip, 4)
+    SetBlipScale(blip, 0.60)
+    SetBlipAsShortRange(blip, true)
+    SetBlipColour(blip, garage.blip.color or 3)
+    BeginTextCommandSetBlipName('STRING')
+    AddTextComponentSubstringPlayerName(garage.blip.name or 'Public Parking')
+    EndTextCommandSetBlipName(blip)
+end
 
 local function destroyZone(type, index)
     if garageZones[type .. '_' .. index] then
@@ -365,34 +375,17 @@ local function parkVehicle(veh, indexgarage, type, garage)
     end
 end
 
-local function createBlipsZones()
-    if blipsZonesLoaded then return end
-
+local function createGarages()
     for index, garage in pairs(sharedConfig.garages) do
-        if garage.showBlip then
-            local Garage = AddBlipForCoord(garage.takeVehicle.x, garage.takeVehicle.y, garage.takeVehicle.z)
-            SetBlipSprite(Garage, garage.blipNumber)
-            SetBlipDisplay(Garage, 4)
-            SetBlipScale(Garage, 0.60)
-            SetBlipAsShortRange(Garage, true)
-            SetBlipColour(Garage, 3)
-            BeginTextCommandSetBlipName('STRING')
-            AddTextComponentSubstringPlayerName(garage.blipName)
-            EndTextCommandSetBlipName(Garage)
+        if garage.blip.enable then
+            createBlips(garage)
         end
-        if garage.type == 'job' then
-            if QBX.PlayerData.job.name == garage.job then
-                createZone('marker', garage, index)
-            end
-        elseif garage.type == 'gang' then
-            if QBX.PlayerData.gang.name == garage.job then
-                createZone('marker', garage, index)
-            end
-        else
+        if garage.type == 'job' and QBX.PlayerData.job.name == garage.job or
+            garage.type == 'gang' and QBX.PlayerData.gang.name == garage.job or
+            garage.type ~= 'job' and garage.type ~= 'gang' then
             createZone('marker', garage, index)
         end
     end
-    blipsZonesLoaded = true
 end
 
 RegisterNetEvent('qb-garages:client:setHouseGarage', function(house, hasKey)
@@ -418,12 +411,12 @@ RegisterNetEvent('qb-garages:client:addHouseGarage', function(house, garageInfo)
 end)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-    createBlipsZones()
+    createGarages()
 end)
 
 AddEventHandler('onResourceStart', function(res)
     if res ~= GetCurrentResourceName() then return end
-    createBlipsZones()
+    createGarages()
 end)
 
 RegisterNetEvent('qb-garages:client:TakeOutDepot', function(data)
