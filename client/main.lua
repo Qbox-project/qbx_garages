@@ -185,7 +185,7 @@ local function getStateLabel(state)
         [2] = Lang:t('status.impound'),
     }
     
-    return stateLabels[state] or 'Unknown'
+    return stateLabels[state]
 end
 
 local function displayVehicleInfo(vehicle, type, garage, indexgarage)
