@@ -1,20 +1,19 @@
 local config = require 'config.server'
 local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
-local OutsideVehicles = {}
+local outsideVehicles = {}
 
 lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, garage, type, category)
     local player = exports.qbx_core:GetPlayer(source)
-    if type == 'public' then        --Public garages give player cars in the garage only
+    if type == 'public' then -- Public garages give player cars in the garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ?', {player.PlayerData.citizenid, garage})
         return result[1] and result
-    elseif type == 'depot' then    --Depot give player cars that are not in garage only
+    elseif type == 'depot' then -- Depot give player cars that are not in garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND state = ?', {player.PlayerData.citizenid, 0})
         local toSend = {}
         if not result[1] then return false end
-        --Check vehicle type against depot type
-        for _, vehicle in pairs(result) do
-            if not OutsideVehicles[vehicle.plate] or not DoesEntityExist(OutsideVehicles[vehicle.plate].entity) then
+        for _, vehicle in pairs(result) do -- Check vehicle type against depot type
+            if not outsideVehicles[vehicle.plate] or not DoesEntityExist(outsideVehicles[vehicle.plate].entity) then
                 if category == 'air' and ( VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes' ) then
                     toSend[#toSend + 1] = vehicle
                 elseif category == 'sea' and VEHICLES[vehicle.vehicle].category == 'boats' then
@@ -25,7 +24,7 @@ lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, gar
             end
         end
         return toSend
-    else                            --House give all cars in the garage, Job and Gang depend of config
+    else -- House give all cars in the garage, Job and Gang depend of config
         local shared = config.sharedGarages and type ~= 'house' and '' or " AND citizenid = '"..player.PlayerData.citizenid.."'"
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ?'..shared, {garage, 1})
         return result[1] and result
@@ -34,10 +33,10 @@ end)
 
 local function validateGarageVehicle(source, garage, type, plate)
     local player = exports.qbx_core:GetPlayer(source)
-    if type == 'public' then --Public garages give player cars in the garage only
+    if type == 'public' then -- Public garages give player cars in the garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND plate = ?', {player.PlayerData.citizenid, garage, 1, plate})
         return result[1]
-    elseif type == 'depot' then --Depot give player cars that are not in garage only
+    elseif type == 'depot' then -- Depot give player cars that are not in garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND plate = ?', {player.PlayerData.citizenid, 0, 2, plate})
         return result[1]
     else
@@ -51,20 +50,20 @@ lib.callback.register('qb-garage:server:validateGarageVehicle', validateGarageVe
 
 local function checkOwnership(source, plate, type, house, gang)
     local player = exports.qbx_core:GetPlayer(source)
-    if type == 'public' then --Public garages only for player cars
+    if type == 'public' then -- Public garages only for player cars
          local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, player.PlayerData.citizenid})
          return result[1] or false
-    elseif type == 'house' then --House garages only for player cars that have keys of the house
+    elseif type == 'house' then -- House garages only for player cars that have keys of the house
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         return result[1] and exports['qb-houses']:hasKey(result[1].license, result[1].citizenid, house)
-    elseif type == 'gang' then --Gang garages only for gang members cars (for sharing)
+    elseif type == 'gang' then -- Gang garages only for gang members cars (for sharing)
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         if not result[1] then return false end
-        --Check if found owner is part of the gang
+        -- Check if found owner is part of the gang
         local resultplayer = MySQL.single.await('SELECT * FROM players WHERE citizenid = ?', { result[1].citizenid })
         if not resultplayer then return false end
         return json.decode(resultplayer.gang)?.name == gang
-    else --Job garages only for cars that are owned by someone (for sharing and service) or only by player depending of config
+    else -- Job garages only for cars that are owned by someone (for sharing and service) or only by player depending of config
         local shared = config.sharedGarages and '' or " AND citizenid = '"..player.PlayerData.citizenid.."'"
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?'..shared, {plate})
         return result[1]
@@ -81,7 +80,7 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
     local vehProps = {}
     local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
     if result[1] then vehProps = json.decode(result[1].mods) end
-    OutsideVehicles[plate] = {netID = netId, entity = veh}
+    outsideVehicles[plate] = {netID = netId, entity = veh}
     return netId, vehProps
 end)
 
@@ -91,8 +90,8 @@ lib.callback.register('qb-garage:server:GetVehicleProperties', function(_, plate
 end)
 
 lib.callback.register('qb-garage:server:IsSpawnOk', function(_, plate, type)
-    if type == 'depot' then --If depot, check if vehicle is not already spawned on the map
-        return not OutsideVehicles[plate] or not DoesEntityExist(OutsideVehicles[plate].entity)
+    if type == 'depot' then -- If depot, check if vehicle is not already spawned on the map
+        return not outsideVehicles[plate] or not DoesEntityExist(outsideVehicles[plate].entity)
     end
     return true
 end)
@@ -104,7 +103,7 @@ RegisterNetEvent('qb-garage:server:updateVehicle', function(state, fuel, engine,
         return
     end
 
-    --Check state value
+    -- Check state value
     if state ~= 0 and state ~= 1 and state ~= 2 then return end
 
     if type ~= 'house' then
@@ -123,21 +122,18 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
     else
         type = 'house'
     end
-
     local owned = validateGarageVehicle(source, garage, type, plate) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
     end
-
     --Check state value
     if state ~= 0 then return end
-
     MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, 0, plate})
 end)
 
 RegisterNetEvent('qb-garages:server:UpdateOutsideVehicle', function(plate, vehicle)
-    OutsideVehicles[plate] = {netID = vehicle, entity = NetworkGetEntityFromNetworkId(vehicle)}
+    outsideVehicles[plate] = {netID = vehicle, entity = NetworkGetEntityFromNetworkId(vehicle)}
 end)
 
 AddEventHandler('onResourceStart', function(resource)
@@ -170,15 +166,15 @@ RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
     end)
 end)
 
---External Calls
---Call from qb-vehiclesales
+-- External Calls
+-- Call from qb-vehiclesales
 lib.callback.register('qb-garage:server:checkVehicleOwner', function(source, plate)
     local player = exports.qbx_core:GetPlayer(source)
     local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?',{plate, player.PlayerData.citizenid})
     return result[1] ~= nil, result[1]?.balance
 end)
 
---Call from qb-phone
+-- Call from qb-phone
 lib.callback.register('qb-garage:server:GetPlayerVehicles', function(source)
     local player = exports.qbx_core:GetPlayer(source)
     local vehicles = {}
@@ -193,7 +189,7 @@ lib.callback.register('qb-garage:server:GetPlayerVehicles', function(source)
                 if sharedConfig.garages[v.garage] ~= nil then
                     vehicleGarage = sharedConfig.garages[v.garage].label
                 else
-                    vehicleGarage = Lang:t('info.house_garage')         -- sharedConfig.houseGarages[v.garage].label
+                    vehicleGarage = Lang:t('info.house_garage') -- sharedConfig.houseGarages[v.garage].label
                 end
             end
 
