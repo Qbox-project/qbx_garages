@@ -201,7 +201,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     end
     SetVehicleFuelLevel(veh, vehicle.fuel)
     doCarDamage(veh, vehicle)
-    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
+    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.vehicle, vehicle.plate, index)
     TriggerEvent("vehiclekeys:client:SetOwner", vehicle.plate)
     SetVehicleEngineOn(veh, true, true, false)
     Wait(500)
