@@ -113,7 +113,7 @@ RegisterNetEvent('qb-garage:server:updateVehicle', function(state, fuel, engine,
     end
 end)
 
-RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, model, plate, garage)
+RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, garage)
     local type
     if sharedConfig.garages[garage] then
         type = sharedConfig.garages[garage].type
@@ -125,12 +125,13 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, model, p
     if not owned then exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error') return end
     if state ~= 0 then return end -- Check state value
 
-    local currentPrice = MySQL.scalar.await('SELECT depotprice FROM player_vehicles WHERE plate = ?', {plate})
-    local vehCost = VEHICLES[model].price
+    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE plate = ?', {plate})
+    if not carInfo then return end
+    local vehCost = VEHICLES[carInfo.vehicle].price
     local newPrice = math.round(vehCost * (config.impoundFee.percentage / 100))
 
     if config.impoundFee.enable then
-        if currentPrice ~= newPrice then
+        if carInfo.depotprice ~= newPrice then
             MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, newPrice, plate})
         else
             MySQL.update('UPDATE player_vehicles SET state = ? WHERE plate = ?', {state, plate})
