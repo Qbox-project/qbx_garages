@@ -255,7 +255,7 @@ local function createZones(garage, index)
             lib.zones.box({
                 coords = garage.coords.xyz,
                 size = garage.size,
-                rotation = 0,
+                rotation = garage.coords.w,
                 onEnter = function()
                     lib.showTextUI((garage.type == 'depot' and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
                 end,
@@ -280,7 +280,7 @@ local function createZones(garage, index)
             exports.ox_target:addBoxZone({
                 coords = garage.coords.xyz,
                 size = garage.size,
-                rotation = 0,
+                rotation = garage.coords.w,
                 debug = config.debugPoly,
                 options = {
                     {
