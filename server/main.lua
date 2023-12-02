@@ -14,11 +14,9 @@ lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, gar
         if not result[1] then return false end
         for _, vehicle in pairs(result) do -- Check vehicle type against depot type
             if not outsideVehicles[vehicle.plate] or not DoesEntityExist(outsideVehicles[vehicle.plate].entity) then
-                if category == 'air' and ( VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes' ) then
-                    toSend[#toSend + 1] = vehicle
-                elseif category == 'sea' and VEHICLES[vehicle.vehicle].category == 'boats' then
-                    toSend[#toSend + 1] = vehicle
-                elseif category == 'car' and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats' then
+                if (category == 'air' and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
+                   (category == 'sea' and VEHICLES[vehicle.vehicle].category == 'boats') or
+                   (category == 'car' and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
                     toSend[#toSend + 1] = vehicle
                 end
             end
@@ -122,14 +120,25 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
     else
         type = 'house'
     end
-    local owned = validateGarageVehicle(source, garage, type, plate) --Check ownership
-    if not owned then
-        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
-        return
+
+    local owned = validateGarageVehicle(source, garage, type, plate) -- Check ownership
+    if not owned then exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error') return end
+    if state ~= 0 then return end -- Check state value
+
+    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE plate = ?', {plate})
+    if not carInfo then return end
+    local vehCost = VEHICLES[carInfo.vehicle].price
+    local newPrice = math.round(vehCost * (config.impoundFee.percentage / 100))
+
+    if config.impoundFee.enable then
+        if carInfo.depotprice ~= newPrice then
+            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, newPrice, plate})
+        else
+            MySQL.update('UPDATE player_vehicles SET state = ? WHERE plate = ?', {state, plate})
+        end
+    else
+        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, 0, plate})
     end
-    --Check state value
-    if state ~= 0 then return end
-    MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, 0, plate})
 end)
 
 RegisterNetEvent('qb-garages:server:UpdateOutsideVehicle', function(plate, vehicle)
