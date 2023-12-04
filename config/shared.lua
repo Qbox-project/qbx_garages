@@ -1,108 +1,108 @@
 return {
     houseGarages = {}, -- Dont touch
     garages = {
-        --[[garagename = { -- Needs to be unique
-            label = 'Motel Parking', -- Label for your garage
-            coords = vec3(0.0, 0.0, 0.0), -- Coords for taking out a vehicle
-            size = vec3(10, 10, 10), -- Size of the zone
-            spawn = vec4(0.0, 0.0, 0.0, 0.0), -- Coords where the vehicle will spawn
-            showBlip = true, -- Enable or disable the blip (OPTIONAL)
-            blipName = 'Public Parking', -- Name of the blip (OPTIONAL)
-            blipSprite = 357, -- Sprite for the blip (OPTIONAL)
-            blipColor = 3, -- Color for the blip (OPTIONAL)
-            type = 'public', -- Type of garage (public, job, gang, or depot)
-            vehicle = 'car', -- Vehicle type (car, air, sea, or all)
-            job = '' -- Job / Gang name (OPTIONAL)
 
-            (If the optional fields are left blank, they default to what is provided here)
-        },]]--
+        ---@class GarageConfig
+        ---@field label string -- Label for the garage
+        ---@field coords vector4 -- Coordinates for taking out a vehicle
+        ---@field size vector3 -- Size of the zone
+        ---@field spawn vector4 -- Coordinates where the vehicle will spawn
+        ---@field showBlip boolean? -- Enable or disable the blip
+        ---@field blipName string? -- Name of the blip
+        ---@field blipSprite number? -- Sprite for the blip
+        ---@field blipColor number? -- Color for the blip
+        ---@field type public | job | gang | depot -- Type of garage
+        ---@field vehicle car | air | sea | all -- Vehicle type
+        ---@field job string?       -- Job / Gang name
+        
+        ---@type table<garageName, GarageConfig>
 
         -- Public Garages
         motelgarage = {
             label = 'Motel Parking',
-            coords = vec3(273.43, -343.99, 44.91),
+            coords = vec4(275.58, -344.74, 45.17, 70.0),
             size = vec3(10, 10, 10),
-            spawn = vec4(270.94, -342.96, 43.97, 161.5),
+            spawn = vec4(271.26, -342.32, 44.7, 159.97),
             type = 'public',
             vehicle = 'car',
         },
         sapcounsel = {
             label = 'San Andreas Parking',
-            coords = vec3(-330.01, -780.33, 33.96),
+            coords = vec4(-330.67, -781.12, 33.96, 40.46),
             size = vec3(10, 10, 10),
-            spawn = vec4(-334.44, -780.75, 33.96, 137.5),
+            spawn = vec4(-337.11, -775.34, 33.56, 132.09),
             type = 'public',
             vehicle = 'car',
         },
         spanishave = {
             label = 'Spanish Ave Parking',
-            coords = vec3(-1160.86, -741.41, 19.63),
+            coords = vec4(-1160.46, -741.04, 19.95, 41.26),
             size = vec3(10, 10, 10),
-            spawn = vec4(-1163.88, -749.32, 18.42, 35.5),
+            spawn = vec4(-1165.38, -747.65, 18.94, 40.45),
             type = 'public',
             vehicle = 'car',
         },
         caears24 = {
             label = 'Caears 24 Parking',
-            coords = vec3(69.84, 12.6, 68.96),
+            coords = vec4(68.08, 13.15, 69.21, 160.44),
             size = vec3(10, 10, 10),
-            spawn = vec4(73.21, 10.72, 68.83, 163.5),
+            spawn = vec4(72.61, 11.72, 68.47, 157.59),
             type = 'public',
             vehicle = 'car',
         },
-        caears242 = {
-            label = 'Caears 24 Parking',
-            coords = vec3(-475.31, -818.73, 30.46),
+        littleseoul = {
+            label = 'Little Seoul Parking',
+            coords = vec4(-463.51, -808.2, 30.54, 0.0),
             size = vec3(10, 10, 10),
-            spawn = vec4(-472.03, -815.47, 30.5, 177.5),
+            spawn = vec4(-472.24, -813.61, 30.3, 179.88),
             type = 'public',
             vehicle = 'car',
         },
         lagunapi = {
             label = 'Laguna Parking',
-            coords = vec3(364.37, 297.83, 103.49),
+            coords = vec4(363.85, 297.97, 103.5, 341.39),
             size = vec3(10, 10, 10),
-            spawn = vec4(367.49, 297.71, 103.43, 340.5),
+            spawn = vec4(367.41, 297.02, 103.2, 341.08),
             type = 'public',
             vehicle = 'car',
         },
         airportp = {
             label = 'Airport Parking',
-            coords = vec3(-796.86, -2024.85, 8.88),
+            coords = vec4(-796.07, -2023.26, 9.17, 55.18),
             size = vec3(10, 10, 10),
-            spawn = vec4(-800.41, -2016.53, 9.32, 48.5),
+            spawn = vec4(-793.35, -2020.62, 8.51, 58.42),
             type = 'public',
             vehicle = 'car',
         },
         beachp = {
             label = 'Beach Parking',
-            coords = vec3(-1183.1, -1511.11, 4.36),
+            coords = vec4(-1184.21, -1509.65, 4.65, 303.72),
             size = vec3(10, 10, 10),
-            spawn = vec4(-1181.0, -1505.98, 4.37, 214.5),
+            spawn = vec4(-1184.4, -1501.88, 4.39, 214.7),
             type = 'public',
             vehicle = 'car',
         },
         themotorhotel = {
             label = 'The Motor Hotel Parking',
-            coords = vec3(1137.77, 2663.54, 37.9),
+            coords = vec4(1137.77, 2663.54, 37.9, 0.0),
             size = vec3(10, 10, 10),
-            spawn = vec4(1137.69, 2673.61, 37.9, 359.5),
+            spawn = vec4(1137.56, 2674.19, 38.17, 359.95),
             type = 'public',
             vehicle = 'car',
         },
         liqourparking = {
             label = 'Liqour Parking',
-            coords = vec3(934.95, 3606.59, 32.81),
+            coords = vec4(960.68, 3609.32, 32.98, 268.97),
             size = vec3(10, 10, 10),
-            spawn = vec4(941.57, 3619.99, 32.5, 141.5),
+            spawn = vec4(960.48, 3605.71, 32.98, 87.09),
             type = 'public',
             vehicle = 'car',
         },
         shoreparking = {
             label = 'Shore Parking',
-            coords = vec3(1726.21, 3707.16, 34.17),
+            coords = vec4(1726.9, 3710.38, 34.26, 22.54),
             size = vec3(10, 10, 10),
-            spawn = vec4(1730.31, 3711.07, 34.2, 20.5),
+            spawn = vec4(1728.65, 3714.85, 34.18, 21.26),
             type = 'public',
             vehicle = 'car',
         },
@@ -124,15 +124,15 @@ return {
         },
         pillboxgarage = {
             label = 'Pillbox Garage Parking',
-            coords = vec3(215.9499, -809.698, 30.731),
+            coords = vec4(218.66, -804.08, 30.75, 65.69),
             size = vec3(10, 10, 10),
-            spawn = vec4(234.1942, -787.066, 30.193, 159.6),
+            spawn = vec4(229.33, -805.01, 30.54, 156.79),
             type = 'public',
             vehicle = 'car',
         },
         intairport = {
             label = 'Airport Hangar',
-            coords = vec3(-1025.92, -3017.86, 13.95),
+            coords = vec4(-1025.34, -3017.0, 13.95, 331.99),
             size = vec3(10, 10, 10),
             spawn = vec4(-979.2, -2995.51, 13.95, 52.19),
             blipName = 'Hanger',
@@ -142,9 +142,9 @@ return {
         },
         higginsheli = {
             label = 'Higgins Helitours',
-            coords = vec3(-722.15, -1472.79, 5.0),
+            coords = vec4(-722.12, -1472.74, 5.0, 140.0),
             size = vec3(10, 10, 10),
-            spawn = vec4(-724.83, -1443.89, 5.0, 140.1),
+            spawn = vec4(-724.83, -1443.89, 5.0, 140.0),
             blipName = 'Hanger',
             blipSprite = 360,
             type = 'public',
@@ -152,9 +152,9 @@ return {
         },
         airsshores = {
             label = 'Sandy Shores Hangar',
-            coords = vec3(1758.19, 3296.66, 41.14),
+            coords = vec4(1757.74, 3296.13, 41.15, 142.6),
             size = vec3(10, 10, 10),
-            spawn = vec4(1740.98, 3279.08, 41.75, 106.77),
+            spawn = vec4(1740.88, 3278.99, 41.09, 189.46),
             blipName = 'Hanger',
             blipSprite = 360,
             type = 'public',
@@ -162,7 +162,7 @@ return {
         },
         lsymc = {
             label = 'LSYMC Boathouse',
-            coords = vec3(-794.66, -1510.83, 1.59),
+            coords = vec4(-794.64, -1510.89, 1.6, 201.55),
             size = vec3(10, 10, 10),
             spawn = vec4(-793.58, -1501.4, 0.12, 111.5),
             blipName = 'Boathouse',
@@ -172,7 +172,7 @@ return {
         },
         paleto = {
             label = 'Paleto Boathouse',
-            coords = vec3(-277.46, 6637.2, 7.48),
+            coords = vec4(-277.4, 6637.01, 7.5, 40.51),
             size = vec3(10, 10, 10),
             spawn = vec4(-289.2, 6637.96, 1.01, 45.5),
             blipName = 'Boathouse',
@@ -182,9 +182,9 @@ return {
         },
         millars = {
             label = 'Millars Boathouse',
-            coords = vec3(1299.24, 4216.69, 33.9),
+            coords = vec4(1299.02, 4216.42, 33.91, 166.8),
             size = vec3(10, 10, 10),
-            spawn = vec4(1297.82, 4209.61, 30.12, 253.5),
+            spawn = vec4(1296.78, 4203.76, 30.12, 169.03),
             blipName = 'Boathouse',
             blipSprite = 356,
             type = 'public',
@@ -258,9 +258,9 @@ return {
         -- Impound Lots
         impoundlot = {
             label = 'Impound Lot',
-            coords = vec3(409.89, -1623.51, 29.29),
+            coords = vec4(400.45, -1630.87, 29.29, 228.88),
             size = vec3(10, 10, 10),
-            spawn = vec4(407.92, -1646.29, 29.29, 226.39),
+            spawn = vec4(407.2, -1645.58, 29.31, 228.28),
             blipName = 'Impound Lot',
             blipSprite = 68,
             type = 'depot',
@@ -268,9 +268,9 @@ return {
         },
         airdepot = {
             label = 'Air Depot',
-            coords = vec3(-1243.29, -3392.3, 13.94),
+            coords = vec4(-1244.35, -3391.39, 13.94, 59.26),
             size = vec3(10, 10, 10),
-            spawn = vec4(-1269.67, -3377.74, 13.94, 327.88),
+            spawn = vec4(-1269.03, -3376.7, 13.94, 330.32),
             blipName = 'Air Deot',
             blipSprite = 359,
             type = 'depot',
@@ -278,7 +278,7 @@ return {
         },
         seadepot = {
             label = 'LSYMC Depot',
-            coords = vec3(-772.98, -1430.76, 1.59),
+            coords = vec4(-772.71, -1431.11, 1.6, 48.03),
             size = vec3(10, 10, 10),
             spawn = vec4(-729.77, -1355.49, 1.19, 142.5),
             blipName = 'LSYMC Depot',
