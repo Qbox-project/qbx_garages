@@ -72,14 +72,14 @@ lib.callback.register('qb-garage:server:checkOwnership', checkOwnership)
 
 lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords, warp)
     local plate = vehInfo.plate
-    local netId = SpawnVehicle(source, vehInfo.vehicle, coords, warp)
-    local veh = NetworkGetEntityFromNetworkId(netId)
-    SetVehicleNumberPlateText(veh, plate)
     local vehProps = {}
     local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
     if result[1] then vehProps = json.decode(result[1].mods) end
+    local netId = SpawnVehicle(source, vehInfo.vehicle, coords, warp, vehProps)
+    local veh = NetworkGetEntityFromNetworkId(netId)
+    SetVehicleNumberPlateText(veh, plate)
     outsideVehicles[plate] = {netID = netId, entity = veh}
-    return netId, vehProps
+    return netId
 end)
 
 lib.callback.register('qb-garage:server:GetVehicleProperties', function(_, plate)
