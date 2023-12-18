@@ -78,6 +78,7 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
     local netId = SpawnVehicle(source, vehInfo.vehicle, coords, warp, vehProps)
     local veh = NetworkGetEntityFromNetworkId(netId)
     SetVehicleNumberPlateText(veh, plate)
+    SetVehicleDoorsLocked(veh, 2)
     outsideVehicles[plate] = {netID = netId, entity = veh}
     return netId
 end)

@@ -103,10 +103,11 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
     if vehicle.state == 0 then
         if type == 'depot' then
             options[#options + 1] = {
-                title = 'Take out of Impound',
+                title = 'Take out',
                 icon = 'fa-truck-ramp-box',
                 description = '$'..CommaValue(vehicle.depotprice),
                 event = 'qb-garages:client:TakeOutDepot',
+                arrow = true,
                 args = {
                     vehicle = vehicle,
                     type = type,
@@ -116,16 +117,17 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
             }
         else
             options[#options + 1] = {
-                title = 'Your vehicle is already out',
-                icon = 'car-on',
+                title = 'Your vehicle is already out...',
+                icon = 'car',
                 readOnly = true,
             }
         end
     elseif vehicle.state == 1 then
         options[#options + 1] = {
-            title = 'Take Out',
+            title = 'Take out',
             icon = 'car-rear',
             event = 'qb-garages:client:takeOutGarage',
+            arrow = true,
             args = {
                 vehicle = vehicle,
                 type = type,
@@ -162,6 +164,7 @@ local function openGarageMenu(type, garage, indexgarage)
         options[#options + 1] = {
             title = vehLabel,
             description = stateLabel..' | '..v.plate,
+            arrow = true,
             onSelect = function()
                 displayVehicleInfo(v, type, garage, indexgarage)
             end,
@@ -188,7 +191,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == 'house' and garage.coords or garage.spawn, true)
+    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == 'house' and garage.coords or garage.spawn, config.warpInVehicle)
     local timeout = 100
     while not NetworkDoesEntityExistWithNetworkId(netId) and timeout > 0 do
         Wait(10)
@@ -202,8 +205,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     SetVehicleFuelLevel(veh, vehicle.fuel)
     doCarDamage(veh, vehicle)
     TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
-    TriggerEvent("vehiclekeys:client:SetOwner", vehicle.plate)
-    SetVehicleEngineOn(veh, true, true, false)
+    TriggerEvent('vehiclekeys:client:SetOwner', vehicle.plate)
     Wait(500)
 end)
 
@@ -364,8 +366,8 @@ AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     createGarages()
 end)
 
-AddEventHandler('onResourceStart', function(res)
-    if res ~= GetCurrentResourceName() then return end
+AddEventHandler('onResourceStart', function(resource)
+    if resource ~= cache.resource then return end
     createGarages()
 end)
 
