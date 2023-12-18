@@ -191,7 +191,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == 'house' and garage.coords or garage.spawn, config.warpInVehicle)
+    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == 'house' and garage.coords or garage.spawn, sharedConfig.takeOut.warpInVehicle)
     local timeout = 100
     while not NetworkDoesEntityExistWithNetworkId(netId) and timeout > 0 do
         Wait(10)
@@ -206,6 +206,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     doCarDamage(veh, vehicle)
     TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
     TriggerEvent('vehiclekeys:client:SetOwner', vehicle.plate)
+    if not sharedConfig.takeOut.engineOff then SetVehicleEngineOn(veh, true, true, false) end
     Wait(500)
 end)
 
