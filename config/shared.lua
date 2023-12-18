@@ -1,4 +1,10 @@
 return {
+    takeOut = {
+        warpInVehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
+        doorsLocked = true, -- If true, the doors will be locked upon taking the vehicle out.
+        engineOff = true, -- If true, the engine will be off upon taking the vehicle out.
+    },
+
     houseGarages = {}, -- Dont touch
     garages = {
 
@@ -13,7 +19,7 @@ return {
         ---@field blipColor number? -- Color for the blip
         ---@field type public | job | gang | depot -- Type of garage
         ---@field vehicle car | air | sea | all -- Vehicle type
-        ---@field job string?       -- Job / Gang name
+        ---@field job string? -- Job / Gang name
         
         ---@type table<garageName, GarageConfig>
 
