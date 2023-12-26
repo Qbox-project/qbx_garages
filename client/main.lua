@@ -62,14 +62,14 @@ local function getProgressColor(percent)
     return ProgressColor.red
 end
 
-local function getStateLabel(state)
-    local stateLabels = {
-        [0] = Lang:t('status.out'),
-        [1] = Lang:t('status.garaged'),
-        [2] = Lang:t('status.impound'),
-    }
+local StateLabels = {
+    [0] = Lang:t('status.out'),
+    [1] = Lang:t('status.garaged'),
+    [2] = Lang:t('status.impound'),
+}
 
-    return stateLabels[state]
+local function getStateLabel(state)
+    return StateLabels[state]
 end
 
 local function displayVehicleInfo(vehicle, type, garage, indexgarage)
