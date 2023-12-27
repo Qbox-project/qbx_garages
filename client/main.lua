@@ -46,28 +46,35 @@ local function checkPlayers(vehicle, garage)
     DeleteVehicle(vehicle)
 end
 
-local function progressColor(percent)
+---@enum ProgressColor
+local ProgressColor = {
+    green = 'green.5',
+    yellow = 'yellow.5',
+    red = 'red.5'
+}
+
+local function getProgressColor(percent)
     if percent >= 75 then
-        return 'green.5'
+        return ProgressColor.green
     elseif percent > 25 then
-        return 'yellow.5'
+        return ProgressColor.yellow
     end
-    return 'red.5'
+    return ProgressColor.red
 end
 
+local StateLabels = {
+    [0] = Lang:t('status.out'),
+    [1] = Lang:t('status.garaged'),
+    [2] = Lang:t('status.impound'),
+}
+
 local function getStateLabel(state)
-    local stateLabels = {
-        [0] = Lang:t('status.out'),
-        [1] = Lang:t('status.garaged'),
-        [2] = Lang:t('status.impound'),
-    }
-    
-    return stateLabels[state]
+    return StateLabels[state]
 end
 
 local function displayVehicleInfo(vehicle, type, garage, indexgarage)
     local engine, body, fuel = math.round(vehicle.engine / 10), math.round(vehicle.body / 10), vehicle.fuel
-    local engineColor, bodyColor, fuelColor = progressColor(engine), progressColor(body), progressColor(fuel)
+    local engineColor, bodyColor, fuelColor = getProgressColor(engine), getProgressColor(body), getProgressColor(fuel)
     local vehLabel, stateLabel = VEHICLES[vehicle.vehicle].brand..' '..VEHICLES[vehicle.vehicle].name, getStateLabel(vehicle.state)
 
     local options = {
@@ -99,7 +106,7 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
             colorScheme = fuelColor,
         }
     }
-    
+
     if vehicle.state == 0 then
         if type == 'depot' then
             options[#options + 1] = {
@@ -235,16 +242,17 @@ local function parkVehicle(veh, indexgarage, type, garage)
     end
 end
 
-local function checkVehicleClass(category, vehicle)
-    local classes = {
-        all = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
-        car = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 22},
-        air = {15, 16},
-        sea = {14},
-    }
+---@enum VehicleCategory
+local VehicleCategory = {
+    all = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
+    car = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 22},
+    air = {15, 16},
+    sea = {14},
+}
 
+local function checkVehicleClass(category, vehicle)
     local classSet = {}
-    for _, class in ipairs(classes[category]) do
+    for _, class in pairs(VehicleCategory[category]) do
         classSet[class] = true
     end
 
