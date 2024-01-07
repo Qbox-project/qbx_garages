@@ -36,7 +36,7 @@ local function checkPlayers(vehicle, garageInfo)
         local seat = GetPedInVehicleSeat(vehicle, i)
         if seat then
             TaskLeaveVehicle(seat, vehicle, 0)
-            if garage then
+            if garageInfo then
                 SetEntityCoords(seat, garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z, false, false, false, true)
             end
         end
