@@ -73,12 +73,20 @@ lib.callback.register('qb-garage:server:checkOwnership', checkOwnership)
 lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords, warp)
     local plate = vehInfo.plate
     local vehProps = {}
+
     local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
-    if result[1] then vehProps = json.decode(result[1].mods) end
+    if result[1] then
+        vehProps = json.decode(result[1].mods)
+    end
+
     local netId = SpawnVehicle(source, vehInfo.vehicle, coords, warp, vehProps)
     local veh = NetworkGetEntityFromNetworkId(netId)
     SetVehicleNumberPlateText(veh, plate)
-    if sharedConfig.takeOut.doorsLocked then SetVehicleDoorsLocked(veh, 2) end
+
+    if sharedConfig.takeOut.doorsLocked then
+        SetVehicleDoorsLocked(veh, 2)
+    end
+
     outsideVehicles[plate] = {netID = netId, entity = veh}
     return netId
 end)
@@ -123,14 +131,18 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
     end
 
     local owned = validateGarageVehicle(source, garage, type, plate) -- Check ownership
-    if not owned then exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error') return end
+    if not owned then
+        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
+        return
+    end
+
     if state ~= 0 then return end -- Check state value
 
     local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE plate = ?', {plate})
     if not carInfo then return end
+
     local vehCost = VEHICLES[carInfo.vehicle].price
     local newPrice = math.round(vehCost * (config.impoundFee.percentage / 100))
-
     if config.impoundFee.enable then
         if carInfo.depotprice ~= newPrice then
             MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, newPrice, plate})
@@ -147,7 +159,7 @@ RegisterNetEvent('qb-garages:server:UpdateOutsideVehicle', function(plate, vehic
 end)
 
 AddEventHandler('onResourceStart', function(resource)
-    if resource ~= GetCurrentResourceName() then return end
+    if resource ~= cache.resource then return end
     Wait(100)
     if not config.autoRespawn then return end
 

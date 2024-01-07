@@ -3,10 +3,10 @@ local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
 local lasthouse = nil
 
-local function doCarDamage(currentVehicle, veh)
-    local engine = veh.engine + 0.0
-    local body = veh.body + 0.0
-    local data = json.decode(veh.mods)
+local function doCarDamage(currentVehicle, vehicle)
+    local engine = vehicle.engine + 0.0
+    local body = vehicle.body + 0.0
+    local data = json.decode(vehicle.mods)
 
     if config.visuallyDamageCars then
         for k, v in pairs(data.doors) do
@@ -31,13 +31,13 @@ local function doCarDamage(currentVehicle, veh)
     SetVehicleBodyHealth(currentVehicle, body)
 end
 
-local function checkPlayers(vehicle, garage)
+local function checkPlayers(vehicle, garageInfo)
     for i = -1, 5, 1 do
         local seat = GetPedInVehicleSeat(vehicle, i)
         if seat then
             TaskLeaveVehicle(seat, vehicle, 0)
             if garage then
-                SetEntityCoords(seat, garage.coords.x, garage.coords.y, garage.coords.z, false, false, false, true)
+                SetEntityCoords(seat, garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z, false, false, false, true)
             end
         end
     end
@@ -72,16 +72,20 @@ local function getStateLabel(state)
     return StateLabels[state]
 end
 
-local function displayVehicleInfo(vehicle, type, garage, indexgarage)
-    local engine, body, fuel = math.round(vehicle.engine / 10), math.round(vehicle.body / 10), vehicle.fuel
-    local engineColor, bodyColor, fuelColor = getProgressColor(engine), getProgressColor(body), getProgressColor(fuel)
-    local vehLabel, stateLabel = VEHICLES[vehicle.vehicle].brand..' '..VEHICLES[vehicle.vehicle].name, getStateLabel(vehicle.state)
+local function displayVehicleInfo(vehicle, garageName, garageInfo)
+    local engine = math.round(vehicle.engine / 10)
+    local body = math.round(vehicle.body / 10)
+    local engineColor = getProgressColor(engine)
+    local bodyColor = getProgressColor(body)
+    local fuelColor = getProgressColor(vehicle.fuel)
+    local stateLabel = getStateLabel(vehicle.state)
+    local vehLabel = VEHICLES[vehicle.vehicle].brand..' '..VEHICLES[vehicle.vehicle].name
 
     local options = {
         {
             title = 'Information',
             icon = 'circle-info',
-            description = string.format('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s', vehLabel, vehicle.plate, stateLabel, CommaValue(vehicle.depotprice)),
+            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehLabel, vehicle.plate, stateLabel, CommaValue(vehicle.depotprice)),
             readOnly = true,
         },
         {
@@ -102,7 +106,7 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
             title = 'Fuel',
             icon = 'gas-pump',
             readOnly = true,
-            progress = fuel,
+            progress = vehicle.fuel,
             colorScheme = fuelColor,
         }
     }
@@ -117,9 +121,8 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
                 arrow = true,
                 args = {
                     vehicle = vehicle,
-                    type = type,
-                    garage = garage,
-                    index = indexgarage,
+                    garageInfo = garageInfo,
+                    garageName = garageName,
                 },
             }
         else
@@ -137,9 +140,8 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
             arrow = true,
             args = {
                 vehicle = vehicle,
-                type = type,
-                garage = garage,
-                index = indexgarage,
+                garageInfo = garageInfo,
+                garageName = garageName,
             },
         }
     elseif vehicle.state == 2 then
@@ -152,86 +154,96 @@ local function displayVehicleInfo(vehicle, type, garage, indexgarage)
 
     lib.registerContext({
         id = 'vehicleList',
-        title = vehLabel,
+        title = garageInfo.label,
         menu = 'garageMenu',
         options = options,
     })
     lib.showContext('vehicleList')
 end
 
-local function openGarageMenu(type, garage, indexgarage)
-    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, indexgarage, type, garage.vehicle)
-    if not result then exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error') return end
+local function openGarageMenu(garageName, garageInfo)
+    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, garageName, garageInfo.type, garageInfo.vehicle)
+
+    if not result then
+        exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error')
+        return
+    end
 
     local options = {}
 
     for _, v in pairs(result) do
-        local vehLabel, stateLabel = VEHICLES[v.vehicle].brand..' '..VEHICLES[v.vehicle].name, getStateLabel(v.state)
+        local vehLabel = VEHICLES[v.vehicle].brand..' '..VEHICLES[v.vehicle].name
+        local stateLabel = getStateLabel(v.state)
 
         options[#options + 1] = {
             title = vehLabel,
             description = stateLabel..' | '..v.plate,
             arrow = true,
             onSelect = function()
-                displayVehicleInfo(v, type, garage, indexgarage)
+                displayVehicleInfo(v, garageName, garageInfo)
             end,
         }
     end
 
     lib.registerContext({
         id = 'garageMenu',
-        title = garage.label,
+        title = garageInfo.label,
         options = options,
     })
     lib.showContext('garageMenu')
 end
 
 RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
-    if cache.vehicle then return exports.qbx_core:Notify('You\'re already in a vehicle...') end
-    local type = data.type
-    local vehicle = data.vehicle
-    local garage = data.garage
-    local index = data.index
-    local spawn = lib.callback.await('qb-garage:server:IsSpawnOk', false, vehicle.plate, type)
+    if cache.vehicle then
+        return exports.qbx_core:Notify('You\'re already in a vehicle...')
+    end
+
+    local spawn = lib.callback.await('qb-garage:server:IsSpawnOk', false, data.vehicle.plate, data.garageInfo.type)
     if not spawn then
         exports.qbx_core:Notify(Lang:t('error.not_impound'), 'error', 5000)
         return
     end
 
-    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, vehicle, type == 'house' and garage.coords or garage.spawn, sharedConfig.takeOut.warpInVehicle)
+    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, data.vehicle, data.garageInfo.type == 'house' and data.garageInfo.coords or data.garageInfo.spawn, sharedConfig.takeOut.warpInVehicle)
     local timeout = 100
     while not NetworkDoesEntityExistWithNetworkId(netId) and timeout > 0 do
         Wait(10)
         timeout -= 1
     end
+
     local veh = NetToVeh(netId)
     if veh == 0 then
         exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
         return
     end
-    SetVehicleFuelLevel(veh, vehicle.fuel)
-    doCarDamage(veh, vehicle)
-    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
-    TriggerEvent('vehiclekeys:client:SetOwner', vehicle.plate)
-    if not sharedConfig.takeOut.engineOff then SetVehicleEngineOn(veh, true, true, false) end
+
+    SetVehicleFuelLevel(veh, data.vehicle.fuel)
+    doCarDamage(veh, data.vehicle)
+    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, data.vehicle.plate, data.garageName)
+    TriggerEvent('vehiclekeys:client:SetOwner', data.vehicle.plate)
+
+    if not sharedConfig.takeOut.engineOff then
+        SetVehicleEngineOn(veh, true, true, false)
+    end
+
     Wait(500)
 end)
 
-local function parkVehicle(veh, indexgarage, type, garage)
-    local plate = GetPlate(veh)
-    if GetVehicleNumberOfPassengers(veh) ~= 1 then
-        local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, type, indexgarage, QBX.PlayerData.gang.name)
+local function parkVehicle(vehicle, garageName, garageInfo)
+    local plate = GetPlate(vehicle)
+    if GetVehicleNumberOfPassengers(vehicle) ~= 1 then
+        local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, garageInfo.type, garageName, QBX.PlayerData.gang.name)
         if not owned then
             exports.qbx_core:Notify(Lang:t('error.not_owned'), 'error', 5000)
             return
         end
 
-        local bodyDamage = math.ceil(GetVehicleBodyHealth(veh))
-        local engineDamage = math.ceil(GetVehicleEngineHealth(veh))
-        local totalFuel = GetVehicleFuelLevel(veh)
-        TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', lib.getVehicleProperties(veh))
-        TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, indexgarage, type, QBX.PlayerData.gang.name)
-        checkPlayers(veh, garage)
+        local bodyDamage = math.ceil(GetVehicleBodyHealth(vehicle))
+        local engineDamage = math.ceil(GetVehicleEngineHealth(vehicle))
+        local totalFuel = GetVehicleFuelLevel(vehicle)
+        TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', lib.getVehicleProperties(vehicle))
+        TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, garageName, garageInfo.type, QBX.PlayerData.gang.name)
+        checkPlayers(vehicle, garageInfo)
 
         if plate then
             TriggerServerEvent('qb-garages:server:UpdateOutsideVehicle', plate, nil)
@@ -259,28 +271,28 @@ local function checkVehicleClass(category, vehicle)
     return classSet[GetVehicleClass(vehicle)] == true
 end
 
-local function createZones(garage, index)
+local function createZones(garageName, garageInfo)
     CreateThread(function()
         if not config.useTarget then
             lib.zones.box({
-                coords = garage.coords.xyz,
-                size = garage.size,
-                rotation = garage.coords.w,
+                coords = garageInfo.coords.xyz,
+                size = garageInfo.size,
+                rotation = garageInfo.coords.w,
                 onEnter = function()
-                    lib.showTextUI((garage.type == 'depot' and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
+                    lib.showTextUI((garageInfo.type == 'depot' and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
                 end,
                 onExit = function()
                     lib.hideTextUI()
                 end,
                 inside = function()
                     if IsControlJustReleased(0, 38) then
-                        if cache.vehicle and garage.type ~= 'depot' then
-                            if not checkVehicleClass(garage.vehicle, cache.vehicle) then
+                        if cache.vehicle and garageInfo.type ~= 'depot' then
+                            if not checkVehicleClass(garageInfo.vehicle, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
-                            parkVehicle(cache.vehicle, index, garage.type)
+                            parkVehicle(cache.vehicle, garageName, garageInfo)
                         else
-                            openGarageMenu(garage.type, garage, index)
+                            openGarageMenu(garageName, garageInfo)
                         end
                     end
                 end,
@@ -288,17 +300,17 @@ local function createZones(garage, index)
             })
         else
             exports.ox_target:addBoxZone({
-                coords = garage.coords.xyz,
-                size = garage.size,
-                rotation = garage.coords.w,
+                coords = garageInfo.coords.xyz,
+                size = garageInfo.size,
+                rotation = garageInfo.coords.w,
                 debug = config.debugPoly,
                 options = {
                     {
                         name = 'openGarage',
-                        label = garage.type == 'depot' and 'Open Impound' or 'Open Garage',
+                        label = garageInfo.type == 'depot' and 'Open Impound' or 'Open Garage',
                         icon = 'fas fa-car',
                         onSelect = function()
-                            openGarageMenu(garage.type, garage, index)
+                            openGarageMenu(garageName, garageInfo)
                         end,
                         distance = 10,
                     },
@@ -307,13 +319,13 @@ local function createZones(garage, index)
                         label = 'Store Vehicle',
                         icon = 'fas fa-square-parking',
                         canInteract = function()
-                            return garage.type ~= 'depot' and cache.vehicle
+                            return garageInfo.type ~= 'depot' and cache.vehicle
                         end,
                         onSelect = function()
-                            if not checkVehicleClass(garage.vehicle, cache.vehicle) then
+                            if not checkVehicleClass(garageInfo.vehicle, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
-                            parkVehicle(cache.vehicle, index, garage.type)
+                            parkVehicle(cache.vehicle, garageName, garageInfo)
                         end,
                         distance = 10,
                     },
@@ -323,28 +335,28 @@ local function createZones(garage, index)
     end)
 end
 
-local function createBlips(garage)
-    local blip = AddBlipForCoord(garage.coords.x, garage.coords.y, garage.coords.z)
-    SetBlipSprite(blip, garage.blipSprite or 357)
+local function createBlips(garageInfo)
+    local blip = AddBlipForCoord(garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z)
+    SetBlipSprite(blip, garageInfo.blipSprite or 357)
     SetBlipDisplay(blip, 4)
     SetBlipScale(blip, 0.60)
     SetBlipAsShortRange(blip, true)
-    SetBlipColour(blip, garage.blipColor or 3)
+    SetBlipColour(blip, garageInfo.blipColor or 3)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName(garage.blipName or 'Public Parking')
+    AddTextComponentSubstringPlayerName(garageInfo.blipName or garageInfo.label)
     EndTextCommandSetBlipName(blip)
 end
 
 local function createGarages()
-    for index, garage in pairs(sharedConfig.garages) do
-        if garage.showBlip or garage.showBlip == nil then
-            createBlips(garage)
+    for name, info in pairs(sharedConfig.garages) do
+        if info.showBlip or info.showBlip == nil then
+            createBlips(info)
         end
 
-        if garage.type == 'job' and (QBX.PlayerData.job.name == garage.job or QBX.PlayerData.job.type == garage.job) or
-            garage.type == 'gang' and QBX.PlayerData.gang.name == garage.job or
-            garage.type ~= 'job' and garage.type ~= 'gang' then
-            createZones(garage, index)
+        if info.type == 'job' and (QBX.PlayerData.job.name == info.job or QBX.PlayerData.job.type == info.job) or
+            info.type == 'gang' and QBX.PlayerData.gang.name == info.job or
+            info.type ~= 'job' and info.type ~= 'gang' then
+            createZones(name, info)
         end
     end
 end
@@ -356,7 +368,7 @@ RegisterNetEvent('qb-garages:client:setHouseGarage', function(house, hasKey)
                 destroyZone('hmarker', lasthouse)
             end]]--
             if hasKey and sharedConfig.houseGarages[house].coords.x then
-                createZones(sharedConfig.houseGarages[house], house)
+                createZones(house, sharedConfig.houseGarages[house])
                 lasthouse = house
             end
         end
@@ -381,8 +393,7 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 RegisterNetEvent('qb-garages:client:TakeOutDepot', function(data)
-    local vehicle = data.vehicle
-    if vehicle.depotprice ~= 0 then
+    if data.vehicle.depotprice ~= 0 then
         TriggerServerEvent('qb-garage:server:PayDepotPrice', data)
     else
         TriggerEvent('qb-garages:client:takeOutGarage', data)
