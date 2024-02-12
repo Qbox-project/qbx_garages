@@ -1,0 +1,9 @@
+{
+    "Lua.diagnostics.globals": [
+        "lib",
+        "cache",
+        "QBX",
+        "qbx",
+        "MySQL"
+    ]
+}

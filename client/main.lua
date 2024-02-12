@@ -1,7 +1,6 @@
 local config = require 'config.client'
 local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
-local lasthouse = nil
 
 local function doCarDamage(currentVehicle, vehicle)
     local engine = vehicle.engine + 0.0
@@ -73,8 +72,8 @@ local function getStateLabel(state)
 end
 
 local function displayVehicleInfo(vehicle, garageName, garageInfo)
-    local engine = math.round(vehicle.engine / 10)
-    local body = math.round(vehicle.body / 10)
+    local engine = qbx.math.round(vehicle.engine / 10)
+    local body = qbx.math.round(vehicle.body / 10)
     local engineColor = getProgressColor(engine)
     local bodyColor = getProgressColor(body)
     local fuelColor = getProgressColor(vehicle.fuel)
@@ -85,7 +84,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
         {
             title = 'Information',
             icon = 'circle-info',
-            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehLabel, vehicle.plate, stateLabel, CommaValue(vehicle.depotprice)),
+            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehLabel, vehicle.plate, stateLabel, lib.math.groupdigits(vehicle.depotprice)),
             readOnly = true,
         },
         {
@@ -116,7 +115,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
             options[#options + 1] = {
                 title = 'Take out',
                 icon = 'fa-truck-ramp-box',
-                description = '$'..CommaValue(vehicle.depotprice),
+                description = '$'..lib.math.groupdigits(vehicle.depotprice),
                 event = 'qb-garages:client:TakeOutDepot',
                 arrow = true,
                 args = {
@@ -204,14 +203,14 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, data.vehicle, data.garageInfo.type == 'house' and data.garageInfo.coords or data.garageInfo.spawn, sharedConfig.takeOut.warpInVehicle)
-    local timeout = 100
-    while not NetworkDoesEntityExistWithNetworkId(netId) and timeout > 0 do
-        Wait(10)
-        timeout -= 1
-    end
+    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, data.vehicle, data.garageInfo.spawn)
 
-    local veh = NetToVeh(netId)
+    local veh = lib.waitFor(function()
+        if NetworkDoesEntityExistWithNetworkId(netId) then
+            return NetToVeh(netId)
+        end
+    end)
+
     if veh == 0 then
         exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
         return
@@ -220,17 +219,14 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     SetVehicleFuelLevel(veh, data.vehicle.fuel)
     doCarDamage(veh, data.vehicle)
     TriggerServerEvent('qb-garage:server:updateVehicleState', 0, data.vehicle.plate, data.garageName)
-    TriggerEvent('vehiclekeys:client:SetOwner', data.vehicle.plate)
 
     if not sharedConfig.takeOut.engineOff then
         SetVehicleEngineOn(veh, true, true, false)
     end
-
-    Wait(500)
 end)
 
 local function parkVehicle(vehicle, garageName, garageInfo)
-    local plate = GetPlate(vehicle)
+    local plate = qbx.getVehiclePlate(vehicle)
     if GetVehicleNumberOfPassengers(vehicle) ~= 1 then
         local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, garageInfo.type, garageName, QBX.PlayerData.gang.name)
         if not owned then
@@ -360,28 +356,6 @@ local function createGarages()
         end
     end
 end
-
-RegisterNetEvent('qb-garages:client:setHouseGarage', function(house, hasKey)
-    if sharedConfig.houseGarages[house] then
-        if lasthouse ~= house then
-            --[[if lasthouse then
-                destroyZone('hmarker', lasthouse)
-            end]]--
-            if hasKey and sharedConfig.houseGarages[house].coords.x then
-                createZones(house, sharedConfig.houseGarages[house])
-                lasthouse = house
-            end
-        end
-    end
-end)
-
-RegisterNetEvent('qb-garages:client:houseGarageConfig', function(garageConfig)
-    sharedConfig.houseGarages = garageConfig
-end)
-
-RegisterNetEvent('qb-garages:client:addHouseGarage', function(house, garageInfo)
-    sharedConfig.houseGarages[house] = garageInfo
-end)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     createGarages()

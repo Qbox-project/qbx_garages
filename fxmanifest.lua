@@ -7,7 +7,7 @@ version '1.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
-    '@qbx_core/modules/utils.lua',
+    '@qbx_core/modules/lib.lua',
     '@qbx_core/shared/locale.lua',
     'locales/en.lua',
     'locales/*.lua',
@@ -28,8 +28,5 @@ files {
     'config/shared.lua',
 }
 
-dependency 'ox_lib'
-
-provide 'qb-garages'
 lua54 'yes'
 use_experimental_fxv2_oal 'yes'

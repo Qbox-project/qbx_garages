@@ -10,18 +10,18 @@ return {
 
         ---@class GarageConfig
         ---@field label string -- Label for the garage
-        ---@field coords vector4 -- Coordinates for taking out a vehicle
-        ---@field size vector3 -- Size of the zone
+        ---@field coords vector4 -- Coordinates for the garage
+        ---@field size vector3 -- Size of the garage
         ---@field spawn vector4 -- Coordinates where the vehicle will spawn
-        ---@field showBlip boolean? -- Enable or disable the blip
-        ---@field blipName string? -- Name of the blip
-        ---@field blipSprite number? -- Sprite for the blip
-        ---@field blipColor number? -- Color for the blip
-        ---@field type public | job | gang | depot -- Type of garage
-        ---@field vehicle car | air | sea | all -- Vehicle type
-        ---@field job string? -- Job / Gang name
-        
-        ---@type table<garageName, GarageConfig>
+        ---@field showBlip boolean -- Enable or disable the blip
+        ---@field blipName string -- Name of the blip
+        ---@field blipSprite number -- Sprite for the blip
+        ---@field blipColor number -- Color for the blip
+        ---@field type 'public'|'job'|'gang'|'depot' -- Type of garage
+        ---@field vehicle 'car'|'air'|'sea'|'all' -- Vehicle type
+        ---@field job string -- Job / Gang name
+
+        ---@type table<string, GarageConfig>
 
         -- Public Garages
         motelgarage = {
