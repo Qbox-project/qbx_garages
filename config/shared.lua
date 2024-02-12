@@ -13,13 +13,13 @@ return {
         ---@field coords vector4 -- Coordinates for the garage
         ---@field size vector3 -- Size of the garage
         ---@field spawn vector4 -- Coordinates where the vehicle will spawn
-        ---@field showBlip boolean|nil -- Enable or disable the blip
-        ---@field blipName string|nil -- Name of the blip
-        ---@field blipSprite number|nil -- Sprite for the blip
-        ---@field blipColor number|nil -- Color for the blip
+        ---@field showBlip boolean -- Enable or disable the blip
+        ---@field blipName string -- Name of the blip
+        ---@field blipSprite number -- Sprite for the blip
+        ---@field blipColor number -- Color for the blip
         ---@field type 'public'|'job'|'gang'|'depot' -- Type of garage
         ---@field vehicle 'car'|'air'|'sea'|'all' -- Vehicle type
-        ---@field job string|nil -- Job / Gang name
+        ---@field job string -- Job / Gang name
 
         ---@type table<string, GarageConfig>
 
