@@ -70,24 +70,27 @@ end
 
 lib.callback.register('qb-garage:server:checkOwnership', checkOwnership)
 
-lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords, warp)
-    local plate = vehInfo.plate
-    local vehProps = {}
+lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords)
+    local props = {}
 
-    local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
+    local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {vehInfo.plate})
     if result[1] then
-        vehProps = json.decode(result[1].mods)
+        props = json.decode(result[1].mods)
     end
 
-    local netId = SpawnVehicle(source, vehInfo.vehicle, coords, warp, vehProps)
+    local netId = qbx.spawnVehicle({ spawnSource = coords, model = vehInfo.vehicle, props = props})
+
     local veh = NetworkGetEntityFromNetworkId(netId)
-    SetVehicleNumberPlateText(veh, plate)
+
+    SetVehicleNumberPlateText(veh, vehInfo.plate)
 
     if sharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
     end
 
-    outsideVehicles[plate] = {netID = netId, entity = veh}
+    TriggerClientEvent('vehiclekeys:client:SetOwner', source, vehInfo.plate)
+
+    outsideVehicles[vehInfo.plate] = {netID = netId, entity = veh}
     return netId
 end)
 
@@ -142,7 +145,7 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
     if not carInfo then return end
 
     local vehCost = VEHICLES[carInfo.vehicle].price
-    local newPrice = math.round(vehCost * (config.impoundFee.percentage / 100))
+    local newPrice = qbx.math.round(vehCost * (config.impoundFee.percentage / 100))
     if config.impoundFee.enable then
         if carInfo.depotprice ~= newPrice then
             MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, newPrice, plate})
