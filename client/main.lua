@@ -2,6 +2,69 @@ local config = require 'config.client'
 local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
 
+---@enum ProgressColor
+local ProgressColor = {
+    GREEN = 'green.5',
+    YELLOW = 'yellow.5',
+    RED = 'red.5'
+}
+
+---@param percent number
+---@return string
+local function getProgressColor(percent)
+    if percent >= 75 then
+        return ProgressColor.GREEN
+    elseif percent > 25 then
+        return ProgressColor.YELLOW
+    end
+
+    return ProgressColor.RED
+end
+
+---@enum StateLabels
+local StateLabels = {
+    OUT = 0,
+    GARAGED = 1,
+    IMPOUND = 2,
+}
+
+---@param state number
+---@return string
+local function getStateLabel(state)
+    if StateLabels.OUT == state then
+        return Lang:t('status.out')
+    elseif StateLabels.GARAGED == state then
+        return Lang:t('status.garaged')
+    elseif StateLabels.IMPOUND == state then
+        return Lang:t('status.impound')
+    end
+
+    return 'Unknown'
+end
+
+---@enum VehicleCategory
+local VehicleCategory = {
+    all = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
+    car = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 22},
+    air = {15, 16},
+    sea = {14},
+}
+
+---@param category 'all'|'car'|'air'|'sea'
+---@param vehicle number
+---@return boolean
+local function checkVehicleClass(category, vehicle)
+    local classSet = {}
+
+    for _, class in pairs(VehicleCategory[category]) do
+        classSet[class] = true
+    end
+
+    return classSet[GetVehicleClass(vehicle)] == true
+end
+
+---@param currentVehicle number
+---@param vehicle table
 local function doCarDamage(currentVehicle, vehicle)
     local engine = vehicle.engine + 0.0
     local body = vehicle.body + 0.0
@@ -30,45 +93,18 @@ local function doCarDamage(currentVehicle, vehicle)
     SetVehicleBodyHealth(currentVehicle, body)
 end
 
-local function checkPlayers(vehicle, garageInfo)
+---@param vehicle number
+local function checkPlayers(vehicle)
     for i = -1, 5, 1 do
         local seat = GetPedInVehicleSeat(vehicle, i)
         if seat then
             TaskLeaveVehicle(seat, vehicle, 0)
-            if garageInfo then
-                SetEntityCoords(seat, garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z, false, false, false, true)
-            end
         end
     end
+
     SetVehicleDoorsLocked(vehicle, 2)
     Wait(1500)
     DeleteVehicle(vehicle)
-end
-
----@enum ProgressColor
-local ProgressColor = {
-    green = 'green.5',
-    yellow = 'yellow.5',
-    red = 'red.5'
-}
-
-local function getProgressColor(percent)
-    if percent >= 75 then
-        return ProgressColor.green
-    elseif percent > 25 then
-        return ProgressColor.yellow
-    end
-    return ProgressColor.red
-end
-
-local StateLabels = {
-    [0] = Lang:t('status.out'),
-    [1] = Lang:t('status.garaged'),
-    [2] = Lang:t('status.impound'),
-}
-
-local function getStateLabel(state)
-    return StateLabels[state]
 end
 
 local function displayVehicleInfo(vehicle, garageName, garageInfo)
@@ -78,13 +114,13 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
     local bodyColor = getProgressColor(body)
     local fuelColor = getProgressColor(vehicle.fuel)
     local stateLabel = getStateLabel(vehicle.state)
-    local vehLabel = VEHICLES[vehicle.vehicle].brand..' '..VEHICLES[vehicle.vehicle].name
+    local vehicleLabel = ('%s %s'):format(VEHICLES[vehicle.vehicle].brand, VEHICLES[vehicle.vehicle].name)
 
     local options = {
         {
             title = 'Information',
             icon = 'circle-info',
-            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehLabel, vehicle.plate, stateLabel, lib.math.groupdigits(vehicle.depotprice)),
+            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehicleLabel, vehicle.plate, stateLabel, lib.math.groupdigits(vehicle.depotprice)),
             readOnly = true,
         },
         {
@@ -111,11 +147,11 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
     }
 
     if vehicle.state == 0 then
-        if type == 'depot' then
+        if garageInfo.type == 'depot' then
             options[#options + 1] = {
                 title = 'Take out',
                 icon = 'fa-truck-ramp-box',
-                description = '$'..lib.math.groupdigits(vehicle.depotprice),
+                description = ('$%s'):format(lib.math.groupdigits(vehicle.depotprice)),
                 event = 'qb-garages:client:TakeOutDepot',
                 arrow = true,
                 args = {
@@ -157,6 +193,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
         menu = 'garageMenu',
         options = options,
     })
+
     lib.showContext('vehicleList')
 end
 
@@ -171,12 +208,12 @@ local function openGarageMenu(garageName, garageInfo)
     local options = {}
 
     for _, v in pairs(result) do
-        local vehLabel = VEHICLES[v.vehicle].brand..' '..VEHICLES[v.vehicle].name
+        local vehicleLabel = ('%s %s'):format(VEHICLES[v.vehicle].brand, VEHICLES[v.vehicle].name)
         local stateLabel = getStateLabel(v.state)
 
         options[#options + 1] = {
-            title = vehLabel,
-            description = stateLabel..' | '..v.plate,
+            title = vehicleLabel,
+            description = ('%s | %s'):format(stateLabel, v.plate),
             arrow = true,
             onSelect = function()
                 displayVehicleInfo(v, garageName, garageInfo)
@@ -189,15 +226,18 @@ local function openGarageMenu(garageName, garageInfo)
         title = garageInfo.label,
         options = options,
     })
+
     lib.showContext('garageMenu')
 end
 
 RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     if cache.vehicle then
-        return exports.qbx_core:Notify('You\'re already in a vehicle...')
+        exports.qbx_core:Notify('You\'re already in a vehicle...')
+        return
     end
 
     local spawn = lib.callback.await('qb-garage:server:IsSpawnOk', false, data.vehicle.plate, data.garageInfo.type)
+
     if not spawn then
         exports.qbx_core:Notify(Lang:t('error.not_impound'), 'error', 5000)
         return
@@ -227,8 +267,10 @@ end)
 
 local function parkVehicle(vehicle, garageName, garageInfo)
     local plate = qbx.getVehiclePlate(vehicle)
+
     if GetVehicleNumberOfPassengers(vehicle) ~= 1 then
         local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, garageInfo.type, garageName, QBX.PlayerData.gang.name)
+
         if not owned then
             exports.qbx_core:Notify(Lang:t('error.not_owned'), 'error', 5000)
             return
@@ -237,34 +279,19 @@ local function parkVehicle(vehicle, garageName, garageInfo)
         local bodyDamage = math.ceil(GetVehicleBodyHealth(vehicle))
         local engineDamage = math.ceil(GetVehicleEngineHealth(vehicle))
         local totalFuel = GetVehicleFuelLevel(vehicle)
+
         TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', lib.getVehicleProperties(vehicle))
         TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, garageName, garageInfo.type, QBX.PlayerData.gang.name)
-        checkPlayers(vehicle, garageInfo)
+        checkPlayers(vehicle)
 
         if plate then
             TriggerServerEvent('qb-garages:server:UpdateOutsideVehicle', plate, nil)
         end
+
         exports.qbx_core:Notify(Lang:t('success.vehicle_parked'), 'primary', 4500)
     else
         exports.qbx_core:Notify(Lang:t('error.vehicle_occupied'), 'error', 3500)
     end
-end
-
----@enum VehicleCategory
-local VehicleCategory = {
-    all = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
-    car = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 22},
-    air = {15, 16},
-    sea = {14},
-}
-
-local function checkVehicleClass(category, vehicle)
-    local classSet = {}
-    for _, class in pairs(VehicleCategory[category]) do
-        classSet[class] = true
-    end
-
-    return classSet[GetVehicleClass(vehicle)] == true
 end
 
 local function createZones(garageName, garageInfo)
