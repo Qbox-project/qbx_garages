@@ -16,9 +16,9 @@ local function getProgressColor(percent)
         return ProgressColor.GREEN
     elseif percent > 25 then
         return ProgressColor.YELLOW
+    else
+        return ProgressColor.RED
     end
-
-    return ProgressColor.RED
 end
 
 ---@enum StateLabels
