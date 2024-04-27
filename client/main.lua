@@ -21,25 +21,16 @@ local function getProgressColor(percent)
     end
 end
 
----@enum StateLabels
-local StateLabels = {
-    OUT = 0,
-    GARAGED = 1,
-    IMPOUND = 2,
+local stateLabels = {
+    [VehicleState.OUT] = Lang:t('status.out'),
+    [VehicleState.GARAGED] = Lang:t('status.garaged'),
+    [VehicleState.IMPOUND] = Lang:t('status.impound')
 }
 
----@param state number
+---@param state VehicleState
 ---@return string
 local function getStateLabel(state)
-    if StateLabels.OUT == state then
-        return Lang:t('status.out')
-    elseif StateLabels.GARAGED == state then
-        return Lang:t('status.garaged')
-    elseif StateLabels.IMPOUND == state then
-        return Lang:t('status.impound')
-    end
-
-    return 'Unknown'
+    return stateLabels[state] or 'Unknown'
 end
 
 local VehicleCategory = {
@@ -145,7 +136,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
         }
     }
 
-    if vehicle.state == 0 then
+    if vehicle.state == VehicleState.OUT then
         if garageInfo.type == 'depot' then
             options[#options + 1] = {
                 title = 'Take out',
@@ -166,7 +157,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
                 readOnly = true,
             }
         end
-    elseif vehicle.state == 1 then
+    elseif vehicle.state == VehicleState.GARAGED then
         options[#options + 1] = {
             title = 'Take out',
             icon = 'car-rear',
@@ -178,7 +169,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
                 garageName = garageName,
             },
         }
-    elseif vehicle.state == 2 then
+    elseif vehicle.state == VehicleState.IMPOUNDED then
         options[#options + 1] = {
             title = 'Your vehicle has been impounded by the police',
             icon = 'building-shield',
@@ -257,7 +248,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
 
     SetVehicleFuelLevel(veh, data.vehicle.fuel)
     doCarDamage(veh, data.vehicle)
-    TriggerServerEvent('qb-garage:server:updateVehicleState', 0, data.vehicle.plate, data.garageName)
+    TriggerServerEvent('qb-garage:server:updateVehicleState', VehicleState.OUT, data.vehicle.plate, data.garageName)
 
     if not sharedConfig.takeOut.engineOff then
         SetVehicleEngineOn(veh, true, true, false)
