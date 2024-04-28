@@ -43,7 +43,7 @@ local VehicleCategory = {
 ---@param category VehicleType
 ---@param vehicle number
 ---@return boolean
-local function checkVehicleClass(category, vehicle)
+local function isOfType(category, vehicle)
     local classSet = {}
 
     for _, class in pairs(VehicleCategory[category]) do
@@ -97,6 +97,14 @@ local function checkPlayers(vehicle)
     DeleteVehicle(vehicle)
 end
 
+local function takeOutDepot(data)
+    if data.vehicle.depotprice ~= 0 then
+        TriggerServerEvent('qb-garage:server:PayDepotPrice', data)
+    else
+        TriggerEvent('qb-garages:client:takeOutGarage', data)
+    end
+end
+
 local function displayVehicleInfo(vehicle, garageName, garageInfo)
     local engine = qbx.math.round(vehicle.engine / 10)
     local body = qbx.math.round(vehicle.body / 10)
@@ -142,13 +150,14 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
                 title = 'Take out',
                 icon = 'fa-truck-ramp-box',
                 description = ('$%s'):format(lib.math.groupdigits(vehicle.depotprice)),
-                event = 'qb-garages:client:TakeOutDepot',
                 arrow = true,
-                args = {
-                    vehicle = vehicle,
-                    garageInfo = garageInfo,
-                    garageName = garageName,
-                },
+                onSelect = function()
+                    takeOutDepot({
+                        vehicle = vehicle,
+                        garageInfo = garageInfo,
+                        garageName = garageName
+                    })
+                end,
             }
         else
             options[#options + 1] = {
@@ -284,28 +293,28 @@ local function parkVehicle(vehicle, garageName, garageInfo)
     end
 end
 
-local function createZones(garageName, garageInfo)
+local function createZones(garageName, garage)
     CreateThread(function()
         if not config.useTarget then
             lib.zones.box({
-                coords = garageInfo.coords.xyz,
-                size = garageInfo.size,
-                rotation = garageInfo.coords.w,
+                coords = garage.coords.xyz,
+                size = garage.size,
+                rotation = garage.coords.w,
                 onEnter = function()
-                    lib.showTextUI((garageInfo.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
+                    lib.showTextUI((garage.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
                 end,
                 onExit = function()
                     lib.hideTextUI()
                 end,
                 inside = function()
                     if IsControlJustReleased(0, 38) then
-                        if cache.vehicle and garageInfo.type ~= GarageType.DEPOT then
-                            if not checkVehicleClass(garageInfo.vehicle, cache.vehicle) then
+                        if cache.vehicle and garage.type ~= GarageType.DEPOT then
+                            if not isOfType(garage.vehicle, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
-                            parkVehicle(cache.vehicle, garageName, garageInfo)
+                            parkVehicle(cache.vehicle, garageName, garage)
                         else
-                            openGarageMenu(garageName, garageInfo)
+                            openGarageMenu(garageName, garage)
                         end
                     end
                 end,
@@ -313,17 +322,17 @@ local function createZones(garageName, garageInfo)
             })
         else
             exports.ox_target:addBoxZone({
-                coords = garageInfo.coords.xyz,
-                size = garageInfo.size,
-                rotation = garageInfo.coords.w,
+                coords = garage.coords.xyz,
+                size = garage.size,
+                rotation = garage.coords.w,
                 debug = config.debugPoly,
                 options = {
                     {
                         name = 'openGarage',
-                        label = garageInfo.type == GarageType.DEPOT and 'Open Impound' or 'Open Garage',
+                        label = garage.type == GarageType.DEPOT and 'Open Impound' or 'Open Garage',
                         icon = 'fas fa-car',
                         onSelect = function()
-                            openGarageMenu(garageName, garageInfo)
+                            openGarageMenu(garageName, garage)
                         end,
                         distance = 10,
                     },
@@ -332,13 +341,13 @@ local function createZones(garageName, garageInfo)
                         label = 'Store Vehicle',
                         icon = 'fas fa-square-parking',
                         canInteract = function()
-                            return garageInfo.type ~= GarageType.DEPOT and cache.vehicle
+                            return garage.type ~= GarageType.DEPOT and cache.vehicle
                         end,
                         onSelect = function()
-                            if not checkVehicleClass(garageInfo.vehicle, cache.vehicle) then
+                            if not isOfType(garage.vehicle, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
-                            parkVehicle(cache.vehicle, garageName, garageInfo)
+                            parkVehicle(cache.vehicle, garageName, garage)
                         end,
                         distance = 10,
                     },
@@ -361,15 +370,16 @@ local function createBlips(garageInfo)
 end
 
 local function createGarages()
-    for name, info in pairs(sharedConfig.garages) do
-        if info.showBlip or info.showBlip == nil then
-            createBlips(info)
+    for name, garage in pairs(sharedConfig.garages) do
+        -- default to showing blips if showBlip is not set
+        if garage.showBlip or garage.showBlip == nil then
+            createBlips(garage)
         end
 
-        if info.type == GarageType.JOB and (QBX.PlayerData.job.name == info.job or QBX.PlayerData.job.type == info.job) or
-            info.type == GarageType.GANG and QBX.PlayerData.gang.name == info.job or
-            info.type ~= GarageType.JOB and info.type ~= GarageType.GANG then
-            createZones(name, info)
+        if garage.type == GarageType.JOB and (QBX.PlayerData.job.name == garage.job or QBX.PlayerData.job.type == garage.job) or
+            garage.type == GarageType.GANG and QBX.PlayerData.gang.name == garage.job or
+            garage.type ~= GarageType.JOB and garage.type ~= GarageType.GANG then
+            createZones(name, garage)
         end
     end
 end
@@ -381,12 +391,4 @@ end)
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= cache.resource then return end
     createGarages()
-end)
-
-RegisterNetEvent('qb-garages:client:TakeOutDepot', function(data)
-    if data.vehicle.depotprice ~= 0 then
-        TriggerServerEvent('qb-garage:server:PayDepotPrice', data)
-    else
-        TriggerEvent('qb-garages:client:takeOutGarage', data)
-    end
 end)
