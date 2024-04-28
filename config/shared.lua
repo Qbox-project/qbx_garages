@@ -1,3 +1,5 @@
+require 'shared.types'
+
 return {
     takeOut = {
         warpInVehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
@@ -6,23 +8,22 @@ return {
     },
 
     houseGarages = {}, -- Dont touch
+
+    ---@class GarageConfig
+    ---@field label string -- Label for the garage
+    ---@field coords vector4 -- Coordinates for the garage
+    ---@field size vector3 -- Size of the garage
+    ---@field spawn vector4 -- Coordinates where the vehicle will spawn
+    ---@field showBlip? boolean -- Enable or disable the blip. Defaults to true
+    ---@field blipName? string -- Name of the blip. Defaults to garage label.
+    ---@field blipSprite? number -- Sprite for the blip. Defaults to 357
+    ---@field blipColor? number -- Color for the blip. Defaults to 3.
+    ---@field type GarageType -- Type of garage
+    ---@field vehicle VehicleType -- Vehicle type
+    ---@field job? string -- Job / Gang name that can access the garage.
+
+    ---@type table<string, GarageConfig>
     garages = {
-
-        ---@class GarageConfig
-        ---@field label string -- Label for the garage
-        ---@field coords vector4 -- Coordinates for the garage
-        ---@field size vector3 -- Size of the garage
-        ---@field spawn vector4 -- Coordinates where the vehicle will spawn
-        ---@field showBlip boolean -- Enable or disable the blip
-        ---@field blipName string -- Name of the blip
-        ---@field blipSprite number -- Sprite for the blip
-        ---@field blipColor number -- Color for the blip
-        ---@field type GarageType -- Type of garage
-        ---@field vehicle VehicleType -- Vehicle type
-        ---@field job string -- Job / Gang name
-
-        ---@type table<string, GarageConfig>
-
         -- Public Garages
         motelgarage = {
             label = 'Motel Parking',
@@ -114,7 +115,7 @@ return {
         },
         haanparking = {
             label = 'Bell Farms Parking',
-            coords = vec3(78.34, 6418.74, 31.28),
+            coords = vec4(78.34, 6418.74, 31.28, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(70.71, 6425.16, 30.92, 68.5),
             type = GarageType.PUBLIC,
@@ -122,7 +123,7 @@ return {
         },
         dumbogarage = {
             label = 'Dumbo Private Parking',
-            coords = vec3(157.26, -3240.00, 7.00),
+            coords = vec4(157.26, -3240.00, 7.00, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(165.32, -3236.10, 5.93, 268.5),
             type = GarageType.PUBLIC,
@@ -200,7 +201,7 @@ return {
         -- Job Garages
         police = {
             label = 'Police',
-            coords = vec3(454.6, -1017.4, 28.4),
+            coords = vec4(454.6, -1017.4, 28.4, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(438.4, -1018.3, 27.7, 90.0),
             showBlip = false,
@@ -214,7 +215,7 @@ return {
         -- Gang Garages
         ballas = {
             label = 'Ballas',
-            coords = vec3(98.50, -1954.49, 20.84),
+            coords = vec4(98.50, -1954.49, 20.84, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(98.50, -1954.49, 20.75, 335.73),
             showBlip = false,
@@ -226,7 +227,7 @@ return {
         },
         families = {
             label = 'La Familia',
-            coords = vec3(-811.65, 187.49, 72.48),
+            coords = vec4(-811.65, 187.49, 72.48, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(-818.43, 184.97, 72.28, 107.85),
             showBlip = false,
@@ -238,7 +239,7 @@ return {
         },
         lostmc = {
             label = 'Lost MC',
-            coords = vec3(957.25, -129.63, 74.39),
+            coords = vec4(957.25, -129.63, 74.39, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(957.25, -129.63, 74.39, 199.21),
             showBlip = false,
@@ -250,7 +251,7 @@ return {
         },
         cartel = {
             label = 'Cartel',
-            coords = vec3(1407.18, 1118.04, 114.84),
+            coords = vec4(1407.18, 1118.04, 114.84, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(1407.18, 1118.04, 114.84, 88.34),
             showBlip = false,
