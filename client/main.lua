@@ -24,7 +24,7 @@ end
 local stateLabels = {
     [VehicleState.OUT] = Lang:t('status.out'),
     [VehicleState.GARAGED] = Lang:t('status.garaged'),
-    [VehicleState.IMPOUND] = Lang:t('status.impound')
+    [VehicleState.IMPOUNDED] = Lang:t('status.impound')
 }
 
 ---@param state VehicleState
@@ -40,7 +40,7 @@ local VehicleCategory = {
     sea = {14},
 }
 
----@param category 'all'|'car'|'air'|'sea'
+---@param category VehicleType
 ---@param vehicle number
 ---@return boolean
 local function checkVehicleClass(category, vehicle)
@@ -137,7 +137,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
     }
 
     if vehicle.state == VehicleState.OUT then
-        if garageInfo.type == 'depot' then
+        if garageInfo.type == GarageType.DEPOT then
             options[#options + 1] = {
                 title = 'Take out',
                 icon = 'fa-truck-ramp-box',
@@ -153,7 +153,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
         else
             options[#options + 1] = {
                 title = 'Your vehicle is already out...',
-                icon = 'car',
+                icon = VehicleType.CAR,
                 readOnly = true,
             }
         end
@@ -292,14 +292,14 @@ local function createZones(garageName, garageInfo)
                 size = garageInfo.size,
                 rotation = garageInfo.coords.w,
                 onEnter = function()
-                    lib.showTextUI((garageInfo.type == 'depot' and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
+                    lib.showTextUI((garageInfo.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
                 end,
                 onExit = function()
                     lib.hideTextUI()
                 end,
                 inside = function()
                     if IsControlJustReleased(0, 38) then
-                        if cache.vehicle and garageInfo.type ~= 'depot' then
+                        if cache.vehicle and garageInfo.type ~= GarageType.DEPOT then
                             if not checkVehicleClass(garageInfo.vehicle, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
@@ -320,7 +320,7 @@ local function createZones(garageName, garageInfo)
                 options = {
                     {
                         name = 'openGarage',
-                        label = garageInfo.type == 'depot' and 'Open Impound' or 'Open Garage',
+                        label = garageInfo.type == GarageType.DEPOT and 'Open Impound' or 'Open Garage',
                         icon = 'fas fa-car',
                         onSelect = function()
                             openGarageMenu(garageName, garageInfo)
@@ -332,7 +332,7 @@ local function createZones(garageName, garageInfo)
                         label = 'Store Vehicle',
                         icon = 'fas fa-square-parking',
                         canInteract = function()
-                            return garageInfo.type ~= 'depot' and cache.vehicle
+                            return garageInfo.type ~= GarageType.DEPOT and cache.vehicle
                         end,
                         onSelect = function()
                             if not checkVehicleClass(garageInfo.vehicle, cache.vehicle) then
@@ -366,9 +366,9 @@ local function createGarages()
             createBlips(info)
         end
 
-        if info.type == 'job' and (QBX.PlayerData.job.name == info.job or QBX.PlayerData.job.type == info.job) or
-            info.type == 'gang' and QBX.PlayerData.gang.name == info.job or
-            info.type ~= 'job' and info.type ~= 'gang' then
+        if info.type == GarageType.JOB and (QBX.PlayerData.job.name == info.job or QBX.PlayerData.job.type == info.job) or
+            info.type == GarageType.GANG and QBX.PlayerData.gang.name == info.job or
+            info.type ~= GarageType.JOB and info.type ~= GarageType.GANG then
             createZones(name, info)
         end
     end

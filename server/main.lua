@@ -5,18 +5,18 @@ local outsideVehicles = {}
 
 lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, garage, type, category)
     local player = exports.qbx_core:GetPlayer(source)
-    if type == 'public' then -- Public garages give player cars in the garage only
+    if type == GarageType.PUBLIC then -- Public garages give player cars in the garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ?', {player.PlayerData.citizenid, garage})
         return result[1] and result
-    elseif type == 'depot' then -- Depot give player cars that are not in garage only
+    elseif type == GarageType.DEPOT then -- Depot give player cars that are not in garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND state = ?', {player.PlayerData.citizenid, 0})
         local toSend = {}
         if not result[1] then return false end
         for _, vehicle in pairs(result) do -- Check vehicle type against depot type
             if not outsideVehicles[vehicle.plate] or not DoesEntityExist(outsideVehicles[vehicle.plate].entity) then
-                if (category == 'air' and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
-                   (category == 'sea' and VEHICLES[vehicle.vehicle].category == 'boats') or
-                   (category == 'car' and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
+                if (category == VehicleType.AIR and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
+                   (category == VehicleType.SEA and VEHICLES[vehicle.vehicle].category == 'boats') or
+                   (category == VehicleType.CAR and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
                     toSend[#toSend + 1] = vehicle
                 end
             end
@@ -31,10 +31,10 @@ end)
 
 local function validateGarageVehicle(source, garage, type, plate)
     local player = exports.qbx_core:GetPlayer(source)
-    if type == 'public' then -- Public garages give player cars in the garage only
+    if type == GarageType.PUBLIC then -- Public garages give player cars in the garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND plate = ?', {player.PlayerData.citizenid, garage, VehicleState.GARAGED, plate})
         return result[1]
-    elseif type == 'depot' then -- Depot give player cars that are not in garage only
+    elseif type == GarageType.DEPOT then -- Depot give player cars that are not in garage only
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND plate = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, plate})
         return result[1]
     else
@@ -44,17 +44,15 @@ local function validateGarageVehicle(source, garage, type, plate)
     end
 end
 
-lib.callback.register('qb-garage:server:validateGarageVehicle', validateGarageVehicle)
-
 local function checkOwnership(source, plate, type, house, gang)
     local player = exports.qbx_core:GetPlayer(source)
-    if type == 'public' then -- Public garages only for player cars
+    if type == GarageType.PUBLIC then -- Public garages only for player cars
          local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, player.PlayerData.citizenid})
          return result[1] or false
     elseif type == 'house' then -- House garages only for player cars that have keys of the house
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         return result[1] and exports['qb-houses']:hasKey(result[1].license, result[1].citizenid, house)
-    elseif type == 'gang' then -- Gang garages only for gang members cars (for sharing)
+    elseif type == GarageType.GANG then -- Gang garages only for gang members cars (for sharing)
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
         if not result[1] then return false end
         -- Check if found owner is part of the gang
@@ -100,7 +98,7 @@ lib.callback.register('qb-garage:server:GetVehicleProperties', function(_, plate
 end)
 
 lib.callback.register('qb-garage:server:IsSpawnOk', function(_, plate, type)
-    if type == 'depot' then -- If depot, check if vehicle is not already spawned on the map
+    if type == GarageType.DEPOT then -- If depot, check if vehicle is not already spawned on the map
         return not outsideVehicles[plate] or not DoesEntityExist(outsideVehicles[plate].entity)
     end
     return true
