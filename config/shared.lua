@@ -39,6 +39,7 @@ return {
             spawn = vec4(-337.11, -775.34, 33.56, 132.09),
             type = GarageType.PUBLIC,
             vehicle = VehicleType.CAR,
+        },
         spanishave = {
             label = 'Spanish Ave Parking',
             coords = vec4(-1160.46, -741.04, 19.95, 41.26),
