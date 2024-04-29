@@ -80,8 +80,6 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
 
     local veh = NetworkGetEntityFromNetworkId(netId)
 
-    SetVehicleNumberPlateText(veh, vehInfo.plate)
-
     if sharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
     end
@@ -102,6 +100,11 @@ lib.callback.register('qb-garage:server:IsSpawnOk', function(_, plate, type)
         return not outsideVehicles[plate] or not DoesEntityExist(outsideVehicles[plate].entity)
     end
     return true
+end)
+
+RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)
+    MySQL.update('UPDATE player_vehicles SET mods = ? WHERE plate = ?',
+        { json.encode(vehicleProps), vehicleProps.plate })
 end)
 
 RegisterNetEvent('qb-garage:server:updateVehicle', function(state, fuel, engine, body, plate, garage, type, gang)
