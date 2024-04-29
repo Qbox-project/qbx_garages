@@ -80,8 +80,9 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
         end
         props = json.decode(result[1].mods)
     end
-
-    local netId = qbx.spawnVehicle({ spawnSource = coords, model = vehInfo.vehicle, props = props})
+    
+    local warpPed = sharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
+    local netId = qbx.spawnVehicle({ spawnSource = coords, model = vehInfo.vehicle, props = props, warp = warpPed})
 
     local veh = NetworkGetEntityFromNetworkId(netId)
 
