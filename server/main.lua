@@ -111,7 +111,7 @@ lib.callback.register('qbx_garages:server:saveVehicle', function(source, props, 
 
     if type ~= 'house' and not sharedConfig.garages[garage] then return end
 
-    MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), plate})
+    MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), props.plate})
 end)
 
 RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, garage)
