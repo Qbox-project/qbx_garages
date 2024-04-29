@@ -53,36 +53,6 @@ local function isOfType(category, vehicle)
     return classSet[GetVehicleClass(vehicle)] == true
 end
 
----@param currentVehicle number
----@param vehicle table
-local function doCarDamage(currentVehicle, vehicle)
-    local engine = vehicle.engine + 0.0
-    local body = vehicle.body + 0.0
-    local data = json.decode(vehicle.mods)
-
-    if config.visuallyDamageCars then
-        for k, v in pairs(data.doors) do
-            if v then
-                SetVehicleDoorBroken(currentVehicle, k, true)
-            end
-        end
-        for k, v in pairs(data.tyres) do
-            if v then
-                local random = math.random(1, 1000)
-                SetVehicleTyreBurst(currentVehicle, k, true, random)
-            end
-        end
-        for k, v in pairs(data.windows) do
-            if not v then
-                SmashVehicleWindow(currentVehicle, k)
-            end
-        end
-    end
-
-    SetVehicleEngineHealth(currentVehicle, engine)
-    SetVehicleBodyHealth(currentVehicle, body)
-end
-
 ---@param vehicle number
 local function checkPlayers(vehicle)
     for i = -1, 5, 1 do
@@ -255,8 +225,6 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    SetVehicleFuelLevel(veh, data.vehicle.fuel)
-    doCarDamage(veh, data.vehicle)
     TriggerServerEvent('qb-garage:server:updateVehicleState', VehicleState.OUT, data.vehicle.plate, data.garageName)
 
     if not sharedConfig.takeOut.engineOff then
