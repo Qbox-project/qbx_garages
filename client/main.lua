@@ -54,17 +54,13 @@ local function isOfType(category, vehicle)
 end
 
 ---@param vehicle number
-local function checkPlayers(vehicle)
+local function kickOutPeds(vehicle)
     for i = -1, 5, 1 do
         local seat = GetPedInVehicleSeat(vehicle, i)
         if seat then
             TaskLeaveVehicle(seat, vehicle, 0)
         end
     end
-
-    SetVehicleDoorsLocked(vehicle, 2)
-    Wait(1500)
-    DeleteVehicle(vehicle)
 end
 
 local function takeOutDepot(data)
@@ -205,14 +201,8 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    local spawn = lib.callback.await('qb-garage:server:IsSpawnOk', false, data.vehicle.plate, data.garageInfo.type)
-
-    if not spawn then
-        exports.qbx_core:Notify(Lang:t('error.not_impound'), 'error', 5000)
-        return
-    end
-
-    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, data.vehicle, data.garageInfo.spawn)
+    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, data.vehicle, data.garageInfo.spawn, data.garageInfo.type)
+    if not netId then return end
 
     local veh = lib.waitFor(function()
         if NetworkDoesEntityExistWithNetworkId(netId) then
@@ -243,13 +233,10 @@ local function parkVehicle(vehicle, garageName, garageInfo)
             return
         end
 
-        lib.callback('qbx_garages:server:saveVehicle', false, nil, lib.getVehicleProperties(vehicle), garageName, garageInfo.type, QBX.PlayerData.gang.name)
-        checkPlayers(vehicle)
-
-        if plate then
-            TriggerServerEvent('qb-garages:server:UpdateOutsideVehicle', plate, nil)
-        end
-
+        kickOutPeds(vehicle)
+        SetVehicleDoorsLocked(vehicle, 2)
+        Wait(1500)
+        lib.callback('qbx_garages:server:parkVehicle', false, nil, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName, garageInfo.type, QBX.PlayerData.gang.name)
         exports.qbx_core:Notify(Lang:t('success.vehicle_parked'), 'primary', 4500)
     else
         exports.qbx_core:Notify(Lang:t('error.vehicle_occupied'), 'error', 3500)
