@@ -13,7 +13,7 @@ lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, gar
         local toSend = {}
         if not result[1] then return false end
         for _, vehicle in pairs(result) do -- Check vehicle type against depot type
-            if not outsideVehicles[vehicle.plate] or not DoesEntityExist(outsideVehicles[vehicle.plate].entity) then
+            if not outsideVehicles[vehicle.id] or not DoesEntityExist(outsideVehicles[vehicle.id].entity) then
                 if (category == VehicleType.AIR and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
                    (category == VehicleType.SEA and VEHICLES[vehicle.vehicle].category == 'boats') or
                    (category == VehicleType.CAR and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
@@ -68,11 +68,16 @@ end
 
 lib.callback.register('qb-garage:server:checkOwnership', checkOwnership)
 
-lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords)
+lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo, coords, garageType)
     local props = {}
 
-    local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {vehInfo.plate})
+    local result = MySQL.query.await('SELECT id, mods FROM player_vehicles WHERE plate = ?', {vehInfo.plate})
+
     if result[1] then
+        if garageType == GarageType.DEPOT and (not outsideVehicles[result[1].id] or not DoesEntityExist(outsideVehicles[result[1].id].entity)) then -- If depot, check if vehicle is not already spawned on the map
+            exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
+            return
+        end
         props = json.decode(result[1].mods)
     end
 
@@ -86,23 +91,12 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehInfo
 
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, vehInfo.plate)
 
-    outsideVehicles[vehInfo.plate] = {netID = netId, entity = veh}
+    Entity(veh).state:set('vehicleid', result[1].id, false)
+    outsideVehicles[result[1].id] = {netID = netId, entity = veh}
     return netId
 end)
 
-lib.callback.register('qb-garage:server:GetVehicleProperties', function(_, plate)
-    local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE plate = ?', {plate})
-    return result[1] and json.decode(result[1].mods) or {}
-end)
-
-lib.callback.register('qb-garage:server:IsSpawnOk', function(_, plate, type)
-    if type == GarageType.DEPOT then -- If depot, check if vehicle is not already spawned on the map
-        return not outsideVehicles[plate] or not DoesEntityExist(outsideVehicles[plate].entity)
-    end
-    return true
-end)
-
-lib.callback.register('qbx_garages:server:saveVehicle', function(source, props, garage, type, gang)
+lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage, type, gang)
     local owned = checkOwnership(source, props.plate, type, garage, gang) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
@@ -112,6 +106,13 @@ lib.callback.register('qbx_garages:server:saveVehicle', function(source, props, 
     if type ~= 'house' and not sharedConfig.garages[garage] then return end
 
     MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), props.plate})
+
+    local vehicle = NetworkGetEntityFromNetworkId(netId)
+    local vehicleId = Entity(vehicle).state.vehicleid
+    if vehicleId then
+        outsideVehicles[vehicleId] = nil
+    end
+    DeleteEntity(vehicle)
 end)
 
 RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, garage)
@@ -144,10 +145,6 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
     else
         MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE plate = ?', {state, plate})
     end
-end)
-
-RegisterNetEvent('qb-garages:server:UpdateOutsideVehicle', function(plate, vehicle)
-    outsideVehicles[plate] = {netID = vehicle, entity = NetworkGetEntityFromNetworkId(vehicle)}
 end)
 
 AddEventHandler('onResourceStart', function(resource)
