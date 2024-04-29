@@ -102,28 +102,16 @@ lib.callback.register('qb-garage:server:IsSpawnOk', function(_, plate, type)
     return true
 end)
 
-RegisterNetEvent('qb-vehicletuning:server:SaveVehicleProps', function(vehicleProps)
-    MySQL.update('UPDATE player_vehicles SET mods = ? WHERE plate = ?',
-        { json.encode(vehicleProps), vehicleProps.plate })
-end)
-
-RegisterNetEvent('qb-garage:server:updateVehicle', function(state, fuel, engine, body, plate, garage, type, gang)
-    local owned = checkOwnership(source, plate, type, garage, gang) --Check ownership
+lib.callback.register('qbx_garages:server:saveVehicle', function(source, props, garage, type, gang)
+    local owned = checkOwnership(source, props.plate, type, garage, gang) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
     end
 
-    -- Check state value
-    if state ~= VehicleState.OUT and state ~= VehicleState.GARAGED and state ~= VehicleState.IMPOUNDED then return end
+    if type ~= 'house' and not sharedConfig.garages[garage] then return end
 
-    if type ~= 'house' then
-        if sharedConfig.garages[garage] then --Check if garage is existing
-            MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ? WHERE plate = ?', {state, garage, fuel, engine, body, plate})
-        end
-    else
-        MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ? WHERE plate = ?', {state, garage, fuel, engine, body, plate})
-    end
+    MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), props.plate})
 end)
 
 RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, garage)

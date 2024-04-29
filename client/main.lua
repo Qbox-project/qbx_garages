@@ -243,12 +243,7 @@ local function parkVehicle(vehicle, garageName, garageInfo)
             return
         end
 
-        local bodyDamage = math.ceil(GetVehicleBodyHealth(vehicle))
-        local engineDamage = math.ceil(GetVehicleEngineHealth(vehicle))
-        local totalFuel = GetVehicleFuelLevel(vehicle)
-
-        TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', lib.getVehicleProperties(vehicle))
-        TriggerServerEvent('qb-garage:server:updateVehicle', 1, totalFuel, engineDamage, bodyDamage, plate, garageName, garageInfo.type, QBX.PlayerData.gang.name)
+        lib.callback('qbx_garages:server:saveVehicle', false, nil, lib.getVehicleProperties(vehicle), garageName, garageInfo.type, QBX.PlayerData.gang.name)
         checkPlayers(vehicle)
 
         if plate then
