@@ -21,6 +21,7 @@ local function getProgressColor(percent)
     end
 end
 
+---@type table<VehicleState, string>
 local stateLabels = {
     [VehicleState.OUT] = Lang:t('status.out'),
     [VehicleState.GARAGED] = Lang:t('status.garaged'),
@@ -63,6 +64,7 @@ local function kickOutPeds(vehicle)
     end
 end
 
+---@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
 local function takeOutDepot(data)
     if data.vehicle.depotprice ~= 0 then
         TriggerServerEvent('qb-garage:server:PayDepotPrice', data)
@@ -71,6 +73,9 @@ local function takeOutDepot(data)
     end
 end
 
+---@param vehicle VehicleEntity
+---@param garageName string
+---@param garageInfo GarageConfig
 local function displayVehicleInfo(vehicle, garageName, garageInfo)
     local engine = qbx.math.round(vehicle.engine / 10)
     local body = qbx.math.round(vehicle.body / 10)
@@ -162,6 +167,8 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
     lib.showContext('vehicleList')
 end
 
+---@param garageName string
+---@param garageInfo GarageConfig
 local function openGarageMenu(garageName, garageInfo)
     local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, garageName, garageInfo.type, garageInfo.vehicle)
 
@@ -195,6 +202,7 @@ local function openGarageMenu(garageName, garageInfo)
     lib.showContext('garageMenu')
 end
 
+---@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
 RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     if cache.vehicle then
         exports.qbx_core:Notify('You\'re already in a vehicle...')
@@ -222,6 +230,9 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
     end
 end)
 
+---@param vehicle number
+---@param garageName string
+---@param garageInfo GarageConfig
 local function parkVehicle(vehicle, garageName, garageInfo)
     local plate = qbx.getVehiclePlate(vehicle)
 
@@ -243,6 +254,8 @@ local function parkVehicle(vehicle, garageName, garageInfo)
     end
 end
 
+---@param garageName string
+---@param garage GarageConfig
 local function createZones(garageName, garage)
     CreateThread(function()
         if not config.useTarget then
@@ -307,6 +320,7 @@ local function createZones(garageName, garage)
     end)
 end
 
+---@param garageInfo GarageConfig
 local function createBlips(garageInfo)
     local blip = AddBlipForCoord(garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z)
     SetBlipSprite(blip, garageInfo.blipSprite or 357)
