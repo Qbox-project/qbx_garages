@@ -234,12 +234,10 @@ end)
 ---@param garageName string
 ---@param garageInfo GarageConfig
 local function parkVehicle(vehicle, garageName, garageInfo)
-    local plate = qbx.getVehiclePlate(vehicle)
-
     if GetVehicleNumberOfPassengers(vehicle) ~= 1 then
-        local owned = lib.callback.await('qb-garage:server:checkOwnership', false, plate, garageInfo.type, garageName, QBX.PlayerData.gang.name)
+        local isParkable = lib.callback.await('qbx_garages:server:isParkable', false, garageInfo.type, garageName, QBX.PlayerData.gang.name, NetworkGetNetworkIdFromEntity(vehicle))
 
-        if not owned then
+        if not isParkable then
             exports.qbx_core:Notify(Lang:t('error.not_owned'), 'error', 5000)
             return
         end
