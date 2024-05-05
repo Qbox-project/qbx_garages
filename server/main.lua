@@ -56,10 +56,6 @@ local function validateGarageVehicle(source, garage, type, plate)
     end
 end
 
-local function isPlayerVehicle(veh)
-    return Entity(veh).state.vehicleid ~= nil
-end
-
 ---@param source number
 ---@param type GarageType
 ---@param garage string
