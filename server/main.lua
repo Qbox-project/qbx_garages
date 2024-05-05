@@ -57,34 +57,36 @@ local function validateGarageVehicle(source, garage, type, plate)
 end
 
 ---@param source number
----@param plate string
 ---@param type GarageType
 ---@param garage string
 ---@param gang string
----@return VehicleEntity | boolean
-local function checkOwnership(source, plate, type, garage, gang)
+---@param veh number entity
+---@return boolean
+local function isParkable(source, type, garage, gang, veh)
+    local vehicleId = Entity(veh).state.vehicleid
+    assert(vehicleId ~= nil, 'owned vehicles must have vehicle ids')
     local player = exports.qbx_core:GetPlayer(source)
     if type == GarageType.PUBLIC then -- Public garages only for player cars
-         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, player.PlayerData.citizenid})
-         return result[1] or false
+         local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ? AND citizenid = ?', {vehicleId, player.PlayerData.citizenid})
+         return not not result
     elseif type == 'house' then -- House garages only for player cars that have keys of the house
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
-        return result[1] and exports['qb-houses']:hasKey(result[1].license, result[1].citizenid, garage)
+        local result = MySQL.single.await('SELECT license, citizenid FROM player_vehicles WHERE id = ?', {vehicleId})
+        return result and exports['qb-houses']:hasKey(result.license, result.citizenid, garage)
     elseif type == GarageType.GANG then -- Gang garages only for gang members cars (for sharing)
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?', {plate})
-        if not result[1] then return false end
+        local citizenId = MySQL.scalar.await('SELECT citizenid FROM player_vehicles WHERE id = ?', {vehicleId})
+        if not citizenId then return false end
         -- Check if found owner is part of the gang
-        local resultplayer = MySQL.single.await('SELECT * FROM players WHERE citizenid = ?', { result[1].citizenid })
-        if not resultplayer then return false end
-        return json.decode(resultplayer.gang)?.name == gang
+        return player.PlayerData.gang?.name == gang
     else -- Job garages only for cars that are owned by someone (for sharing and service) or only by player depending of config
         local shared = config.sharedGarages and '' or " AND citizenid = '"..player.PlayerData.citizenid.."'"
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE plate = ?'..shared, {plate})
-        return result[1]
+        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ?'..shared, {vehicleId})
+        return not not result
     end
 end
 
-lib.callback.register('qb-garage:server:checkOwnership', checkOwnership)
+lib.callback.register('qbx_garages:server:isParkable', function(source, type, garage, gang, netId)
+    return isParkable(source, type, garage, gang, NetworkGetEntityFromNetworkId(netId))
+end)
 
 ---@param source number
 ---@param vehicleEntity VehicleEntity
@@ -127,7 +129,8 @@ end)
 ---@param type GarageType
 ---@param gang string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage, type, gang)
-    local owned = checkOwnership(source, props.plate, type, garage, gang) --Check ownership
+    local vehicle = NetworkGetEntityFromNetworkId(netId)
+    local owned = isParkable(source, type, garage, gang, vehicle) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
@@ -137,7 +140,6 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
 
     MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), props.plate})
 
-    local vehicle = NetworkGetEntityFromNetworkId(netId)
     local vehicleId = Entity(vehicle).state.vehicleid
     if vehicleId then
         outsideVehicles[vehicleId] = nil
