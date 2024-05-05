@@ -130,7 +130,7 @@ end)
 ---@param gang string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage, type, gang)
     local vehicle = NetworkGetEntityFromNetworkId(netId)
-    local owned = isParkable(source, props.plate, type, garage, gan, vehicle) --Check ownership
+    local owned = isParkable(source, type, garage, gang, vehicle) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
