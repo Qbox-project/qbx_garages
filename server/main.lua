@@ -107,9 +107,7 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehicle
     end
 
     local warpPed = sharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
-    local netId = qbx.spawnVehicle({ spawnSource = coords, model = vehicleEntity.vehicle, props = props, warp = warpPed})
-
-    local veh = NetworkGetEntityFromNetworkId(netId)
+    local netId, veh = qbx.spawnVehicle({ spawnSource = coords, model = vehicleEntity.vehicle, props = props, warp = warpPed})
 
     if sharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
