@@ -1,7 +1,15 @@
 local config = require 'config.server'
 local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
-local outsideVehicles = {}
+
+local function findPlateOnServer(plate)
+    local vehicles = GetAllVehicles()
+    for i = 1, #vehicles do
+        if plate == GetVehicleNumberPlateText(vehicles[i]) then
+            return true
+        end
+    end
+end
 
 ---@alias VehicleEntity table
 
@@ -20,7 +28,7 @@ lib.callback.register('qb-garage:server:GetGarageVehicles', function(source, gar
         local toSend = {}
         if not result[1] then return false end
         for _, vehicle in pairs(result) do -- Check vehicle type against depot type
-            if not outsideVehicles[vehicle.id] or not DoesEntityExist(outsideVehicles[vehicle.id].entity) then
+            if not findPlateOnServer(vehicle.plate) then
                 if (category == VehicleType.AIR and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
                    (category == VehicleType.SEA and VEHICLES[vehicle.vehicle].category == 'boats') or
                    (category == VehicleType.CAR and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
@@ -96,12 +104,13 @@ end)
 lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehicleEntity, coords, garageType)
     local props = {}
 
-    local result = MySQL.query.await('SELECT id, mods FROM player_vehicles WHERE plate = ?', {vehicleEntity.plate})
+    local result = MySQL.query.await('SELECT id, mods FROM player_vehicles WHERE plate = ? LIMIT 1', {vehicleEntity.plate})
 
     if result[1] then
-        if garageType == GarageType.DEPOT and (not outsideVehicles[result[1].id] or not DoesEntityExist(outsideVehicles[result[1].id].entity)) then -- If depot, check if vehicle is not already spawned on the map
-            exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
-            return
+        if garageType == GarageType.DEPOT then
+            if findPlateOnServer(result[1].plate) then -- If depot, check if vehicle is not already spawned on the map
+                return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
+            end
         end
         props = json.decode(result[1].mods)
     end
@@ -116,7 +125,7 @@ lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehicle
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, vehicleEntity.plate)
 
     Entity(veh).state:set('vehicleid', result[1].id, false)
-    outsideVehicles[result[1].id] = {netID = netId, entity = veh}
+
     return netId
 end)
 
@@ -138,10 +147,6 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
 
     MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), props.plate})
 
-    local vehicleId = Entity(vehicle).state.vehicleid
-    if vehicleId then
-        outsideVehicles[vehicleId] = nil
-    end
     DeleteEntity(vehicle)
 end)
 
