@@ -223,7 +223,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    TriggerServerEvent('qb-garage:server:updateVehicleState', VehicleState.OUT, data.vehicle.plate, data.garageName)
+    TriggerServerEvent('qb-garage:server:updateVehicleState', VehicleState.OUT, data.vehicle.id, data.garageName)
 
     if not sharedConfig.takeOut.engineOff then
         SetVehicleEngineOn(veh, true, true, false)
