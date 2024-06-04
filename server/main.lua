@@ -47,19 +47,19 @@ end)
 ---@param source number
 ---@param garage string
 ---@param type GarageType
----@param plate string
+---@param vehicleId string
 ---@return VehicleEntity
-local function validateGarageVehicle(source, garage, type, plate)
+local function validateGarageVehicle(source, garage, type, vehicleId)
     local player = exports.qbx_core:GetPlayer(source)
     if type == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND plate = ?', {player.PlayerData.citizenid, garage, VehicleState.GARAGED, plate})
+        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ?', {player.PlayerData.citizenid, garage, VehicleState.GARAGED, vehicleId})
         return result[1]
     elseif type == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND plate = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, plate})
+        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
         return result[1]
     else
         local shared = config.sharedGarages and type ~= 'house' and '' or " AND citizenid = '"..player.PlayerData.citizenid.."'"
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND plate = ?'..shared, {garage, VehicleState.OUT, plate})
+        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND id = ?'..shared, {garage, VehicleState.OUT, vehicleId})
         return result[1]
     end
 end
@@ -104,7 +104,7 @@ end)
 lib.callback.register('qb-garage:server:spawnvehicle', function (source, vehicleEntity, coords, garageType)
     local props = {}
 
-    local result = MySQL.query.await('SELECT id, mods FROM player_vehicles WHERE plate = ? LIMIT 1', {vehicleEntity.plate})
+    local result = MySQL.query.await('SELECT id, mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleEntity.id})
 
     if result[1] then
         if garageType == GarageType.DEPOT then
@@ -143,17 +143,16 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
         return
     end
 
+    local vehicleId = Entity(vehicle).state.vehicleid
     if type ~= 'house' and not sharedConfig.garages[garage] then return end
-
-    MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE plate = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), props.plate})
-
+    MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE id = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), vehicleId})
     DeleteEntity(vehicle)
 end)
 
 ---@param state VehicleState
----@param plate string
+---@param vehicleId string
 ---@param garage string
-RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, garage)
+RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, vehicleId, garage)
     local type
     if sharedConfig.garages[garage] then
         type = sharedConfig.garages[garage].type
@@ -161,7 +160,7 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
         type = 'house'
     end
 
-    local owned = validateGarageVehicle(source, garage, type, plate) -- Check ownership
+    local owned = validateGarageVehicle(source, garage, type, vehicleId) -- Check ownership
     if not owned then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
@@ -169,19 +168,19 @@ RegisterNetEvent('qb-garage:server:updateVehicleState', function(state, plate, g
 
     if state ~= VehicleState.OUT then return end -- Check state value
 
-    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE plate = ?', {plate})
+    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
     if not carInfo then return end
 
     local vehCost = VEHICLES[carInfo.vehicle].price
     local newPrice = qbx.math.round(vehCost * (config.impoundFee.percentage / 100))
     if config.impoundFee.enable then
         if carInfo.depotprice ~= newPrice then
-            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', {state, newPrice, plate})
+            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE id = ?', {state, newPrice, vehicleId})
         else
-            MySQL.update('UPDATE player_vehicles SET state = ? WHERE plate = ?', {state, plate})
+            MySQL.update('UPDATE player_vehicles SET state = ? WHERE id = ?', {state, vehicleId})
         end
     else
-        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE plate = ?', {state, plate})
+        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE id = ?', {state, vehicleId})
     end
 end)
 
@@ -201,17 +200,15 @@ RegisterNetEvent('qb-garage:server:PayDepotPrice', function(data)
     local bankBalance = player.PlayerData.money.bank
     local vehicle = data.vehicle
 
-    MySQL.query('SELECT * FROM player_vehicles WHERE plate = ?', {vehicle.plate}, function(result)
-        if result[1] then
-            if cashBalance >= result[1].depotprice then
-                player.Functions.RemoveMoney('cash', result[1].depotprice, 'paid-depot')
-                TriggerClientEvent('qb-garages:client:takeOutGarage', src, data)
-            elseif bankBalance >= result[1].depotprice then
-                player.Functions.RemoveMoney('bank', result[1].depotprice, 'paid-depot')
-                TriggerClientEvent('qb-garages:client:takeOutGarage', src, data)
-            else
-                exports.qbx_core:Notify(src, Lang:t('error.not_enough'), 'error')
-            end
-        end
-    end)
+    local depotPrice = MySQL.scalar.await('SELECT depotprice FROM player_vehicles WHERE id = ?', {vehicle.id})
+    if not depotPrice then return end
+    if cashBalance >= depotPrice then
+        player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')
+        TriggerClientEvent('qb-garages:client:takeOutGarage', src, data)
+    elseif bankBalance >= depotPrice then
+        player.Functions.RemoveMoney('bank', depotPrice, 'paid-depot')
+        TriggerClientEvent('qb-garages:client:takeOutGarage', src, data)
+    else
+        exports.qbx_core:Notify(src, Lang:t('error.not_enough'), 'error')
+    end
 end)
