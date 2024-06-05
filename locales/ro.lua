@@ -1,5 +1,5 @@
 --[[
-Romanian base language translation for qb-garages
+Romanian base language translation for qbx_garages
 Translation done by wanderrer (Martin Riggs#0807 on Discord)
 ]]--
 local Translations = {

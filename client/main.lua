@@ -67,9 +67,9 @@ end
 ---@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
 local function takeOutDepot(data)
     if data.vehicle.depotprice ~= 0 then
-        TriggerServerEvent('qb-garage:server:PayDepotPrice', data)
+        TriggerServerEvent('qbx_garages:server:PayDepotPrice', data)
     else
-        TriggerEvent('qb-garages:client:takeOutGarage', data)
+        TriggerEvent('qbx_garages:client:takeOutGarage', data)
     end
 end
 
@@ -141,7 +141,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
         options[#options + 1] = {
             title = 'Take out',
             icon = 'car-rear',
-            event = 'qb-garages:client:takeOutGarage',
+            event = 'qbx_garages:client:takeOutGarage',
             arrow = true,
             args = {
                 vehicle = vehicle,
@@ -170,25 +170,26 @@ end
 ---@param garageName string
 ---@param garageInfo GarageConfig
 local function openGarageMenu(garageName, garageInfo)
-    local result = lib.callback.await('qb-garage:server:GetGarageVehicles', false, garageName, garageInfo.type, garageInfo.vehicle)
+    local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName, garageInfo.type, garageInfo.vehicle)
 
-    if not result then
+    if not vehicleEntities then
         exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error')
         return
     end
 
     local options = {}
 
-    for _, v in pairs(result) do
-        local vehicleLabel = ('%s %s'):format(VEHICLES[v.vehicle].brand, VEHICLES[v.vehicle].name)
-        local stateLabel = getStateLabel(v.state)
+    for i = 1, #vehicleEntities do
+        local vehicleEntity = vehicleEntities[i]
+        local vehicleLabel = ('%s %s'):format(VEHICLES[vehicleEntity.vehicle].brand, VEHICLES[vehicleEntity.vehicle].name)
+        local stateLabel = getStateLabel(vehicleEntity.state)
 
         options[#options + 1] = {
             title = vehicleLabel,
-            description = ('%s | %s'):format(stateLabel, v.plate),
+            description = ('%s | %s'):format(stateLabel, vehicleEntity.plate),
             arrow = true,
             onSelect = function()
-                displayVehicleInfo(v, garageName, garageInfo)
+                displayVehicleInfo(vehicleEntity, garageName, garageInfo)
             end,
         }
     end
@@ -203,13 +204,13 @@ local function openGarageMenu(garageName, garageInfo)
 end
 
 ---@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
-RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
+RegisterNetEvent('qbx_garages:client:takeOutGarage', function(data)
     if cache.vehicle then
         exports.qbx_core:Notify('You\'re already in a vehicle...')
         return
     end
 
-    local netId = lib.callback.await('qb-garage:server:spawnvehicle', false, data.vehicle, data.garageInfo.spawn, data.garageInfo.type)
+    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, data.vehicle, data.garageInfo.spawn, data.garageInfo.type)
     if not netId then return end
 
     local veh = lib.waitFor(function()
@@ -223,7 +224,7 @@ RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
         return
     end
 
-    TriggerServerEvent('qb-garage:server:updateVehicleState', VehicleState.OUT, data.vehicle.id, data.garageName)
+    TriggerServerEvent('qbx_garages:server:updateVehicleState', VehicleState.OUT, data.vehicle.id, data.garageName)
 
     if not sharedConfig.takeOut.engineOff then
         SetVehicleEngineOn(veh, true, true, false)
