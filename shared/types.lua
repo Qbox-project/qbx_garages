@@ -18,4 +18,5 @@ GarageType = {
     JOB = 'job',
     GANG = 'gang',
     DEPOT = 'depot',
+    HOUSE = 'house',
 }
