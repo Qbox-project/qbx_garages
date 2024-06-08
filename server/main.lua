@@ -109,22 +109,19 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 ---@param vehicleId string
----@param garageName string
-RegisterNetEvent('qbx_garages:server:PayDepotPrice', function(vehicleId, garageName)
-    local src = source
-    local player = exports.qbx_core:GetPlayer(src)
+---@return boolean? success true if successfully paid
+lib.callback.register('qbx_garages:server:payDepotPrice', function(source, vehicleId)
+    local player = exports.qbx_core:GetPlayer(source)
     local cashBalance = player.PlayerData.money.cash
     local bankBalance = player.PlayerData.money.bank
 
     local depotPrice = MySQL.scalar.await('SELECT depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
-    if not depotPrice then return end
+    if not depotPrice or depotPrice == 0 then return true end
     if cashBalance >= depotPrice then
         player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')
-        TriggerClientEvent('qbx_garages:client:takeOutGarage', src, vehicleId, garageName)
+        return true
     elseif bankBalance >= depotPrice then
         player.Functions.RemoveMoney('bank', depotPrice, 'paid-depot')
-        TriggerClientEvent('qbx_garages:client:takeOutGarage', src, vehicleId, garageName)
-    else
-        exports.qbx_core:Notify(src, Lang:t('error.not_enough'), 'error')
+        return true
     end
 end)

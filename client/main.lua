@@ -64,13 +64,44 @@ local function kickOutPeds(vehicle)
     end
 end
 
+---@param vehicleId string
+---@param garageName string
+local function takeOutOfGarage(vehicleId, garageName)
+    if cache.vehicle then
+        exports.qbx_core:Notify('You\'re already in a vehicle...')
+        return
+    end
+
+    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName)
+    if not netId then return end
+
+    local veh = lib.waitFor(function()
+        if NetworkDoesEntityExistWithNetworkId(netId) then
+            return NetToVeh(netId)
+        end
+    end)
+
+    if veh == 0 then
+        exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
+        return
+    end
+
+    if not sharedConfig.takeOut.engineOff then
+        SetVehicleEngineOn(veh, true, true, false)
+    end
+end
+
 ---@param data {vehicle: VehicleEntity, garageName: string}
 local function takeOutDepot(data)
     if data.vehicle.depotprice ~= 0 then
-        TriggerServerEvent('qbx_garages:server:PayDepotPrice', data.vehicle.id, data.garageName)
-    else
-        TriggerEvent('qbx_garages:client:takeOutGarage', data.vehicle.id, data.garageName)
+        local success = lib.callback.await('qbx_garages:server:payDepotPrice', data.vehicle.id)
+        if not success then
+            exports.qbx_core:Notify(Lang:t('error.not_enough'), 'error')
+            return
+        end
     end
+
+    takeOutOfGarage(data.vehicle.id, data.garageName)
 end
 
 ---@param vehicle VehicleEntity
@@ -140,12 +171,10 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
         options[#options + 1] = {
             title = 'Take out',
             icon = 'car-rear',
-            event = 'qbx_garages:client:takeOutGarage',
             arrow = true,
-            args = {
-                vehicleId = vehicle.id,
-                garageName = garageName,
-            },
+            onSelect = function()
+                takeOutOfGarage(vehicle.id, garageName)
+            end,
         }
     elseif vehicle.state == VehicleState.IMPOUNDED then
         options[#options + 1] = {
@@ -199,33 +228,6 @@ local function openGarageMenu(garageName, garageInfo)
 
     lib.showContext('garageMenu')
 end
-
----@param vehicleId string
----@param garageName string
-RegisterNetEvent('qbx_garages:client:takeOutGarage', function(vehicleId, garageName)
-    if cache.vehicle then
-        exports.qbx_core:Notify('You\'re already in a vehicle...')
-        return
-    end
-
-    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName)
-    if not netId then return end
-
-    local veh = lib.waitFor(function()
-        if NetworkDoesEntityExistWithNetworkId(netId) then
-            return NetToVeh(netId)
-        end
-    end)
-
-    if veh == 0 then
-        exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
-        return
-    end
-
-    if not sharedConfig.takeOut.engineOff then
-        SetVehicleEngineOn(veh, true, true, false)
-    end
-end)
 
 ---@param vehicle number
 ---@param garageName string
