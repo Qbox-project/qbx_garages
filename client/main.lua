@@ -210,7 +210,7 @@ RegisterNetEvent('qbx_garages:client:takeOutGarage', function(data)
         return
     end
 
-    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, data.vehicle, data.garageInfo.spawn, data.garageInfo.type)
+    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, data.vehicle, data.garageInfo.spawn, data.garageInfo.type, data.garageInfo)
     if not netId then return end
 
     local veh = lib.waitFor(function()
@@ -223,8 +223,6 @@ RegisterNetEvent('qbx_garages:client:takeOutGarage', function(data)
         exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
         return
     end
-
-    TriggerServerEvent('qbx_garages:server:updateVehicleState', VehicleState.OUT, data.vehicle.id, data.garageName)
 
     if not sharedConfig.takeOut.engineOff then
         SetVehicleEngineOn(veh, true, true, false)

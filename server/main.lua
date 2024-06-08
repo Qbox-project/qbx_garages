@@ -102,15 +102,55 @@ lib.callback.register('qbx_garages:server:isParkable', function(source, type, ga
     return isParkable(source, type, garage, gang, NetworkGetEntityFromNetworkId(netId))
 end)
 
+---@param garage string
+---@return GarageType
+local function getGarageType(garage)
+    if sharedConfig.garages[garage] then
+        return sharedConfig.garages[garage].type
+    else
+        return GarageType.HOUSE
+    end
+end
+
+---@param source number
+---@param vehicleId string
+---@param garage string
+local function updateVehicleState(source, vehicleId, garage)
+    local type = getGarageType(garage)
+
+    local owned = validateGarageVehicle(source, garage, type, vehicleId) -- Check ownership
+    if not owned then
+        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
+        return
+    end
+
+    local state = VehicleState.OUT
+    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
+    if not carInfo then return end
+
+    local vehCost = VEHICLES[carInfo.vehicle].price
+    local newPrice = qbx.math.round(vehCost * (config.impoundFee.percentage / 100))
+    if config.impoundFee.enable then
+        if carInfo.depotprice ~= newPrice then
+            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE id = ?', {state, newPrice, vehicleId})
+        else
+            MySQL.update('UPDATE player_vehicles SET state = ? WHERE id = ?', {state, vehicleId})
+        end
+    else
+        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE id = ?', {state, vehicleId})
+    end
+end
+
 ---@param source number
 ---@param vehicleEntity VehicleEntity
 ---@param coords vector4
 ---@param garageType GarageType
+---@param garageName string
 ---@return number? netId
-lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleEntity, coords, garageType)
+lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleEntity, coords, garageType, garageName)
     local props = {}
 
-    local result = MySQL.query.await('SELECT id, mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleEntity.id})
+    local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleEntity.id})
 
     if result[1] then
         if garageType == GarageType.DEPOT then
@@ -130,8 +170,8 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
 
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, vehicleEntity.plate)
 
-    Entity(veh).state:set('vehicleid', result[1].id, false)
-
+    Entity(veh).state:set('vehicleid', vehicleEntity.id, false)
+    updateVehicleState(source, vehicleEntity.id, garageName)
     return netId
 end)
 
@@ -153,41 +193,6 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     if garageType ~= GarageType.HOUSE and not sharedConfig.garages[garage] then return end
     MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE id = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), vehicleId})
     DeleteEntity(vehicle)
-end)
-
----@param state VehicleState
----@param vehicleId string
----@param garage string
-RegisterNetEvent('qbx_garages:server:updateVehicleState', function(state, vehicleId, garage)
-    local type
-    if sharedConfig.garages[garage] then
-        type = sharedConfig.garages[garage].type
-    else
-        type = GarageType.HOUSE
-    end
-
-    local owned = validateGarageVehicle(source, garage, type, vehicleId) -- Check ownership
-    if not owned then
-        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
-        return
-    end
-
-    if state ~= VehicleState.OUT then return end -- Check state value
-
-    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
-    if not carInfo then return end
-
-    local vehCost = VEHICLES[carInfo.vehicle].price
-    local newPrice = qbx.math.round(vehCost * (config.impoundFee.percentage / 100))
-    if config.impoundFee.enable then
-        if carInfo.depotprice ~= newPrice then
-            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE id = ?', {state, newPrice, vehicleId})
-        else
-            MySQL.update('UPDATE player_vehicles SET state = ? WHERE id = ?', {state, vehicleId})
-        end
-    else
-        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE id = ?', {state, vehicleId})
-    end
 end)
 
 AddEventHandler('onResourceStart', function(resource)
