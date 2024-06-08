@@ -1,8 +1,8 @@
-local config = require 'config.server'
-local sharedConfig = require 'config.shared'
-local VEHICLES = exports.qbx_core:GetVehiclesByName()
+Config = require 'config.server'
+SharedConfig = require 'config.shared'
+VEHICLES = exports.qbx_core:GetVehiclesByName()
 
-local function findPlateOnServer(plate)
+function FindPlateOnServer(plate)
     local vehicles = GetAllVehicles()
     for i = 1, #vehicles do
         if plate == GetVehicleNumberPlateText(vehicles[i]) then
@@ -28,7 +28,7 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
         local toSend = {}
         if not result[1] then return end
         for _, vehicle in pairs(result) do -- Check vehicle type against depot type
-            if not findPlateOnServer(vehicle.plate) then
+            if not FindPlateOnServer(vehicle.plate) then
                 if (category == VehicleType.AIR and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
                    (category == VehicleType.SEA and VEHICLES[vehicle.vehicle].category == 'boats') or
                    (category == VehicleType.CAR and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
@@ -37,7 +37,7 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
             end
         end
         return toSend
-    elseif garageType == GarageType.HOUSE or not config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
+    elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
         local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ?', {garage, VehicleState.GARAGED, player.PlayerData.citizenid})
         return result[1] and result
     else -- Job/Gang shared garages
@@ -45,28 +45,6 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
         return result[1] and result
     end
 end)
-
----@param source number
----@param garage string
----@param garageType GarageType
----@param vehicleId string
----@return VehicleEntity
-local function validateGarageVehicle(source, garage, garageType, vehicleId)
-    local player = exports.qbx_core:GetPlayer(source)
-    if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ?', {player.PlayerData.citizenid, garage, VehicleState.GARAGED, vehicleId})
-        return result[1]
-    elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
-        return result[1]
-    elseif garageType == GarageType.HOUSE or not config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ? AND id = ?', {garage, VehicleState.OUT, player.PlayerData.citizenid, vehicleId})
-        return result[1] and result
-    else -- Job/Gang shared garages
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ?', {garage, VehicleState.OUT})
-        return result[1] and result
-    end
-end
 
 ---@param source number
 ---@param garageType GarageType
@@ -89,7 +67,7 @@ local function isParkable(source, garageType, garage, gang, veh)
         if not citizenId then return false end
         -- Check if found owner is part of the gang
         return player.PlayerData.gang?.name == gang
-    elseif garageType == GarageType.HOUSE or not config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
+    elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
         local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND id = ?', {player.PlayerData.citizenid, vehicleId})
         return not not result
     else -- Job/Gang shared garages
@@ -100,79 +78,6 @@ end
 
 lib.callback.register('qbx_garages:server:isParkable', function(source, type, garage, gang, netId)
     return isParkable(source, type, garage, gang, NetworkGetEntityFromNetworkId(netId))
-end)
-
----@param garage string
----@return GarageType
-local function getGarageType(garage)
-    if sharedConfig.garages[garage] then
-        return sharedConfig.garages[garage].type
-    else
-        return GarageType.HOUSE
-    end
-end
-
----@param source number
----@param vehicleId string
----@param garage string
-local function updateVehicleState(source, vehicleId, garage)
-    local type = getGarageType(garage)
-
-    local owned = validateGarageVehicle(source, garage, type, vehicleId) -- Check ownership
-    if not owned then
-        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
-        return
-    end
-
-    local state = VehicleState.OUT
-    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
-    if not carInfo then return end
-
-    local vehCost = VEHICLES[carInfo.vehicle].price
-    local newPrice = qbx.math.round(vehCost * (config.impoundFee.percentage / 100))
-    if config.impoundFee.enable then
-        if carInfo.depotprice ~= newPrice then
-            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE id = ?', {state, newPrice, vehicleId})
-        else
-            MySQL.update('UPDATE player_vehicles SET state = ? WHERE id = ?', {state, vehicleId})
-        end
-    else
-        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE id = ?', {state, vehicleId})
-    end
-end
-
----@param source number
----@param vehicleEntity VehicleEntity
----@param coords vector4
----@param garageType GarageType
----@param garageName string
----@return number? netId
-lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleEntity, coords, garageType, garageName)
-    local props = {}
-
-    local result = MySQL.query.await('SELECT mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleEntity.id})
-
-    if result[1] then
-        if garageType == GarageType.DEPOT then
-            if findPlateOnServer(result[1].plate) then -- If depot, check if vehicle is not already spawned on the map
-                return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
-            end
-        end
-        props = json.decode(result[1].mods)
-    end
-
-    local warpPed = sharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
-    local netId, veh = qbx.spawnVehicle({ spawnSource = coords, model = vehicleEntity.vehicle, props = props, warp = warpPed})
-
-    if sharedConfig.takeOut.doorsLocked then
-        SetVehicleDoorsLocked(veh, 2)
-    end
-
-    TriggerClientEvent('vehiclekeys:client:SetOwner', source, vehicleEntity.plate)
-
-    Entity(veh).state:set('vehicleid', vehicleEntity.id, false)
-    updateVehicleState(source, vehicleEntity.id, garageName)
-    return netId
 end)
 
 ---@param source number
@@ -190,7 +95,7 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     end
 
     local vehicleId = Entity(vehicle).state.vehicleid
-    if garageType ~= GarageType.HOUSE and not sharedConfig.garages[garage] then return end
+    if garageType ~= GarageType.HOUSE and not SharedConfig.garages[garage] then return end
     MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE id = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), vehicleId})
     DeleteEntity(vehicle)
 end)
@@ -198,7 +103,7 @@ end)
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= cache.resource then return end
     Wait(100)
-    if not config.autoRespawn then return end
+    if not Config.autoRespawn then return end
 
     MySQL.update('UPDATE player_vehicles SET state = ? WHERE state = ?', {VehicleState.GARAGED, VehicleState.OUT})
 end)
