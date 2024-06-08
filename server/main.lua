@@ -87,6 +87,7 @@ end)
 ---@param garageType GarageType
 ---@param gang string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage, garageType, gang)
+    assert(garageType == GarageType.HOUSE or SharedConfig.garages[garage] ~= nil, string.format('Garage %s not found in config', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local owned = isParkable(source, garageType, garage, gang, vehicle) --Check ownership
     if not owned then
@@ -95,7 +96,6 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     end
 
     local vehicleId = Entity(vehicle).state.vehicleid
-    if garageType ~= GarageType.HOUSE and not SharedConfig.garages[garage] then return end
     MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE id = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), vehicleId})
     DeleteEntity(vehicle)
 end)
@@ -108,22 +108,22 @@ AddEventHandler('onResourceStart', function(resource)
     MySQL.update('UPDATE player_vehicles SET state = ? WHERE state = ?', {VehicleState.GARAGED, VehicleState.OUT})
 end)
 
----@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
-RegisterNetEvent('qbx_garages:server:PayDepotPrice', function(data)
+---@param vehicleId string
+---@param garageName string
+RegisterNetEvent('qbx_garages:server:PayDepotPrice', function(vehicleId, garageName)
     local src = source
     local player = exports.qbx_core:GetPlayer(src)
     local cashBalance = player.PlayerData.money.cash
     local bankBalance = player.PlayerData.money.bank
-    local vehicle = data.vehicle
 
-    local depotPrice = MySQL.scalar.await('SELECT depotprice FROM player_vehicles WHERE id = ?', {vehicle.id})
+    local depotPrice = MySQL.scalar.await('SELECT depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
     if not depotPrice then return end
     if cashBalance >= depotPrice then
         player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')
-        TriggerClientEvent('qbx_garages:client:takeOutGarage', src, data)
+        TriggerClientEvent('qbx_garages:client:takeOutGarage', src, vehicleId, garageName)
     elseif bankBalance >= depotPrice then
         player.Functions.RemoveMoney('bank', depotPrice, 'paid-depot')
-        TriggerClientEvent('qbx_garages:client:takeOutGarage', src, data)
+        TriggerClientEvent('qbx_garages:client:takeOutGarage', src, vehicleId, garageName)
     else
         exports.qbx_core:Notify(src, Lang:t('error.not_enough'), 'error')
     end

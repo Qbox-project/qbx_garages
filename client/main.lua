@@ -64,12 +64,12 @@ local function kickOutPeds(vehicle)
     end
 end
 
----@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
+---@param data {vehicle: VehicleEntity, garageName: string}
 local function takeOutDepot(data)
     if data.vehicle.depotprice ~= 0 then
-        TriggerServerEvent('qbx_garages:server:PayDepotPrice', data)
+        TriggerServerEvent('qbx_garages:server:PayDepotPrice', data.vehicle.id, data.garageName)
     else
-        TriggerEvent('qbx_garages:client:takeOutGarage', data)
+        TriggerEvent('qbx_garages:client:takeOutGarage', data.vehicle.id, data.garageName)
     end
 end
 
@@ -125,7 +125,6 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
                 onSelect = function()
                     takeOutDepot({
                         vehicle = vehicle,
-                        garageInfo = garageInfo,
                         garageName = garageName
                     })
                 end,
@@ -144,8 +143,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
             event = 'qbx_garages:client:takeOutGarage',
             arrow = true,
             args = {
-                vehicle = vehicle,
-                garageInfo = garageInfo,
+                vehicleId = vehicle.id,
                 garageName = garageName,
             },
         }
@@ -178,7 +176,6 @@ local function openGarageMenu(garageName, garageInfo)
     end
 
     local options = {}
-
     for i = 1, #vehicleEntities do
         local vehicleEntity = vehicleEntities[i]
         local vehicleLabel = ('%s %s'):format(VEHICLES[vehicleEntity.vehicle].brand, VEHICLES[vehicleEntity.vehicle].name)
@@ -203,14 +200,15 @@ local function openGarageMenu(garageName, garageInfo)
     lib.showContext('garageMenu')
 end
 
----@param data {vehicle: VehicleEntity, garageInfo: GarageConfig, garageName: string}
-RegisterNetEvent('qbx_garages:client:takeOutGarage', function(data)
+---@param vehicleId string
+---@param garageName string
+RegisterNetEvent('qbx_garages:client:takeOutGarage', function(vehicleId, garageName)
     if cache.vehicle then
         exports.qbx_core:Notify('You\'re already in a vehicle...')
         return
     end
 
-    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, data.vehicle, data.garageInfo.spawn, data.garageInfo.type, data.garageInfo)
+    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName)
     if not netId then return end
 
     local veh = lib.waitFor(function()
@@ -244,7 +242,7 @@ local function parkVehicle(vehicle, garageName, garageInfo)
         kickOutPeds(vehicle)
         SetVehicleDoorsLocked(vehicle, 2)
         Wait(1500)
-        lib.callback('qbx_garages:server:parkVehicle', false, nil, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName, garageInfo.type, QBX.PlayerData.gang.name)
+        lib.callback.await('qbx_garages:server:parkVehicle', false, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName, garageInfo.type, QBX.PlayerData.gang.name)
         exports.qbx_core:Notify(Lang:t('success.vehicle_parked'), 'primary', 4500)
     else
         exports.qbx_core:Notify(Lang:t('error.vehicle_occupied'), 'error', 3500)

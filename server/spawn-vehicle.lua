@@ -60,35 +60,35 @@ local function updateVehicleState(source, vehicleId, garage)
 end
 
 ---@param source number
----@param vehicleEntity VehicleEntity
----@param coords vector4
----@param garageType GarageType
+---@param vehicleId string
 ---@param garageName string
 ---@return number? netId
-lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleEntity, coords, garageType, garageName)
+lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName)
+    local garage = SharedConfig.garages[garageName]
+    local garageType = getGarageType(garageName)
     local props = {}
 
-    local result = MySQL.query.await('SELECT plate, mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleEntity.id})
+    local result = MySQL.single.await('SELECT plate, mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleId})
 
-    if result[1] then
+    if result then
         if garageType == GarageType.DEPOT then
-            if FindPlateOnServer(result[1].plate) then -- If depot, check if vehicle is not already spawned on the map
+            if FindPlateOnServer(result.plate) then -- If depot, check if vehicle is not already spawned on the map
                 return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
             end
         end
-        props = json.decode(result[1].mods)
+        props = json.decode(result.mods)
     end
 
     local warpPed = SharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
-    local netId, veh = qbx.spawnVehicle({ spawnSource = coords, model = vehicleEntity.vehicle, props = props, warp = warpPed})
+    local netId, veh = qbx.spawnVehicle({ spawnSource = garage.spawn, model = props.model, props = props, warp = warpPed})
 
     if SharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
     end
 
-    TriggerClientEvent('vehiclekeys:client:SetOwner', source, vehicleEntity.plate)
+    TriggerClientEvent('vehiclekeys:client:SetOwner', source, props.plate)
 
-    Entity(veh).state:set('vehicleid', vehicleEntity.id, false)
-    updateVehicleState(source, vehicleEntity.id, garageName)
+    Entity(veh).state:set('vehicleid', vehicleId, false)
+    updateVehicleState(source, vehicleId, garageName)
     return netId
 end)
