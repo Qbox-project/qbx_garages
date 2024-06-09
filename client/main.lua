@@ -197,7 +197,7 @@ end
 ---@param garageName string
 ---@param garageInfo GarageConfig
 local function openGarageMenu(garageName, garageInfo)
-    local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName, garageInfo.type, garageInfo.vehicle)
+    local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName)
 
     if not vehicleEntities then
         exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error')
@@ -231,10 +231,9 @@ end
 
 ---@param vehicle number
 ---@param garageName string
----@param garageInfo GarageConfig
-local function parkVehicle(vehicle, garageName, garageInfo)
+local function parkVehicle(vehicle, garageName)
     if GetVehicleNumberOfPassengers(vehicle) ~= 1 then
-        local isParkable = lib.callback.await('qbx_garages:server:isParkable', false, garageInfo.type, garageName, QBX.PlayerData.gang.name, NetworkGetNetworkIdFromEntity(vehicle))
+        local isParkable = lib.callback.await('qbx_garages:server:isParkable', false, garageName, NetworkGetNetworkIdFromEntity(vehicle))
 
         if not isParkable then
             exports.qbx_core:Notify(Lang:t('error.not_owned'), 'error', 5000)
@@ -244,7 +243,7 @@ local function parkVehicle(vehicle, garageName, garageInfo)
         kickOutPeds(vehicle)
         SetVehicleDoorsLocked(vehicle, 2)
         Wait(1500)
-        lib.callback.await('qbx_garages:server:parkVehicle', false, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName, garageInfo.type, QBX.PlayerData.gang.name)
+        lib.callback.await('qbx_garages:server:parkVehicle', false, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName)
         exports.qbx_core:Notify(Lang:t('success.vehicle_parked'), 'primary', 4500)
     else
         exports.qbx_core:Notify(Lang:t('error.vehicle_occupied'), 'error', 3500)
@@ -269,10 +268,10 @@ local function createZones(garageName, garage)
                 inside = function()
                     if IsControlJustReleased(0, 38) then
                         if cache.vehicle and garage.type ~= GarageType.DEPOT then
-                            if not isOfType(garage.vehicle, cache.vehicle) then
+                            if not isOfType(garage.vehicleType, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
-                            parkVehicle(cache.vehicle, garageName, garage)
+                            parkVehicle(cache.vehicle, garageName)
                         else
                             openGarageMenu(garageName, garage)
                         end
@@ -304,10 +303,10 @@ local function createZones(garageName, garage)
                             return garage.type ~= GarageType.DEPOT and cache.vehicle
                         end,
                         onSelect = function()
-                            if not isOfType(garage.vehicle, cache.vehicle) then
+                            if not isOfType(garage.vehicleType, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
-                            parkVehicle(cache.vehicle, garageName, garage)
+                            parkVehicle(cache.vehicle, garageName)
                         end,
                         distance = 10,
                     },
@@ -337,8 +336,8 @@ local function createGarages()
             createBlips(garage)
         end
 
-        if garage.type == GarageType.JOB and (QBX.PlayerData.job.name == garage.job or QBX.PlayerData.job.type == garage.job) or
-            garage.type == GarageType.GANG and QBX.PlayerData.gang.name == garage.job or
+        if garage.type == GarageType.JOB and (QBX.PlayerData.job.name == garage.group or QBX.PlayerData.job.type == garage.group) or
+            garage.type == GarageType.GANG and QBX.PlayerData.gang.name == garage.group or
             garage.type ~= GarageType.JOB and garage.type ~= GarageType.GANG then
             createZones(name, garage)
         end
