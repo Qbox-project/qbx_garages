@@ -197,7 +197,7 @@ end
 ---@param garageName string
 ---@param garageInfo GarageConfig
 local function openGarageMenu(garageName, garageInfo)
-    local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName, garageInfo.type, garageInfo.vehicle)
+    local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName)
 
     if not vehicleEntities then
         exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error')
@@ -269,7 +269,7 @@ local function createZones(garageName, garage)
                 inside = function()
                     if IsControlJustReleased(0, 38) then
                         if cache.vehicle and garage.type ~= GarageType.DEPOT then
-                            if not isOfType(garage.vehicle, cache.vehicle) then
+                            if not isOfType(garage.vehicleType, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
                             parkVehicle(cache.vehicle, garageName, garage)
@@ -304,7 +304,7 @@ local function createZones(garageName, garage)
                             return garage.type ~= GarageType.DEPOT and cache.vehicle
                         end,
                         onSelect = function()
-                            if not isOfType(garage.vehicle, cache.vehicle) then
+                            if not isOfType(garage.vehicleType, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
                             parkVehicle(cache.vehicle, garageName, garage)

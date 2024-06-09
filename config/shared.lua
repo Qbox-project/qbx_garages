@@ -2,7 +2,7 @@ require 'shared.types'
 
 return {
     takeOut = {
-        warpInVehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
+        warpInvehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
         doorsLocked = true, -- If true, the doors will be locked upon taking the vehicle out.
         engineOff = true, -- If true, the engine will be off upon taking the vehicle out.
     },
@@ -19,7 +19,7 @@ return {
     ---@field blipSprite? number -- Sprite for the blip. Defaults to 357
     ---@field blipColor? number -- Color for the blip. Defaults to 3.
     ---@field type GarageType -- Type of garage
-    ---@field vehicle VehicleType -- Vehicle type
+    ---@field vehicleType VehicleType -- Vehicle type
     ---@field job? string -- Job / Gang name that can access the garage.
 
     ---@type table<string, GarageConfig>
@@ -31,7 +31,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(271.26, -342.32, 44.7, 159.97),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         sapcounsel = {
             label = 'San Andreas Parking',
@@ -39,7 +39,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(-337.11, -775.34, 33.56, 132.09),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         spanishave = {
             label = 'Spanish Ave Parking',
@@ -47,7 +47,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(-1165.38, -747.65, 18.94, 40.45),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         caears24 = {
             label = 'Caears 24 Parking',
@@ -55,7 +55,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(72.61, 11.72, 68.47, 157.59),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         littleseoul = {
             label = 'Little Seoul Parking',
@@ -63,7 +63,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(-472.24, -813.61, 30.3, 179.88),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         lagunapi = {
             label = 'Laguna Parking',
@@ -71,7 +71,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(367.41, 297.02, 103.2, 341.08),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         airportp = {
             label = 'Airport Parking',
@@ -79,7 +79,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(-793.35, -2020.62, 8.51, 58.42),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         beachp = {
             label = 'Beach Parking',
@@ -87,7 +87,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(-1184.4, -1501.88, 4.39, 214.7),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         themotorhotel = {
             label = 'The Motor Hotel Parking',
@@ -95,7 +95,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(1137.56, 2674.19, 38.17, 359.95),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         liqourparking = {
             label = 'Liqour Parking',
@@ -103,7 +103,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(960.48, 3605.71, 32.98, 87.09),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         shoreparking = {
             label = 'Shore Parking',
@@ -111,7 +111,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(1728.65, 3714.85, 34.18, 21.26),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         haanparking = {
             label = 'Bell Farms Parking',
@@ -119,7 +119,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(70.71, 6425.16, 30.92, 68.5),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         dumbogarage = {
             label = 'Dumbo Private Parking',
@@ -127,7 +127,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(165.32, -3236.10, 5.93, 268.5),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         pillboxgarage = {
             label = 'Pillbox Garage Parking',
@@ -135,7 +135,7 @@ return {
             size = vec3(10, 10, 10),
             spawn = vec4(229.33, -805.01, 30.54, 156.79),
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         intairport = {
             label = 'Airport Hangar',
@@ -145,7 +145,7 @@ return {
             blipName = 'Hanger',
             blipSprite = 360,
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.AIR,
+            vehicleType = VehicleType.AIR,
         },
         higginsheli = {
             label = 'Higgins Helitours',
@@ -155,7 +155,7 @@ return {
             blipName = 'Hanger',
             blipSprite = 360,
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.AIR,
+            vehicleType = VehicleType.AIR,
         },
         airsshores = {
             label = 'Sandy Shores Hangar',
@@ -165,7 +165,7 @@ return {
             blipName = 'Hanger',
             blipSprite = 360,
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.AIR,
+            vehicleType = VehicleType.AIR,
         },
         lsymc = {
             label = 'LSYMC Boathouse',
@@ -175,7 +175,7 @@ return {
             blipName = 'Boathouse',
             blipSprite = 356,
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.SEA,
+            vehicleType = VehicleType.SEA,
         },
         paleto = {
             label = 'Paleto Boathouse',
@@ -185,7 +185,7 @@ return {
             blipName = 'Boathouse',
             blipSprite = 356,
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.SEA,
+            vehicleType = VehicleType.SEA,
         },
         millars = {
             label = 'Millars Boathouse',
@@ -195,7 +195,7 @@ return {
             blipName = 'Boathouse',
             blipSprite = 356,
             type = GarageType.PUBLIC,
-            vehicle = VehicleType.SEA,
+            vehicleType = VehicleType.SEA,
         },
 
         -- Job Garages
@@ -208,7 +208,7 @@ return {
             blipName = 'MRPD Parking',
             blipNumber = 357,
             type = GarageType.JOB,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
             job = 'police',
         },
 
@@ -222,7 +222,7 @@ return {
             blipName = 'Ballas',
             blipNumber = 357,
             type = GarageType.GANG,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
             job = 'ballas',
         },
         families = {
@@ -234,7 +234,7 @@ return {
             blipName = 'La Familia',
             blipNumber = 357,
             type = GarageType.GANG,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
             job = 'families',
         },
         lostmc = {
@@ -246,7 +246,7 @@ return {
             blipName = 'Lost MC',
             blipNumber = 357,
             type = GarageType.GANG,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
             job = 'lostmc',
         },
         cartel = {
@@ -258,7 +258,7 @@ return {
             blipName = 'Cartel',
             blipNumber = 357,
             type = GarageType.GANG,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
             job = 'cartel',
         },
 
@@ -271,7 +271,7 @@ return {
             blipName = 'Impound Lot',
             blipSprite = 68,
             type = GarageType.DEPOT,
-            vehicle = VehicleType.CAR,
+            vehicleType = VehicleType.CAR,
         },
         airdepot = {
             label = 'Air Depot',
@@ -281,7 +281,7 @@ return {
             blipName = 'Air Deot',
             blipSprite = 359,
             type = GarageType.DEPOT,
-            vehicle = VehicleType.AIR,
+            vehicleType = VehicleType.AIR,
         },
         seadepot = {
             label = 'LSYMC Depot',
@@ -291,7 +291,7 @@ return {
             blipName = 'LSYMC Depot',
             blipSprite = 356,
             type = GarageType.DEPOT,
-            vehicle = VehicleType.SEA,
+            vehicleType = VehicleType.SEA,
         },
     },
 }

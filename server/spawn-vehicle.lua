@@ -20,21 +20,11 @@ local function validateGarageVehicle(source, garage, garageType, vehicleId)
     end
 end
 
----@param garage string
----@return GarageType
-local function getGarageType(garage)
-    if SharedConfig.garages[garage] then
-        return SharedConfig.garages[garage].type
-    else
-        return GarageType.HOUSE
-    end
-end
-
 ---@param source number
 ---@param vehicleId string
 ---@param garage string
 local function updateVehicleState(source, vehicleId, garage)
-    local type = getGarageType(garage)
+    local type = GetGarageType(garage)
 
     local owned = validateGarageVehicle(source, garage, type, vehicleId) -- Check ownership
     if not owned then
@@ -65,7 +55,7 @@ end
 ---@return number? netId
 lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName)
     local garage = SharedConfig.garages[garageName]
-    local garageType = getGarageType(garageName)
+    local garageType = GetGarageType(garageName)
     local props = {}
 
     local result = MySQL.single.await('SELECT plate, mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleId})
