@@ -20,7 +20,7 @@ return {
     ---@field blipColor? number -- Color for the blip. Defaults to 3.
     ---@field type GarageType -- Type of garage
     ---@field vehicleType VehicleType -- Vehicle type
-    ---@field job? string -- Job / Gang name that can access the garage.
+    ---@field group? string -- Job / Gang name that can access the garage.
 
     ---@type table<string, GarageConfig>
     garages = {
@@ -209,7 +209,7 @@ return {
             blipNumber = 357,
             type = GarageType.JOB,
             vehicleType = VehicleType.CAR,
-            job = 'police',
+            group = 'police',
         },
 
         -- Gang Garages
@@ -223,7 +223,7 @@ return {
             blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
-            job = 'ballas',
+            group = 'ballas',
         },
         families = {
             label = 'La Familia',
@@ -235,7 +235,7 @@ return {
             blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
-            job = 'families',
+            group = 'families',
         },
         lostmc = {
             label = 'Lost MC',
@@ -247,7 +247,7 @@ return {
             blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
-            job = 'lostmc',
+            group = 'lostmc',
         },
         cartel = {
             label = 'Cartel',
@@ -259,7 +259,7 @@ return {
             blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
-            job = 'cartel',
+            group = 'cartel',
         },
 
         -- Impound Lots
