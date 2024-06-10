@@ -5,19 +5,17 @@
 ---@return boolean
 local function checkHasAccessToVehicle(source, garageName, garageType, vehicleId)
     local player = exports.qbx_core:GetPlayer(source)
+    local result
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ?', {player.PlayerData.citizenid, garageName, VehicleState.GARAGED, vehicleId})
-        return not not result
+        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ? LIMIT 1', {player.PlayerData.citizenid, garageName, VehicleState.GARAGED, vehicleId})
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
-        return not not result
+        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ? LIMIT 1', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
     elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ? AND id = ?', {garageName, VehicleState.OUT, player.PlayerData.citizenid, vehicleId})
-        return not not result
+        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ? AND id = ? LIMIT 1', {garageName, VehicleState.OUT, player.PlayerData.citizenid, vehicleId})
     else -- Job/Gang shared garages
-        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ?', {garageName, VehicleState.OUT})
-        return not not result
+        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ? AND id = ? LIMIT 1', {garageName, VehicleState.OUT, vehicleId})
     end
+    return result ~= nil
 end
 
 ---@param vehicleId string
