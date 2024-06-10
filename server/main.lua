@@ -1,6 +1,7 @@
 Config = require 'config.server'
 SharedConfig = require 'config.shared'
 VEHICLES = exports.qbx_core:GetVehiclesByName()
+Storage = require 'server.storage'
 
 function FindPlateOnServer(plate)
     local vehicles = GetAllVehicles()
@@ -30,10 +31,10 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     local garageType = GetGarageType(garageName)
     local player = exports.qbx_core:GetPlayer(source)
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ?', {player.PlayerData.citizenid, garageName, VehicleState.GARAGED})
+        local result = Storage.fetchGaragedVehicles(garageName, player.PlayerData.citizenid)
         return result[1] and result
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND state = ?', {player.PlayerData.citizenid, VehicleState.OUT})
+        local result = Storage.fetchOutVehicles(player.PlayerData.citizenid)
         local toSend = {}
         if not result[1] then return end
         for _, vehicle in pairs(result) do -- Check vehicle type against depot type
@@ -48,10 +49,10 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
         end
         return toSend
     elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ?', {garageName, VehicleState.GARAGED, player.PlayerData.citizenid})
+        local result = Storage.fetchGaragedVehicles(garageName, player.PlayerData.citizenid)
         return result[1] and result
     else -- Job/Gang shared garages
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ?', {garageName, VehicleState.GARAGED})
+        local result = Storage.fetchGaragedVehicles(garageName)
         return result[1] and result
     end
 end)
@@ -65,30 +66,27 @@ local function isParkable(source, vehicleId, garageName)
     assert(vehicleId ~= nil, 'owned vehicles must have vehicle ids')
     local player = exports.qbx_core:GetPlayer(source)
     local garage = SharedConfig.garages[garageName]
-    if garageType == GarageType.PUBLIC then -- Public garages only for player cars
-         local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ? AND citizenid = ?', {vehicleId, player.PlayerData.citizenid})
-         return not not result
+    if garageType == GarageType.PUBLIC then -- All players can park in public garages
+        return true
     elseif garageType == GarageType.HOUSE then -- House garages only for player cars that have keys of the house
-        local result = MySQL.single.await('SELECT license, citizenid FROM player_vehicles WHERE id = ?', {vehicleId})
-        return result and exports['qb-houses']:hasKey(result.license, result.citizenid, garageName)
+        local owner = Storage.fetchVehicleOwner(vehicleId)
+        return Config.hasHouseGarageKey(garageName, owner)
     elseif garageType == GarageType.JOB then
         if player.PlayerData.job?.name ~= garage.group then return false end
-        local result
         if Config.sharedGarages then
-            result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ?', {vehicleId})
+            return true
         else
-            result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ? AND citizenid = ?', {vehicleId, player.PlayerData.citizenid})
+            local owner = Storage.fetchVehicleOwner(vehicleId)
+            return owner == player.PlayerData.citizenid
         end
-        return not not result
     elseif garageType == GarageType.GANG then
         if player.PlayerData.gang?.name ~= garage.group then return false end
-        local result
         if Config.sharedGarages then
-            result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ?', {vehicleId})
+            return true
         else
-            result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE id = ? AND citizenid = ?', {vehicleId, player.PlayerData.citizenid})
+            local owner = Storage.fetchVehicleOwner(vehicleId)
+            return owner == player.PlayerData.citizenid
         end
-        return not not result
     end
     error("Unhandled GarageType: " .. garageType)
 end
@@ -114,16 +112,16 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     end
 
     local vehicleId = Entity(vehicle).state.vehicleid
-    MySQL.update('UPDATE player_vehicles SET state = ?, garage = ?, fuel = ?, engine = ?, body = ?, mods = ? WHERE id = ?', {VehicleState.GARAGED, garage, props.fuelLevel, props.engineHealth, props.bodyHealth, json.encode(props), vehicleId})
+    Storage.saveVehicle(vehicleId, props, garage)
     DeleteEntity(vehicle)
 end)
 
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= cache.resource then return end
     Wait(100)
-    if not Config.autoRespawn then return end
-
-    MySQL.update('UPDATE player_vehicles SET state = ? WHERE state = ?', {VehicleState.GARAGED, VehicleState.OUT})
+    if Config.autoRespawn then
+        Storage.moveOutVehiclesIntoGarages()
+    end
 end)
 
 ---@param vehicleId string
@@ -133,7 +131,7 @@ lib.callback.register('qbx_garages:server:payDepotPrice', function(source, vehic
     local cashBalance = player.PlayerData.money.cash
     local bankBalance = player.PlayerData.money.bank
 
-    local depotPrice = MySQL.scalar.await('SELECT depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
+    local depotPrice = Storage.fetchVehicleDepotPrice(vehicleId)
     if not depotPrice or depotPrice == 0 then return true end
     if cashBalance >= depotPrice then
         player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')

@@ -9,4 +9,12 @@ return {
         -- For example, if your car costs $1000 and this is set to 2, the impound fee will be $20 as that is 2% of the vehicle price
         percentage = 2,
     },
+
+    ---@param garageName string
+    ---@param citizenId string
+    ---@return boolean
+    hasHouseGarageKey = function(garageName, citizenId)
+        --- TODO: implement
+        error('house garages not implemented. Implement in config/server.lua')
+    end,
 }

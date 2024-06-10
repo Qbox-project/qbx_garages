@@ -1,52 +1,31 @@
 ---@param source number
----@param garage string
+---@param garageName string
 ---@param garageType GarageType
 ---@param vehicleId string
----@return VehicleEntity
-local function validateGarageVehicle(source, garage, garageType, vehicleId)
+---@return boolean
+local function checkHasAccessToVehicle(source, garageName, garageType, vehicleId)
     local player = exports.qbx_core:GetPlayer(source)
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ?', {player.PlayerData.citizenid, garage, VehicleState.GARAGED, vehicleId})
-        return result[1]
+        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ?', {player.PlayerData.citizenid, garageName, VehicleState.GARAGED, vehicleId})
+        return not not result
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
-        return result[1]
+        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ?', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
+        return not not result
     elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ? AND id = ?', {garage, VehicleState.OUT, player.PlayerData.citizenid, vehicleId})
-        return result[1] and result
+        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ? AND id = ?', {garageName, VehicleState.OUT, player.PlayerData.citizenid, vehicleId})
+        return not not result
     else -- Job/Gang shared garages
-        local result = MySQL.query.await('SELECT * FROM player_vehicles WHERE garage = ? AND state = ?', {garage, VehicleState.OUT})
-        return result[1] and result
+        local result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ?', {garageName, VehicleState.OUT})
+        return not not result
     end
 end
 
----@param source number
 ---@param vehicleId string
----@param garage string
-local function updateVehicleState(source, vehicleId, garage)
-    local type = GetGarageType(garage)
-
-    local owned = validateGarageVehicle(source, garage, type, vehicleId) -- Check ownership
-    if not owned then
-        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
-        return
-    end
-
-    local state = VehicleState.OUT
-    local carInfo = MySQL.single.await('SELECT vehicle, depotprice FROM player_vehicles WHERE id = ?', {vehicleId})
-    if not carInfo then return end
-
-    local vehCost = VEHICLES[carInfo.vehicle].price
-    local newPrice = qbx.math.round(vehCost * (Config.impoundFee.percentage / 100))
-    if Config.impoundFee.enable then
-        if carInfo.depotprice ~= newPrice then
-            MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE id = ?', {state, newPrice, vehicleId})
-        else
-            MySQL.update('UPDATE player_vehicles SET state = ? WHERE id = ?', {state, vehicleId})
-        end
-    else
-        MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = 0 WHERE id = ?', {state, vehicleId})
-    end
+---@param modelName string
+local function setVehicleStateToOut(vehicleId, modelName)
+    local vehCost = VEHICLES[modelName].price
+    local depotPrice = Config.impoundFee.enable and qbx.math.round(vehCost * (Config.impoundFee.percentage / 100)) or 0
+    Storage.setVehicleStateToOut(vehicleId, depotPrice)
 end
 
 ---@param source number
@@ -56,29 +35,28 @@ end
 lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName)
     local garage = SharedConfig.garages[garageName]
     local garageType = GetGarageType(garageName)
-    local props = {}
 
-    local result = MySQL.single.await('SELECT plate, mods FROM player_vehicles WHERE id = ? LIMIT 1', {vehicleId})
+    local owned = checkHasAccessToVehicle(source, garageName, garageType, vehicleId) -- Check ownership
+    if not owned then
+        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
+        return
+    end
 
-    if result then
-        if garageType == GarageType.DEPOT then
-            if FindPlateOnServer(result.plate) then -- If depot, check if vehicle is not already spawned on the map
-                return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
-            end
-        end
-        props = json.decode(result.mods)
+    local metadata = Storage.fetchVehicleProps(vehicleId)
+    if garageType == GarageType.DEPOT and FindPlateOnServer(metadata.props.plate) then -- If depot, check if vehicle is not already spawned on the map
+        return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
     end
 
     local warpPed = SharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
-    local netId, veh = qbx.spawnVehicle({ spawnSource = garage.spawn, model = props.model, props = props, warp = warpPed})
+    local netId, veh = qbx.spawnVehicle({ spawnSource = garage.spawn, model = metadata.props.model, props = metadata.props, warp = warpPed})
 
     if SharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
     end
 
-    TriggerClientEvent('vehiclekeys:client:SetOwner', source, props.plate)
+    TriggerClientEvent('vehiclekeys:client:SetOwner', source, metadata.props.plate)
 
     Entity(veh).state:set('vehicleid', vehicleId, false)
-    updateVehicleState(source, vehicleId, garageName)
+    setVehicleStateToOut(vehicleId, metadata.props.modelName)
     return netId
 end)
