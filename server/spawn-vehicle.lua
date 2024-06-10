@@ -5,7 +5,7 @@
 ---@return boolean
 local function checkHasAccessToVehicle(source, garageName, garageType, vehicleId)
     local player = exports.qbx_core:GetPlayer(source)
-    local result = nil
+    local result
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
         result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ? LIMIT 1', {player.PlayerData.citizenid, garageName, VehicleState.GARAGED, vehicleId})
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
