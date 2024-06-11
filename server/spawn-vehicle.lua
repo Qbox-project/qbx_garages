@@ -55,6 +55,6 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, metadata.props.plate)
 
     Entity(veh).state:set('vehicleid', vehicleId, false)
-    setVehicleStateToOut(vehicleId, metadata.props.modelName)
+    setVehicleStateToOut(vehicleId, metadata.modelName)
     return netId
 end)
