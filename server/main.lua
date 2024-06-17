@@ -1,3 +1,12 @@
+---@class PlayerVehicle
+---@field id number
+---@field citizenid? string
+---@field modelName string
+---@field garage string
+---@field state VehicleState
+---@field depotPrice integer
+---@field props table ox_lib properties table
+
 Config = require 'config.server'
 SharedConfig = require 'config.shared'
 VEHICLES = exports.qbx_core:GetVehiclesByName()
@@ -22,38 +31,50 @@ function GetGarageType(garage)
     end
 end
 
----@alias VehicleEntity table
-
 ---@param source number
 ---@param garageName string
----@return VehicleEntity[]?
+---@return PlayerVehicle[]?
 lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, garageName)
     local garageType = GetGarageType(garageName)
     local player = exports.qbx_core:GetPlayer(source)
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        local result = Storage.fetchGaragedVehicles(garageName, player.PlayerData.citizenid)
-        return result[1] and result
+        local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
+            garage = garageName,
+            citizenid = player.PlayerData.citizenid,
+            states = VehicleState.GARAGED,
+        })
+        return playerVehicles[1] and playerVehicles
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local result = Storage.fetchOutVehicles(player.PlayerData.citizenid)
+        local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
+            citizenid = player.PlayerData.citizenid,
+            states = VehicleState.OUT,
+        })
         local toSend = {}
-        if not result[1] then return end
-        for _, vehicle in pairs(result) do -- Check vehicle type against depot type
-            if not FindPlateOnServer(vehicle.plate) then
+        if not playerVehicles[1] then return end
+        for _, vehicle in pairs(playerVehicles) do -- Check vehicle type against depot type
+            if not FindPlateOnServer(vehicle.props.plate) then
                 local vehicleType = SharedConfig.garages[garageName].vehicleType
-                if (vehicleType == VehicleType.AIR and (VEHICLES[vehicle.vehicle].category == 'helicopters' or VEHICLES[vehicle.vehicle].category == 'planes')) or
-                   (vehicleType == VehicleType.SEA and VEHICLES[vehicle.vehicle].category == 'boats') or
-                   (vehicleType == VehicleType.CAR and VEHICLES[vehicle.vehicle].category ~= 'helicopters' and VEHICLES[vehicle.vehicle].category ~= 'planes' and VEHICLES[vehicle.vehicle].category ~= 'boats') then
+                if (vehicleType == VehicleType.AIR and (VEHICLES[vehicle.modelName].category == 'helicopters' or VEHICLES[vehicle.modelName].category == 'planes')) or
+                   (vehicleType == VehicleType.SEA and VEHICLES[vehicle.modelName].category == 'boats') or
+                   (vehicleType == VehicleType.CAR and VEHICLES[vehicle.modelName].category ~= 'helicopters' and VEHICLES[vehicle.modelName].category ~= 'planes' and VEHICLES[vehicle.modelName].category ~= 'boats') then
                     toSend[#toSend + 1] = vehicle
                 end
             end
         end
         return toSend
     elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        local result = Storage.fetchGaragedVehicles(garageName, player.PlayerData.citizenid)
-        return result[1] and result
+        local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
+            garage = garageName,
+            citizenid = player.PlayerData.citizenid,
+            states = VehicleState.GARAGED,
+        })
+        return playerVehicles[1] and playerVehicles
     else -- Job/Gang shared garages
-        local result = Storage.fetchGaragedVehicles(garageName)
-        return result[1] and result
+        local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
+            garage = garageName,
+            states = VehicleState.GARAGED,
+        })
+        return playerVehicles[1] and playerVehicles
     end
 end)
 
@@ -69,23 +90,23 @@ local function isParkable(source, vehicleId, garageName)
     if garageType == GarageType.PUBLIC then -- All players can park in public garages
         return true
     elseif garageType == GarageType.HOUSE then -- House garages only for player cars that have keys of the house
-        local owner = Storage.fetchVehicleOwner(vehicleId)
-        return Config.hasHouseGarageKey(garageName, owner)
+        local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+        return Config.hasHouseGarageKey(garageName, playerVehicle.citizenid)
     elseif garageType == GarageType.JOB then
         if player.PlayerData.job?.name ~= garage.group then return false end
         if Config.sharedGarages then
             return true
         else
-            local owner = Storage.fetchVehicleOwner(vehicleId)
-            return owner == player.PlayerData.citizenid
+            local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+            return playerVehicle.citizenid == player.PlayerData.citizenid
         end
     elseif garageType == GarageType.GANG then
         if player.PlayerData.gang?.name ~= garage.group then return false end
         if Config.sharedGarages then
             return true
         else
-            local owner = Storage.fetchVehicleOwner(vehicleId)
-            return owner == player.PlayerData.citizenid
+            local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+            return playerVehicle.citizenid == player.PlayerData.citizenid
         end
     end
     error("Unhandled GarageType: " .. garageType)
@@ -131,7 +152,8 @@ lib.callback.register('qbx_garages:server:payDepotPrice', function(source, vehic
     local cashBalance = player.PlayerData.money.cash
     local bankBalance = player.PlayerData.money.bank
 
-    local depotPrice = Storage.fetchVehicleDepotPrice(vehicleId)
+    local vehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+    local depotPrice = vehicle.depotPrice
     if not depotPrice or depotPrice == 0 then return true end
     if cashBalance >= depotPrice then
         player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')

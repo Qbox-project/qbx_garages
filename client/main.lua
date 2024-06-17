@@ -64,7 +64,7 @@ local function kickOutPeds(vehicle)
     end
 end
 
----@param vehicleId string
+---@param vehicleId number
 ---@param garageName string
 local function takeOutOfGarage(vehicleId, garageName)
     if cache.vehicle then
@@ -91,9 +91,9 @@ local function takeOutOfGarage(vehicleId, garageName)
     end
 end
 
----@param data {vehicle: VehicleEntity, garageName: string}
+---@param data {vehicle: PlayerVehicle, garageName: string}
 local function takeOutDepot(data)
-    if data.vehicle.depotprice ~= 0 then
+    if data.vehicle.depotPrice ~= 0 then
         local success = lib.callback.await('qbx_garages:server:payDepotPrice', data.vehicle.id)
         if not success then
             exports.qbx_core:Notify(Lang:t('error.not_enough'), 'error')
@@ -104,23 +104,23 @@ local function takeOutDepot(data)
     takeOutOfGarage(data.vehicle.id, data.garageName)
 end
 
----@param vehicle VehicleEntity
+---@param vehicle PlayerVehicle
 ---@param garageName string
 ---@param garageInfo GarageConfig
 local function displayVehicleInfo(vehicle, garageName, garageInfo)
-    local engine = qbx.math.round(vehicle.engine / 10)
-    local body = qbx.math.round(vehicle.body / 10)
+    local engine = qbx.math.round(vehicle.props.engineHealth / 10)
+    local body = qbx.math.round(vehicle.props.bodyHealth / 10)
     local engineColor = getProgressColor(engine)
     local bodyColor = getProgressColor(body)
-    local fuelColor = getProgressColor(vehicle.fuel)
+    local fuelColor = getProgressColor(vehicle.props.fuelLevel)
     local stateLabel = getStateLabel(vehicle.state)
-    local vehicleLabel = ('%s %s'):format(VEHICLES[vehicle.vehicle].brand, VEHICLES[vehicle.vehicle].name)
+    local vehicleLabel = ('%s %s'):format(VEHICLES[vehicle.modelName].brand, VEHICLES[vehicle.modelName].name)
 
     local options = {
         {
             title = 'Information',
             icon = 'circle-info',
-            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehicleLabel, vehicle.plate, stateLabel, lib.math.groupdigits(vehicle.depotprice)),
+            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehicleLabel, vehicle.props.plate, stateLabel, lib.math.groupdigits(vehicle.depotPrice)),
             readOnly = true,
         },
         {
@@ -141,7 +141,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
             title = 'Fuel',
             icon = 'gas-pump',
             readOnly = true,
-            progress = vehicle.fuel,
+            progress = vehicle.props.fuelLevel,
             colorScheme = fuelColor,
         }
     }
@@ -151,7 +151,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
             options[#options + 1] = {
                 title = 'Take out',
                 icon = 'fa-truck-ramp-box',
-                description = ('$%s'):format(lib.math.groupdigits(vehicle.depotprice)),
+                description = ('$%s'):format(lib.math.groupdigits(vehicle.depotPrice)),
                 arrow = true,
                 onSelect = function()
                     takeOutDepot({
@@ -197,6 +197,7 @@ end
 ---@param garageName string
 ---@param garageInfo GarageConfig
 local function openGarageMenu(garageName, garageInfo)
+    ---@type PlayerVehicle[]?
     local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName)
 
     if not vehicleEntities then
@@ -207,12 +208,12 @@ local function openGarageMenu(garageName, garageInfo)
     local options = {}
     for i = 1, #vehicleEntities do
         local vehicleEntity = vehicleEntities[i]
-        local vehicleLabel = ('%s %s'):format(VEHICLES[vehicleEntity.vehicle].brand, VEHICLES[vehicleEntity.vehicle].name)
+        local vehicleLabel = ('%s %s'):format(VEHICLES[vehicleEntity.modelName].brand, VEHICLES[vehicleEntity.modelName].name)
         local stateLabel = getStateLabel(vehicleEntity.state)
 
         options[#options + 1] = {
             title = vehicleLabel,
-            description = ('%s | %s'):format(stateLabel, vehicleEntity.plate),
+            description = ('%s | %s'):format(stateLabel, vehicleEntity.props.plate),
             arrow = true,
             onSelect = function()
                 displayVehicleInfo(vehicleEntity, garageName, garageInfo)

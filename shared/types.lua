@@ -1,3 +1,4 @@
+---@enum VehicleState
 VehicleState = {
     OUT = 0,
     GARAGED = 1,

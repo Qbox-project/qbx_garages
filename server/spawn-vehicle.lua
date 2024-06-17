@@ -40,21 +40,21 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
         return
     end
 
-    local metadata = Storage.fetchVehicleProps(vehicleId)
-    if garageType == GarageType.DEPOT and FindPlateOnServer(metadata.props.plate) then -- If depot, check if vehicle is not already spawned on the map
+    local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+    if garageType == GarageType.DEPOT and FindPlateOnServer(playerVehicle.props.plate) then -- If depot, check if vehicle is not already spawned on the map
         return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
     end
 
     local warpPed = SharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
-    local netId, veh = qbx.spawnVehicle({ spawnSource = garage.spawn, model = metadata.props.model, props = metadata.props, warp = warpPed})
+    local netId, veh = qbx.spawnVehicle({ spawnSource = garage.spawn, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
     if SharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
     end
 
-    TriggerClientEvent('vehiclekeys:client:SetOwner', source, metadata.props.plate)
+    TriggerClientEvent('vehiclekeys:client:SetOwner', source, playerVehicle.props.plate)
 
     Entity(veh).state:set('vehicleid', vehicleId, false)
-    setVehicleStateToOut(vehicleId, metadata.modelName)
+    setVehicleStateToOut(vehicleId, playerVehicle.modelName)
     return netId
 end)
