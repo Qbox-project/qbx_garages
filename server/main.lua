@@ -40,13 +40,13 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
         local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
             garage = garageName,
-            citizenId = player.PlayerData.citizenid,
+            citizenid = player.PlayerData.citizenid,
             states = VehicleState.GARAGED,
         })
         return playerVehicles[1] and playerVehicles
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
         local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
-            citizenId = player.PlayerData.citizenid,
+            citizenid = player.PlayerData.citizenid,
             states = VehicleState.OUT,
         })
         local toSend = {}
@@ -65,7 +65,7 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
         local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles({
             garage = garageName,
-            citizenId = player.PlayerData.citizenid,
+            citizenid = player.PlayerData.citizenid,
             states = VehicleState.GARAGED,
         })
         return playerVehicles[1] and playerVehicles
