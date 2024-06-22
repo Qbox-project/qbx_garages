@@ -1,37 +1,3 @@
----@param source number
----@param garageName string
----@param garageType GarageType
----@param vehicleId string
----@return PlayerVehicle?
-local function getPlayerVehicle(source, garageName, garageType, vehicleId)
-    local player = exports.qbx_core:GetPlayer(source)
-    local filter
-    if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        filter = {
-            citizenid = player.PlayerData.citizenid,
-            garage = garageName,
-            states = VehicleState.GARAGED
-        }
-    elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        filter = {
-            citizenid = player.PlayerData.citizenid,
-            states = VehicleState.OUT
-        }
-    elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        filter = {
-            citizenid = player.PlayerData.citizenid,
-            garage = garageName,
-            states = VehicleState.GARAGED
-        }
-    else -- Job/Gang shared garages
-        filter = {
-            garage = garageName,
-            states = VehicleState.GARAGED
-        }
-    end
-    return exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
-end
-
 ---@param vehicleId string
 ---@param modelName string
 local function setVehicleStateToOut(vehicleId, modelName)
@@ -48,7 +14,8 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     local garage = SharedConfig.garages[garageName]
     local garageType = GetGarageType(garageName)
 
-    local playerVehicle = getPlayerVehicle(source, garageName, garageType, vehicleId) -- Check ownership
+    local filter = GetPlayerVehicleFilter(source, garageName, garageType)
+    local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
     if not playerVehicle then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
