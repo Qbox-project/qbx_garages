@@ -2,20 +2,34 @@
 ---@param garageName string
 ---@param garageType GarageType
 ---@param vehicleId string
----@return boolean
-local function checkHasAccessToVehicle(source, garageName, garageType, vehicleId)
+---@return PlayerVehicle?
+local function getPlayerVehicle(source, garageName, garageType, vehicleId)
     local player = exports.qbx_core:GetPlayer(source)
-    local result
+    local filter
     if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND garage = ? AND state = ? AND id = ? LIMIT 1', {player.PlayerData.citizenid, garageName, VehicleState.GARAGED, vehicleId})
+        filter = {
+            citizenid = player.PlayerData.citizenid,
+            garage = garageName,
+            states = VehicleState.GARAGED
+        }
     elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE citizenid = ? AND (state = ? OR state = ?) AND id = ? LIMIT 1', {player.PlayerData.citizenid, VehicleState.OUT, VehicleState.IMPOUNDED, vehicleId})
+        filter = {
+            citizenid = player.PlayerData.citizenid,
+            states = VehicleState.OUT
+        }
     elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ? AND citizenid = ? AND id = ? LIMIT 1', {garageName, VehicleState.OUT, player.PlayerData.citizenid, vehicleId})
+        filter = {
+            citizenid = player.PlayerData.citizenid,
+            garage = garageName,
+            states = VehicleState.GARAGED
+        }
     else -- Job/Gang shared garages
-        result = MySQL.scalar.await('SELECT 1 FROM player_vehicles WHERE garage = ? AND state = ? AND id = ? LIMIT 1', {garageName, VehicleState.OUT, vehicleId})
+        filter = {
+            garage = garageName,
+            states = VehicleState.GARAGED
+        }
     end
-    return result ~= nil
+    return exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
 end
 
 ---@param vehicleId string
@@ -34,13 +48,11 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     local garage = SharedConfig.garages[garageName]
     local garageType = GetGarageType(garageName)
 
-    local owned = checkHasAccessToVehicle(source, garageName, garageType, vehicleId) -- Check ownership
-    if not owned then
+    local playerVehicle = getPlayerVehicle(source, garageName, garageType, vehicleId) -- Check ownership
+    if not playerVehicle then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
         return
     end
-
-    local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
     if garageType == GarageType.DEPOT and FindPlateOnServer(playerVehicle.props.plate) then -- If depot, check if vehicle is not already spawned on the map
         return exports.qbx_core:Notify(source, Lang:t('error.not_impound'), 'error', 5000)
     end
