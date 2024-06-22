@@ -94,7 +94,7 @@ end
 ---@param data {vehicle: PlayerVehicle, garageName: string}
 local function takeOutDepot(data)
     if data.vehicle.depotPrice ~= 0 then
-        local success = lib.callback.await('qbx_garages:server:payDepotPrice', data.vehicle.id)
+        local success = lib.callback.await('qbx_garages:server:payDepotPrice', false, data.vehicle.id)
         if not success then
             exports.qbx_core:Notify(Lang:t('error.not_enough'), 'error')
             return
