@@ -9,15 +9,17 @@ return {
 
     houseGarages = {}, -- Dont touch
 
+    ---@class GarageBlip
+    ---@field name? string -- Name of the blip. Defaults to garage label.
+    ---@field sprite? number -- Sprite for the blip. Defaults to 357
+    ---@field color? number -- Color for the blip. Defaults to 3.
+
     ---@class GarageConfig
     ---@field label string -- Label for the garage
     ---@field coords vector4 -- Coordinates for the garage
     ---@field size vector3 -- Size of the garage
     ---@field spawn vector4 -- Coordinates where the vehicle will spawn
-    ---@field showBlip? boolean -- Enable or disable the blip. Defaults to true
-    ---@field blipName? string -- Name of the blip. Defaults to garage label.
-    ---@field blipSprite? number -- Sprite for the blip. Defaults to 357
-    ---@field blipColor? number -- Color for the blip. Defaults to 3.
+    ---@field blip? GarageBlip
     ---@field type GarageType -- Type of garage
     ---@field vehicleType VehicleType -- Vehicle type
     ---@field group? string -- Job / Gang name that can access the garage.
@@ -142,8 +144,10 @@ return {
             coords = vec4(-1025.34, -3017.0, 13.95, 331.99),
             size = vec3(10, 10, 10),
             spawn = vec4(-979.2, -2995.51, 13.95, 52.19),
-            blipName = 'Hanger',
-            blipSprite = 360,
+            blip = {
+                name = 'Hanger',
+                sprite = 360,
+            },
             type = GarageType.PUBLIC,
             vehicleType = VehicleType.AIR,
         },
@@ -152,8 +156,10 @@ return {
             coords = vec4(-722.12, -1472.74, 5.0, 140.0),
             size = vec3(10, 10, 10),
             spawn = vec4(-724.83, -1443.89, 5.0, 140.0),
-            blipName = 'Hanger',
-            blipSprite = 360,
+            blip = {
+                name = 'Hanger',
+                sprite = 360,
+            },
             type = GarageType.PUBLIC,
             vehicleType = VehicleType.AIR,
         },
@@ -162,8 +168,10 @@ return {
             coords = vec4(1757.74, 3296.13, 41.15, 142.6),
             size = vec3(10, 10, 10),
             spawn = vec4(1740.88, 3278.99, 41.09, 189.46),
-            blipName = 'Hanger',
-            blipSprite = 360,
+            blip = {
+                name = 'Hanger',
+                sprite = 360,
+            },
             type = GarageType.PUBLIC,
             vehicleType = VehicleType.AIR,
         },
@@ -172,8 +180,10 @@ return {
             coords = vec4(-794.64, -1510.89, 1.6, 201.55),
             size = vec3(10, 10, 10),
             spawn = vec4(-793.58, -1501.4, 0.12, 111.5),
-            blipName = 'Boathouse',
-            blipSprite = 356,
+            blip = {
+                name = 'Boathouse',
+                sprite = 356,
+            },
             type = GarageType.PUBLIC,
             vehicleType = VehicleType.SEA,
         },
@@ -182,8 +192,10 @@ return {
             coords = vec4(-277.4, 6637.01, 7.5, 40.51),
             size = vec3(10, 10, 10),
             spawn = vec4(-289.2, 6637.96, 1.01, 45.5),
-            blipName = 'Boathouse',
-            blipSprite = 356,
+            blip = {
+                name = 'Boathouse',
+                sprite = 356,
+            },
             type = GarageType.PUBLIC,
             vehicleType = VehicleType.SEA,
         },
@@ -192,8 +204,10 @@ return {
             coords = vec4(1299.02, 4216.42, 33.91, 166.8),
             size = vec3(10, 10, 10),
             spawn = vec4(1296.78, 4203.76, 30.12, 169.03),
-            blipName = 'Boathouse',
-            blipSprite = 356,
+            blip = {
+                name = 'Boathouse',
+                sprite = 356,
+            },
             type = GarageType.PUBLIC,
             vehicleType = VehicleType.SEA,
         },
@@ -204,9 +218,6 @@ return {
             coords = vec4(454.6, -1017.4, 28.4, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(438.4, -1018.3, 27.7, 90.0),
-            showBlip = false,
-            blipName = 'MRPD Parking',
-            blipNumber = 357,
             type = GarageType.JOB,
             vehicleType = VehicleType.CAR,
             group = 'police',
@@ -218,9 +229,6 @@ return {
             coords = vec4(98.50, -1954.49, 20.84, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(98.50, -1954.49, 20.75, 335.73),
-            showBlip = false,
-            blipName = 'Ballas',
-            blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'ballas',
@@ -230,9 +238,6 @@ return {
             coords = vec4(-811.65, 187.49, 72.48, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(-818.43, 184.97, 72.28, 107.85),
-            showBlip = false,
-            blipName = 'La Familia',
-            blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'families',
@@ -242,9 +247,6 @@ return {
             coords = vec4(957.25, -129.63, 74.39, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(957.25, -129.63, 74.39, 199.21),
-            showBlip = false,
-            blipName = 'Lost MC',
-            blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'lostmc',
@@ -254,9 +256,6 @@ return {
             coords = vec4(1407.18, 1118.04, 114.84, 0),
             size = vec3(10, 10, 10),
             spawn = vec4(1407.18, 1118.04, 114.84, 88.34),
-            showBlip = false,
-            blipName = 'Cartel',
-            blipNumber = 357,
             type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'cartel',
@@ -268,8 +267,9 @@ return {
             coords = vec4(400.45, -1630.87, 29.29, 228.88),
             size = vec3(10, 10, 10),
             spawn = vec4(407.2, -1645.58, 29.31, 228.28),
-            blipName = 'Impound Lot',
-            blipSprite = 68,
+            blip = {
+                sprite = 68
+            },
             type = GarageType.DEPOT,
             vehicleType = VehicleType.CAR,
         },
@@ -278,8 +278,9 @@ return {
             coords = vec4(-1244.35, -3391.39, 13.94, 59.26),
             size = vec3(10, 10, 10),
             spawn = vec4(-1269.03, -3376.7, 13.94, 330.32),
-            blipName = 'Air Deot',
-            blipSprite = 359,
+            blip = {
+                sprite = 359,
+            },
             type = GarageType.DEPOT,
             vehicleType = VehicleType.AIR,
         },
@@ -288,8 +289,9 @@ return {
             coords = vec4(-772.71, -1431.11, 1.6, 48.03),
             size = vec3(10, 10, 10),
             spawn = vec4(-729.77, -1355.49, 1.19, 142.5),
-            blipName = 'LSYMC Depot',
-            blipSprite = 356,
+            blip = {
+                sprite = 356,
+            },
             type = GarageType.DEPOT,
             vehicleType = VehicleType.SEA,
         },
