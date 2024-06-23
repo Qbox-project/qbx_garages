@@ -320,20 +320,19 @@ end
 ---@param garageInfo GarageConfig
 local function createBlips(garageInfo)
     local blip = AddBlipForCoord(garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z)
-    SetBlipSprite(blip, garageInfo.blipSprite or 357)
+    SetBlipSprite(blip, garageInfo.blip.sprite or 357)
     SetBlipDisplay(blip, 4)
     SetBlipScale(blip, 0.60)
     SetBlipAsShortRange(blip, true)
-    SetBlipColour(blip, garageInfo.blipColor or 3)
+    SetBlipColour(blip, garageInfo.blip.color or 3)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName(garageInfo.blipName or garageInfo.label)
+    AddTextComponentSubstringPlayerName(garageInfo.blip.name or garageInfo.label)
     EndTextCommandSetBlipName(blip)
 end
 
 local function createGarages()
     for name, garage in pairs(sharedConfig.garages) do
-        -- default to showing blips if showBlip is not set
-        if garage.showBlip or garage.showBlip == nil then
+        if garage.blip then
             createBlips(garage)
         end
 
