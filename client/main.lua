@@ -66,13 +66,14 @@ end
 
 ---@param vehicleId number
 ---@param garageName string
-local function takeOutOfGarage(vehicleId, garageName)
+---@param accessPoint integer
+local function takeOutOfGarage(vehicleId, garageName, accessPoint)
     if cache.vehicle then
         exports.qbx_core:Notify('You\'re already in a vehicle...')
         return
     end
 
-    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName)
+    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName, accessPoint)
     if not netId then return end
 
     local veh = lib.waitFor(function()
@@ -91,7 +92,7 @@ local function takeOutOfGarage(vehicleId, garageName)
     end
 end
 
----@param data {vehicle: PlayerVehicle, garageName: string}
+---@param data {vehicle: PlayerVehicle, garageName: string, accessPoint: integer}
 local function takeOutDepot(data)
     if data.vehicle.depotPrice ~= 0 then
         local success = lib.callback.await('qbx_garages:server:payDepotPrice', false, data.vehicle.id)
@@ -101,13 +102,14 @@ local function takeOutDepot(data)
         end
     end
 
-    takeOutOfGarage(data.vehicle.id, data.garageName)
+    takeOutOfGarage(data.vehicle.id, data.garageName, data.accessPoint)
 end
 
 ---@param vehicle PlayerVehicle
 ---@param garageName string
 ---@param garageInfo GarageConfig
-local function displayVehicleInfo(vehicle, garageName, garageInfo)
+---@param accessPoint integer
+local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
     local engine = qbx.math.round(vehicle.props.engineHealth / 10)
     local body = qbx.math.round(vehicle.props.bodyHealth / 10)
     local engineColor = getProgressColor(engine)
@@ -173,7 +175,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo)
             icon = 'car-rear',
             arrow = true,
             onSelect = function()
-                takeOutOfGarage(vehicle.id, garageName)
+                takeOutOfGarage(vehicle.id, garageName, accessPoint)
             end,
         }
     elseif vehicle.state == VehicleState.IMPOUNDED then
@@ -196,7 +198,8 @@ end
 
 ---@param garageName string
 ---@param garageInfo GarageConfig
-local function openGarageMenu(garageName, garageInfo)
+---@param accessPoint integer
+local function openGarageMenu(garageName, garageInfo, accessPoint)
     ---@type PlayerVehicle[]?
     local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName)
 
@@ -216,7 +219,7 @@ local function openGarageMenu(garageName, garageInfo)
             description = ('%s | %s'):format(stateLabel, vehicleEntity.props.plate),
             arrow = true,
             onSelect = function()
-                displayVehicleInfo(vehicleEntity, garageName, garageInfo)
+                displayVehicleInfo(vehicleEntity, garageName, garageInfo, accessPoint)
             end,
         }
     end
@@ -253,13 +256,15 @@ end
 
 ---@param garageName string
 ---@param garage GarageConfig
-local function createZones(garageName, garage)
+---@param accessPoint AccessPoint
+---@param accessPointIndex integer
+local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
         if not config.useTarget then
             lib.zones.box({
-                coords = garage.coords.xyz,
-                size = garage.size,
-                rotation = garage.coords.w,
+                coords = accessPoint.coords.xyz,
+                size = accessPoint.size,
+                rotation = accessPoint.coords.w,
                 onEnter = function()
                     lib.showTextUI((garage.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
                 end,
@@ -274,7 +279,7 @@ local function createZones(garageName, garage)
                             end
                             parkVehicle(cache.vehicle, garageName)
                         else
-                            openGarageMenu(garageName, garage)
+                            openGarageMenu(garageName, garage, accessPointIndex)
                         end
                     end
                 end,
@@ -282,9 +287,9 @@ local function createZones(garageName, garage)
             })
         else
             exports.ox_target:addBoxZone({
-                coords = garage.coords.xyz,
-                size = garage.size,
-                rotation = garage.coords.w,
+                coords = accessPoint.coords.xyz,
+                size = accessPoint.size,
+                rotation = accessPoint.coords.w,
                 debug = config.debugPoly,
                 options = {
                     {
@@ -292,7 +297,7 @@ local function createZones(garageName, garage)
                         label = garage.type == GarageType.DEPOT and 'Open Impound' or 'Open Garage',
                         icon = 'fas fa-car',
                         onSelect = function()
-                            openGarageMenu(garageName, garage)
+                            openGarageMenu(garageName, garage, accessPointIndex)
                         end,
                         distance = 10,
                     },
@@ -318,26 +323,32 @@ local function createZones(garageName, garage)
 end
 
 ---@param garageInfo GarageConfig
-local function createBlips(garageInfo)
-    local blip = AddBlipForCoord(garageInfo.coords.x, garageInfo.coords.y, garageInfo.coords.z)
-    SetBlipSprite(blip, garageInfo.blip.sprite or 357)
+---@param accessPoint AccessPoint
+local function createBlips(garageInfo, accessPoint)
+    local blip = AddBlipForCoord(accessPoint.coords.x, accessPoint.coords.y, accessPoint.coords.z)
+    SetBlipSprite(blip, accessPoint.blip.sprite or 357)
     SetBlipDisplay(blip, 4)
     SetBlipScale(blip, 0.60)
     SetBlipAsShortRange(blip, true)
-    SetBlipColour(blip, garageInfo.blip.color or 3)
+    SetBlipColour(blip, accessPoint.blip.color or 3)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName(garageInfo.blip.name or garageInfo.label)
+    AddTextComponentSubstringPlayerName(accessPoint.blip.name or garageInfo.label)
     EndTextCommandSetBlipName(blip)
 end
 
 local function createGarages()
     for name, garage in pairs(sharedConfig.garages) do
-        if garage.blip then
-            createBlips(garage)
-        end
+        local accessPoints = garage.accessPoints
+        for i = 1, #accessPoints do
+            local accessPoint = accessPoints[i]
 
-        if garage.groups == nil or HasPlayerGotGroup(garage.groups, QBX.PlayerData) then
-            createZones(name, garage)
+            if accessPoint.blip then
+                createBlips(garage, accessPoint)
+            end
+
+            if garage.groups == nil or HasPlayerGotGroup(garage.groups, QBX.PlayerData) then
+                createZones(name, garage, accessPoint, i)
+            end
         end
     end
 end
