@@ -102,13 +102,15 @@ local function isParkable(source, vehicleId, garageName)
     assert(vehicleId ~= nil, 'owned vehicles must have vehicle ids')
     local player = exports.qbx_core:GetPlayer(source)
     local garage = SharedConfig.garages[garageName]
+    if garage.groups and not HasPlayerGotGroup(garage.groups, player.PlayerData) then
+        return false
+    end
     if garageType == GarageType.PUBLIC then -- All players can park in public garages
         return true
     elseif garageType == GarageType.HOUSE then -- House garages only for player cars that have keys of the house
         local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
         return Config.hasHouseGarageKey(garageName, playerVehicle.citizenid)
     elseif garageType == GarageType.JOB then
-        if player.PlayerData.job?.name ~= garage.group then return false end
         if Config.sharedGarages then
             return true
         else
@@ -116,7 +118,6 @@ local function isParkable(source, vehicleId, garageName)
             return playerVehicle.citizenid == player.PlayerData.citizenid
         end
     elseif garageType == GarageType.GANG then
-        if player.PlayerData.gang?.name ~= garage.group then return false end
         if Config.sharedGarages then
             return true
         else

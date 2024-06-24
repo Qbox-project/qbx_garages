@@ -346,9 +346,7 @@ local function createGarages()
                 createBlips(garage, accessPoint)
             end
 
-            if garage.type == GarageType.JOB and (QBX.PlayerData.job.name == garage.group or QBX.PlayerData.job.type == garage.group) or
-                garage.type == GarageType.GANG and QBX.PlayerData.gang.name == garage.group or
-                garage.type ~= GarageType.JOB and garage.type ~= GarageType.GANG then
+            if garage.groups == nil or HasPlayerGotGroup(garage.groups, QBX.PlayerData) then
                 createZones(name, garage, accessPoint, i)
             end
         end

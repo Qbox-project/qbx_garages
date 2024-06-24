@@ -25,7 +25,7 @@ return {
     ---@field label string -- Label for the garage
     ---@field type GarageType -- Type of garage
     ---@field vehicleType VehicleType -- Vehicle type
-    ---@field group? string -- Job / Gang name that can access the garage.
+    ---@field groups? string | string[] | table<string, number> job/gangs that can access the garage
     ---@field accessPoints AccessPoint[]
 
     ---@type table<string, GarageConfig>
