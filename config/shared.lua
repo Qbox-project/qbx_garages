@@ -7,8 +7,6 @@ return {
         engineOff = true, -- If true, the engine will be off upon taking the vehicle out.
     },
 
-    houseGarages = {}, -- Dont touch
-
     ---@class GarageBlip
     ---@field name? string -- Name of the blip. Defaults to garage label.
     ---@field sprite? number -- Sprite for the blip. Defaults to 357
@@ -26,6 +24,7 @@ return {
     ---@field type GarageType -- Type of garage
     ---@field vehicleType VehicleType -- Vehicle type
     ---@field groups? string | string[] | table<string, number> job/gangs that can access the garage
+    ---@field shared? boolean defaults to false. Shared garages give all players with access to the garage access to all vehicles in it. If shared is off, the garage will only give access to player's vehicles which they own.
     ---@field accessPoints AccessPoint[]
 
     ---@type table<string, GarageConfig>

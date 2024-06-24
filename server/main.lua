@@ -42,29 +42,15 @@ end
 ---@return PlayerVehiclesFilters
 function GetPlayerVehicleFilter(source, garageName, garageType)
     local player = exports.qbx_core:GetPlayer(source)
-    if garageType == GarageType.PUBLIC then -- Public garages give player cars in the garage only
-        return {
-            citizenid = player.PlayerData.citizenid,
-            garage = garageName,
-            states = VehicleState.GARAGED
-        }
-    elseif garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        return {
-            citizenid = player.PlayerData.citizenid,
-            states = VehicleState.OUT
-        }
-    elseif garageType == GarageType.HOUSE or not Config.sharedGarages then -- House/Personal Job/Gang garages give all cars in the garage
-        return {
-            citizenid = player.PlayerData.citizenid,
-            garage = garageName,
-            states = VehicleState.GARAGED
-        }
-    else -- Job/Gang shared garages
-        return {
-            garage = garageName,
-            states = VehicleState.GARAGED
-        }
+    local filter = {}
+    filter.citizenid = SharedConfig.garages[garageName].shared and player.PlayerData.citizenid or nil
+    if garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
+        filter.states = VehicleState.OUT
+    else
+        filter.garage = garageName
+        filter.states = VehicleState.GARAGED
     end
+    return filter
 end
 
 ---@param source number
@@ -105,27 +91,17 @@ local function isParkable(source, vehicleId, garageName)
     if garage.groups and not HasPlayerGotGroup(garage.groups, player.PlayerData) then
         return false
     end
-    if garageType == GarageType.PUBLIC then -- All players can park in public garages
-        return true
-    elseif garageType == GarageType.HOUSE then -- House garages only for player cars that have keys of the house
+    if not garage.shared then
         local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
-        return Config.hasHouseGarageKey(garageName, playerVehicle.citizenid)
-    elseif garageType == GarageType.JOB then
-        if Config.sharedGarages then
-            return true
-        else
-            local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
-            return playerVehicle.citizenid == player.PlayerData.citizenid
-        end
-    elseif garageType == GarageType.GANG then
-        if Config.sharedGarages then
-            return true
-        else
-            local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
-            return playerVehicle.citizenid == player.PlayerData.citizenid
+        if playerVehicle.citizenid ~= player.PlayerData.citizenid then
+            return false
         end
     end
-    error("Unhandled GarageType: " .. garageType)
+    if garageType == GarageType.HOUSE then -- House garages only for player cars that have keys of the house
+        local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+        return Config.hasHouseGarageKey(garageName, playerVehicle.citizenid)
+    end
+    return true
 end
 
 lib.callback.register('qbx_garages:server:isParkable', function(source, garage, netId)
