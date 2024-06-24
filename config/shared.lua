@@ -22,7 +22,7 @@ return {
     ---@field blip? GarageBlip
     ---@field type GarageType -- Type of garage
     ---@field vehicleType VehicleType -- Vehicle type
-    ---@field group? string -- Job / Gang name that can access the garage.
+    ---@field groups? string | string[] | table<string, number> job/gangs that can access the garage
 
     ---@type table<string, GarageConfig>
     garages = {
