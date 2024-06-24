@@ -158,7 +158,8 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
                 onSelect = function()
                     takeOutDepot({
                         vehicle = vehicle,
-                        garageName = garageName
+                        garageName = garageName,
+                        accessPoint = accessPoint,
                     })
                 end,
             }
