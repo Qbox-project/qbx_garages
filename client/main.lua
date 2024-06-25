@@ -274,6 +274,10 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                 end,
                 inside = function()
                     if IsControlJustReleased(0, 38) then
+                        if garage.canAccess ~= nil and not garage.canAccess() then
+                            exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                            return
+                        end
                         if cache.vehicle and garage.type ~= GarageType.DEPOT then
                             if not isOfType(garage.vehicleType, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
@@ -298,6 +302,10 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                         label = garage.type == GarageType.DEPOT and 'Open Impound' or 'Open Garage',
                         icon = 'fas fa-car',
                         onSelect = function()
+                            if garage.canAccess ~= nil and not garage.canAccess() then
+                                exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                                return false
+                            end
                             openGarageMenu(garageName, garage, accessPointIndex)
                         end,
                         distance = 10,
@@ -310,6 +318,10 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                             return garage.type ~= GarageType.DEPOT and cache.vehicle
                         end,
                         onSelect = function()
+                            if garage.canAccess ~= nil and not garage.canAccess() then
+                                exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                                return false
+                            end
                             if not isOfType(garage.vehicleType, cache.vehicle) then
                                 return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
                             end
@@ -347,7 +359,7 @@ local function createGarages()
                 createBlips(garage, accessPoint)
             end
 
-            if garage.groups == nil or HasPlayerGotGroup(garage.groups, QBX.PlayerData) then
+            if garage.groups == nil or exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
                 createZones(name, garage, accessPoint, i)
             end
         end

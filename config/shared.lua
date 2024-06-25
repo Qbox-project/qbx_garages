@@ -25,6 +25,7 @@ return {
     ---@field vehicleType VehicleType -- Vehicle type
     ---@field groups? string | string[] | table<string, number> job/gangs that can access the garage
     ---@field shared? boolean defaults to false. Shared garages give all players with access to the garage access to all vehicles in it. If shared is off, the garage will only give access to player's vehicles which they own.
+    ---@field canAccess? fun(source?: number): boolean runs on both client & server to check access as an additional guard clause. Other filter fields still need to pass in addition to this function.
     ---@field accessPoints AccessPoint[]
 
     ---@type table<string, GarageConfig>

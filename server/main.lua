@@ -1,3 +1,5 @@
+assert(lib.checkDependency('qbx_core', '1.15.0', true))
+
 ---@class PlayerVehicle
 ---@field id number
 ---@field citizenid? string
@@ -53,10 +55,23 @@ function GetPlayerVehicleFilter(source, garageName, garageType)
     return filter
 end
 
+local function getCanAccessGarage(player, garage)
+    if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
+        return false
+    end
+    if garage.canAccess ~= nil and not garage.canAccess(player.PlayerData.source) then
+        return false
+    end
+    return true
+end
+
 ---@param source number
 ---@param garageName string
 ---@return PlayerVehicle[]?
 lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, garageName)
+    local player = exports.qbx_core:GetPlayer(source)
+    local garage = SharedConfig.garages[garageName]
+    if not getCanAccessGarage(player, garage) then return end
     local garageType = GetGarageType(garageName)
     local filter = GetPlayerVehicleFilter(source, garageName, garageType)
     local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles(filter)
@@ -85,10 +100,12 @@ end)
 ---@return boolean
 local function isParkable(source, vehicleId, garageName)
     local garageType = GetGarageType(garageName)
-    assert(vehicleId ~= nil, 'owned vehicles must have vehicle ids')
+    --- DEPOTS are only for retrieving, not storing
+    if garageType == GarageType.DEPOT then return false end
+    assert(vehicleId ~= nil, 'owned vehicles must have vehicleid statebag set')
     local player = exports.qbx_core:GetPlayer(source)
     local garage = SharedConfig.garages[garageName]
-    if garage.groups and not HasPlayerGotGroup(garage.groups, player.PlayerData) then
+    if not getCanAccessGarage(player, garage) then
         return false
     end
     if not garage.shared then
@@ -96,10 +113,6 @@ local function isParkable(source, vehicleId, garageName)
         if playerVehicle.citizenid ~= player.PlayerData.citizenid then
             return false
         end
-    end
-    if garageType == GarageType.HOUSE then -- House garages only for player cars that have keys of the house
-        local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
-        return Config.hasHouseGarageKey(garageName, playerVehicle.citizenid)
     end
     return true
 end
