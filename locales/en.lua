@@ -1,5 +1,6 @@
 local Translations = {
     error = {
+        no_access = "You don't have access to this garage",
         no_vehicles = "You currently have no vehicles at this location...",
         not_impound = "Your vehicle is not in impound",
         not_owned = "This vehicle can't be stored",
