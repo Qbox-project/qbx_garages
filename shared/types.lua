@@ -15,9 +15,5 @@ VehicleType = {
 
 ---@enum GarageType
 GarageType = {
-    PUBLIC = 'public',
-    JOB = 'job',
-    GANG = 'gang',
     DEPOT = 'depot',
-    HOUSE = 'house',
 }

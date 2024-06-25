@@ -21,10 +21,12 @@ return {
 
     ---@class GarageConfig
     ---@field label string -- Label for the garage
-    ---@field type GarageType -- Type of garage
+    ---@field type? GarageType -- Optioan special type of garage. Currently only used to mark DEPOT garages.
     ---@field vehicleType VehicleType -- Vehicle type
     ---@field groups? string | string[] | table<string, number> job/gangs that can access the garage
     ---@field shared? boolean defaults to false. Shared garages give all players with access to the garage access to all vehicles in it. If shared is off, the garage will only give access to player's vehicles which they own.
+    ---@field states? VehicleState | VehicleState[] if set, only vehicles in the given states will be retrievable from the garage. Defaults to GARAGED.
+    ---@field skipGarageCheck? boolean if true, returns vehicles for retrieval regardless of if that vehicle's garage matches this garage's name
     ---@field canAccess? fun(source?: number): boolean runs on both client & server to check access as an additional guard clause. Other filter fields still need to pass in addition to this function.
     ---@field accessPoints AccessPoint[]
 
@@ -33,7 +35,6 @@ return {
         -- Public Garages
         motelgarage = {
             label = 'Motel Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -45,7 +46,6 @@ return {
         },
         sapcounsel = {
             label = 'San Andreas Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -57,7 +57,6 @@ return {
         },
         spanishave = {
             label = 'Spanish Ave Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -69,7 +68,6 @@ return {
         },
         caears24 = {
             label = 'Caears 24 Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -81,7 +79,6 @@ return {
         },
         littleseoul = {
             label = 'Little Seoul Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -93,7 +90,6 @@ return {
         },
         lagunapi = {
             label = 'Laguna Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -105,7 +101,6 @@ return {
         },
         airportp = {
             label = 'Airport Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -117,7 +112,6 @@ return {
         },
         beachp = {
             label = 'Beach Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -129,7 +123,6 @@ return {
         },
         themotorhotel = {
             label = 'The Motor Hotel Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -141,7 +134,6 @@ return {
         },
         liqourparking = {
             label = 'Liqour Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -153,7 +145,6 @@ return {
         },
         shoreparking = {
             label = 'Shore Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -165,7 +156,6 @@ return {
         },
         haanparking = {
             label = 'Bell Farms Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -177,7 +167,6 @@ return {
         },
         dumbogarage = {
             label = 'Dumbo Private Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -189,7 +178,6 @@ return {
         },
         pillboxgarage = {
             label = 'Pillbox Garage Parking',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -201,7 +189,6 @@ return {
         },
         intairport = {
             label = 'Airport Hangar',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.AIR,
             accessPoints = {
                 {
@@ -217,7 +204,6 @@ return {
         },
         higginsheli = {
             label = 'Higgins Helitours',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.AIR,
             accessPoints = {
                 {
@@ -233,7 +219,6 @@ return {
         },
         airsshores = {
             label = 'Sandy Shores Hangar',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.AIR,
             accessPoints = {
                 {
@@ -249,7 +234,6 @@ return {
         },
         lsymc = {
             label = 'LSYMC Boathouse',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.SEA,
             accessPoints = {
                 {
@@ -265,7 +249,6 @@ return {
         },
         paleto = {
             label = 'Paleto Boathouse',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.SEA,
             accessPoints = {
                 {
@@ -281,7 +264,6 @@ return {
         },
         millars = {
             label = 'Millars Boathouse',
-            type = GarageType.PUBLIC,
             vehicleType = VehicleType.SEA,
             accessPoints = {
                 {
@@ -299,7 +281,6 @@ return {
         -- Job Garages
         police = {
             label = 'Police',
-            type = GarageType.JOB,
             vehicleType = VehicleType.CAR,
             group = 'police',
             accessPoints = {
@@ -314,7 +295,6 @@ return {
         -- Gang Garages
         ballas = {
             label = 'Ballas',
-            type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'ballas',
             accessPoints = {
@@ -327,7 +307,6 @@ return {
         },
         families = {
             label = 'La Familia',
-            type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'families',
             accessPoints = {
@@ -340,7 +319,6 @@ return {
         },
         lostmc = {
             label = 'Lost MC',
-            type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'lostmc',
             accessPoints = {
@@ -353,7 +331,6 @@ return {
         },
         cartel = {
             label = 'Cartel',
-            type = GarageType.GANG,
             vehicleType = VehicleType.CAR,
             group = 'cartel',
             accessPoints = {
@@ -369,6 +346,8 @@ return {
         impoundlot = {
             label = 'Impound Lot',
             type = GarageType.DEPOT,
+            states = {VehicleState.OUT, VehicleState.IMPOUNDED},
+            skipGarageCheck = true,
             vehicleType = VehicleType.CAR,
             accessPoints = {
                 {
@@ -384,6 +363,8 @@ return {
         airdepot = {
             label = 'Air Depot',
             type = GarageType.DEPOT,
+            states = {VehicleState.OUT, VehicleState.IMPOUNDED},
+            skipGarageCheck = true,
             vehicleType = VehicleType.AIR,
             accessPoints = {
                 {
@@ -399,6 +380,8 @@ return {
         seadepot = {
             label = 'LSYMC Depot',
             type = GarageType.DEPOT,
+            states = {VehicleState.OUT, VehicleState.IMPOUNDED},
+            skipGarageCheck = true,
             vehicleType = VehicleType.SEA,
             accessPoints = {
                 {

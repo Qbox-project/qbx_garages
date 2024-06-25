@@ -24,13 +24,9 @@ function FindPlateOnServer(plate)
 end
 
 ---@param garage string
----@return GarageType
+---@return GarageType?
 function GetGarageType(garage)
-    if SharedConfig.garages[garage] then
-        return SharedConfig.garages[garage].type
-    else
-        return GarageType.HOUSE
-    end
+    return SharedConfig.garages[garage]?.type
 end
 
 ---@class PlayerVehiclesFilters
@@ -40,18 +36,14 @@ end
 
 ---@param source number
 ---@param garageName string
----@param garageType GarageType
 ---@return PlayerVehiclesFilters
-function GetPlayerVehicleFilter(source, garageName, garageType)
+function GetPlayerVehicleFilter(source, garageName)
     local player = exports.qbx_core:GetPlayer(source)
+    local garage = SharedConfig.garages[garageName]
     local filter = {}
-    filter.citizenid = SharedConfig.garages[garageName].shared and player.PlayerData.citizenid or nil
-    if garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        filter.states = VehicleState.OUT
-    else
-        filter.garage = garageName
-        filter.states = VehicleState.GARAGED
-    end
+    filter.citizenid = garage.shared and player.PlayerData.citizenid or nil
+    filter.states = garage.states or VehicleState.GARAGED
+    filter.garage = not garage.skipGarageCheck and garageName or nil
     return filter
 end
 
@@ -65,6 +57,18 @@ local function getCanAccessGarage(player, garage)
     return true
 end
 
+---@param playerVehicle PlayerVehicle
+---@return VehicleType
+local function getVehicleType(playerVehicle)
+    if VEHICLES[playerVehicle.modelName].category == 'helicopters' or VEHICLES[playerVehicle.modelName].category == 'planes' then
+        return VehicleType.AIR
+    elseif VEHICLES[playerVehicle.modelName].category == 'boats' then
+        return VehicleType.SEA
+    else
+        return VehicleType.CAR
+    end
+end
+
 ---@param source number
 ---@param garageName string
 ---@return PlayerVehicle[]?
@@ -73,7 +77,7 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     local garage = SharedConfig.garages[garageName]
     if not getCanAccessGarage(player, garage) then return end
     local garageType = GetGarageType(garageName)
-    local filter = GetPlayerVehicleFilter(source, garageName, garageType)
+    local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles(filter)
     if garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
         local toSend = {}
@@ -81,9 +85,7 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
         for _, vehicle in pairs(playerVehicles) do -- Check vehicle type against depot type
             if not FindPlateOnServer(vehicle.props.plate) then
                 local vehicleType = SharedConfig.garages[garageName].vehicleType
-                if (vehicleType == VehicleType.AIR and (VEHICLES[vehicle.modelName].category == 'helicopters' or VEHICLES[vehicle.modelName].category == 'planes')) or
-                   (vehicleType == VehicleType.SEA and VEHICLES[vehicle.modelName].category == 'boats') or
-                   (vehicleType == VehicleType.CAR and VEHICLES[vehicle.modelName].category ~= 'helicopters' and VEHICLES[vehicle.modelName].category ~= 'planes' and VEHICLES[vehicle.modelName].category ~= 'boats') then
+                if vehicleType == getVehicleType(vehicle) then
                     toSend[#toSend + 1] = vehicle
                 end
             end
@@ -128,8 +130,7 @@ end)
 ---@param props table ox_lib vehicle props https://github.com/overextended/ox_lib/blob/master/resource/vehicleProperties/client.lua#L3
 ---@param garage string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage)
-    local garageType = GetGarageType(garage)
-    assert(garageType == GarageType.HOUSE or SharedConfig.garages[garage] ~= nil, string.format('Garage %s not found in config', garage))
+    assert(SharedConfig.garages[garage] ~= nil, string.format('Garage %s not found in config', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local owned = isParkable(source, Entity(vehicle).state.vehicleid, garage) --Check ownership
     if not owned then

@@ -15,7 +15,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     local garage = SharedConfig.garages[garageName]
     local garageType = GetGarageType(garageName)
 
-    local filter = GetPlayerVehicleFilter(source, garageName, garageType)
+    local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
     if not playerVehicle then
         exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
