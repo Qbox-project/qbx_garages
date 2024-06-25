@@ -21,7 +21,7 @@ return {
 
     ---@class GarageConfig
     ---@field label string -- Label for the garage
-    ---@field type? GarageType -- Optioan special type of garage. Currently only used to mark DEPOT garages.
+    ---@field type? GarageType -- Optional special type of garage. Currently only used to mark DEPOT garages.
     ---@field vehicleType VehicleType -- Vehicle type
     ---@field groups? string | string[] | table<string, number> job/gangs that can access the garage
     ---@field shared? boolean defaults to false. Shared garages give all players with access to the garage access to all vehicles in it. If shared is off, the garage will only give access to player's vehicles which they own.
