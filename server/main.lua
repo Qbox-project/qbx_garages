@@ -1,3 +1,5 @@
+assert(lib.checkDependency('qbx_core', '1.15.0', true))
+
 ---@class PlayerVehicle
 ---@field id number
 ---@field citizenid? string
@@ -54,7 +56,7 @@ function GetPlayerVehicleFilter(source, garageName, garageType)
 end
 
 local function getCanAccessGarage(player, garage)
-    if garage.groups and not HasPlayerGotGroup(garage.groups, player.PlayerData) then
+    if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
         return false
     end
     if garage.canAccess ~= nil and not garage.canAccess(player.PlayerData.source) then

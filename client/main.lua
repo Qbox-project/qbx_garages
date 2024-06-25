@@ -358,7 +358,7 @@ local function createGarages()
                 createBlips(garage, accessPoint)
             end
 
-            if garage.groups == nil or HasPlayerGotGroup(garage.groups, QBX.PlayerData) then
+            if garage.groups == nil or exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
                 createZones(name, garage, accessPoint, i)
             end
         end
