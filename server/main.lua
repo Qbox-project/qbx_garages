@@ -76,24 +76,19 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     local player = exports.qbx_core:GetPlayer(source)
     local garage = SharedConfig.garages[garageName]
     if not getCanAccessGarage(player, garage) then return end
-    local garageType = GetGarageType(garageName)
     local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles(filter)
-    if garageType == GarageType.DEPOT then -- Depot give player cars that are not in garage only
-        local toSend = {}
-        if not playerVehicles[1] then return end
-        for _, vehicle in pairs(playerVehicles) do -- Check vehicle type against depot type
-            if not FindPlateOnServer(vehicle.props.plate) then
-                local vehicleType = SharedConfig.garages[garageName].vehicleType
-                if vehicleType == getVehicleType(vehicle) then
-                    toSend[#toSend + 1] = vehicle
-                end
+    local toSend = {}
+    if not playerVehicles[1] then return end
+    for _, vehicle in pairs(playerVehicles) do
+        if not FindPlateOnServer(vehicle.props.plate) then
+            local vehicleType = SharedConfig.garages[garageName].vehicleType
+            if vehicleType == getVehicleType(vehicle) then
+                toSend[#toSend + 1] = vehicle
             end
         end
-        return toSend
-    else
-        return playerVehicles[1] and playerVehicles
     end
+    return toSend
 end)
 
 ---@param source number
@@ -110,8 +105,12 @@ local function isParkable(source, vehicleId, garageName)
     if not getCanAccessGarage(player, garage) then
         return false
     end
+    ---@type PlayerVehicle
+    local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+    if getVehicleType(playerVehicle) ~= garage.vehicleType then
+        return false
+    end
     if not garage.shared then
-        local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
         if playerVehicle.citizenid ~= player.PlayerData.citizenid then
             return false
         end
