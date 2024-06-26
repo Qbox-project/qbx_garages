@@ -115,6 +115,23 @@ local function isParkable(source, vehicleId, garageName)
             return false
         end
     end
+    if garage.enforceMaxSlots then
+        local maxSlots = player.Functions.GetMetadata('maxGarageSlots')
+        if not maxSlots and Config.defaultMaxSlots then
+            maxSlots = Config.defaultMaxSlots
+            player.Functions.SetMetadata('maxGarageSlots', maxSlots)
+        end
+        if maxSlots then
+            local garagedVehicles = exports.qbx_vehicles:GetPlayerVehicles({
+                citizenid = player.PlayerData.citizenid,
+                garage = garageName,
+                states = VehicleState.GARAGED,
+            })
+            if garagedVehicles >= maxSlots then
+                return false
+            end
+        end
+    end
     return true
 end
 
