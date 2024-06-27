@@ -1,4 +1,5 @@
 local config = require 'config.client'
+if not config.enableClient then return end
 local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
 
