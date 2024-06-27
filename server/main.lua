@@ -1,4 +1,5 @@
 assert(lib.checkDependency('qbx_core', '1.15.0', true))
+assert(lib.checkDependency('qbx_vehicles', '1.1.0', true))
 
 ---@class ErrorResult
 ---@field code string
