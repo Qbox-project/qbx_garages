@@ -273,6 +273,10 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
             end,
             inside = function()
                 if IsControlJustReleased(0, 38) then
+                    if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
+                        exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                        return
+                    end
                     if garage.canAccess ~= nil and not garage.canAccess() then
                         exports.qbx_core:Notify("You don't have access to this garage", 'error')
                         return
@@ -315,9 +319,7 @@ local function createGarage(name, garage)
             createBlips(garage, accessPoint)
         end
 
-        if garage.groups == nil or exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
-            createZones(name, garage, accessPoint, i)
-        end
+        createZones(name, garage, accessPoint, i)
     end
 end
 
