@@ -1,13 +1,12 @@
----@param vehicleId string
+---@param vehicleId integer
 ---@param modelName string
 local function setVehicleStateToOut(vehicleId, modelName)
-    local vehCost = VEHICLES[modelName].price
-    local depotPrice = Config.impoundFee.enable and qbx.math.round(vehCost * (Config.impoundFee.percentage / 100)) or 0
+    local depotPrice = Config.calculateImpoundFee(vehicleId, modelName) or 0
     Storage.setVehicleStateToOut(vehicleId, depotPrice)
 end
 
 ---@param source number
----@param vehicleId string
+---@param vehicleId integer
 ---@param garageName string
 ---@param accessPoint integer
 ---@return number? netId
