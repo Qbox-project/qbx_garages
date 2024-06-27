@@ -371,8 +371,8 @@ local function createGarages()
     end
 end
 
-RegisterNetEvent('qbx_garages:client:garageRegistered', function(name, config)
-    createGarage(name, config)
+RegisterNetEvent('qbx_garages:client:garageRegistered', function(name, garage)
+    createGarage(name, garage)
 end)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
