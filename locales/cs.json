@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Nemáte přístup do této garáže",
+        "no_vehicles": "Aktuálně nemáte na tomto místě žádná vozidla...",
+        "not_impound": "Vaše vozidlo není v záchytném stání",
+        "not_owned": "Toto vozidlo nelze uložit",
+        "not_correct_type": "Tento typ vozidla zde nelze uložit",
+        "not_enough": "Nedostatek peněz",
+        "vehicle_occupied": "Toto vozidlo nelze uložit, protože není prázdné",
+        "in_vehicle": "Už jste ve vozidle..."
+    },
+    "success": {
+        "vehicle_parked": "Vozidlo bylo uloženo"
+    },
+    "menu": {
+        "information": "Informace",
+        "description": "Název: %s\nSPZ: %s\nStatus: %s\nPoplatek za záchytné stání: $%s",
+        "body": "Karoserie",
+        "engine": "Motor",
+        "fuel": "Palivo",
+        "take_out": "Vyjmout",
+        "veh_impounded": "Vaše vozidlo bylo zabaveno policií"
+    },
+    "status": {
+        "out": "Venku",
+        "garaged": "V garáži",
+        "impound": "Zabaveno policií"
+    },
+    "info": {
+        "car_e": "E - Otevřít garáž",
+        "park_e": "E - Uložit vozidlo",
+        "impound_e": "E - Otevřít záchytné stání"
+    }
+}

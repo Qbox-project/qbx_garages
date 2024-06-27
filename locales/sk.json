@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Nemáte prístup do tejto garáže",
+        "no_vehicles": "V tejto lokalite momentálne nemáte žiadne vozidlá...",
+        "not_impound": "Vaše vozidlo nie je v odťahovej službe",
+        "not_owned": "Toto vozidlo sa nedá uložiť",
+        "not_correct_type": "Tento typ vozidla sa tu nedá uložiť",
+        "not_enough": "Nedostatok peňazí",
+        "vehicle_occupied": "Toto vozidlo nemôžete uložiť, pretože nie je prázdne",
+        "in_vehicle": "Už ste vo vozidle..."
+    },
+    "success": {
+        "vehicle_parked": "Vozidlo bolo uložené"
+    },
+    "menu": {
+        "information": "Informácie",
+        "description": "Názov: %s\nŠPZ: %s\nStatus: %s\nPoplatok za odťah: $%s",
+        "body": "Karoséria",
+        "engine": "Motor",
+        "fuel": "Palivo",
+        "take_out": "Vybrať",
+        "veh_impounded": "Vaše vozidlo bolo zabavené políciou"
+    },
+    "status": {
+        "out": "Vonku",
+        "garaged": "V garáži",
+        "impound": "Zabavené políciou"
+    },
+    "info": {
+        "car_e": "E - Otvoriť garáž",
+        "park_e": "E - Uložiť vozidlo",
+        "impound_e": "E - Otvoriť odťahovú službu"
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Je hebt geen toegang tot deze garage",
+        "no_vehicles": "Je hebt momenteel geen voertuigen op deze locatie...",
+        "not_impound": "Je voertuig is niet in beslag genomen",
+        "not_owned": "Dit voertuig kan niet worden opgeslagen",
+        "not_correct_type": "Je kunt dit type voertuig hier niet opslaan",
+        "not_enough": "Niet genoeg geld",
+        "vehicle_occupied": "Je kunt dit voertuig niet opslaan omdat het niet leeg is",
+        "in_vehicle": "Je zit al in een voertuig..."
+    },
+    "success": {
+        "vehicle_parked": "Voertuig opgeslagen"
+    },
+    "menu": {
+        "information": "Informatie",
+        "description": "Naam: %s\nKenteken: %s\nStatus: %s\nInbeslagnamekosten: $%s",
+        "body": "Carrosserie",
+        "engine": "Motor",
+        "fuel": "Brandstof",
+        "take_out": "Uitnemen",
+        "veh_impounded": "Je voertuig is in beslag genomen door de politie"
+    },
+    "status": {
+        "out": "Buiten",
+        "garaged": "In garage",
+        "impound": "In beslag genomen door de politie"
+    },
+    "info": {
+        "car_e": "E - Garage openen",
+        "park_e": "E - Voertuig opslaan",
+        "impound_e": "E - Inbeslagname openen"
+    }
+}

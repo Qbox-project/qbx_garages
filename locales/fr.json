@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Vous n'avez pas accès à ce garage",
+        "no_vehicles": "Vous n'avez actuellement aucun véhicule à cet endroit...",
+        "not_impound": "Votre véhicule n'est pas à la fourrière",
+        "not_owned": "Ce véhicule ne peut pas être stocké",
+        "not_correct_type": "Vous ne pouvez pas stocker ce type de véhicule ici",
+        "not_enough": "Pas assez d'argent",
+        "vehicle_occupied": "Vous ne pouvez pas stocker ce véhicule car il n'est pas vide",
+        "in_vehicle": "Vous êtes déjà dans un véhicule..."
+    },
+    "success": {
+        "vehicle_parked": "Véhicule stocké"
+    },
+    "menu": {
+        "information": "Informations",
+        "description": "Nom: %s\nPlaque: %s\nStatut: %s\nFrais de fourrière: $%s",
+        "body": "Carrosserie",
+        "engine": "Moteur",
+        "fuel": "Carburant",
+        "take_out": "Sortir",
+        "veh_impounded": "Votre véhicule a été mis en fourrière par la police"
+    },
+    "status": {
+        "out": "Dehors",
+        "garaged": "En garage",
+        "impound": "Mis en fourrière par la police"
+    },
+    "info": {
+        "car_e": "E - Ouvrir le garage",
+        "park_e": "E - Stocker le véhicule",
+        "impound_e": "E - Ouvrir la fourrière"
+    }
+}

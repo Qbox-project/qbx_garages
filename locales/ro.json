@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Nu aveți acces la acest garaj",
+        "no_vehicles": "În prezent, nu aveți vehicule în această locație...",
+        "not_impound": "Vehiculul dvs. nu este în parcare",
+        "not_owned": "Acest vehicul nu poate fi stocat",
+        "not_correct_type": "Nu puteți stoca acest tip de vehicul aici",
+        "not_enough": "Bani insuficienți",
+        "vehicle_occupied": "Nu puteți stoca acest vehicul deoarece nu este gol",
+        "in_vehicle": "Deja sunteți într-un vehicul..."
+    },
+    "success": {
+        "vehicle_parked": "Vehicul stocat"
+    },
+    "menu": {
+        "information": "Informații",
+        "description": "Nume: %s\nNumăr de înmatriculare: %s\nStatus: %s\nTaxă de parcare: $%s",
+        "body": "Caroserie",
+        "engine": "Motor",
+        "fuel": "Combustibil",
+        "take_out": "Scoateți",
+        "veh_impounded": "Vehiculul dvs. a fost confiscat de poliție"
+    },
+    "status": {
+        "out": "Afară",
+        "garaged": "În garaj",
+        "impound": "Confiscat de poliție"
+    },
+    "info": {
+        "car_e": "E - Deschide garajul",
+        "park_e": "E - Stocați vehiculul",
+        "impound_e": "E - Deschideți parcul auto"
+    }
+}

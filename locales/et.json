@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Teil ei ole sellele garaažile juurdepääsu",
+        "no_vehicles": "Teil ei ole hetkel selles asukohas sõidukeid...",
+        "not_impound": "Teie sõiduk ei ole arestimajas",
+        "not_owned": "Seda sõidukit ei saa hoiustada",
+        "not_correct_type": "Te ei saa seda tüüpi sõidukit siin hoiustada",
+        "not_enough": "Raha pole piisavalt",
+        "vehicle_occupied": "Te ei saa seda sõidukit hoiustada, kuna see ei ole tühi",
+        "in_vehicle": "Te olete juba sõidukis..."
+    },
+    "success": {
+        "vehicle_parked": "Sõiduk hoiustatud"
+    },
+    "menu": {
+        "information": "Teave",
+        "description": "Nimi: %s\nRegistreerimisnumber: %s\nOlek: %s\nArestimaja tasu: $%s",
+        "body": "Kere",
+        "engine": "Mootor",
+        "fuel": "Kütus",
+        "take_out": "Välja võtma",
+        "veh_impounded": "Teie sõiduk on politsei poolt arestitud"
+    },
+    "status": {
+        "out": "Väljas",
+        "garaged": "Garaažis",
+        "impound": "Politsei poolt arestitud"
+    },
+    "info": {
+        "car_e": "E - Ava garaaž",
+        "park_e": "E - Hoiusta sõiduk",
+        "impound_e": "E - Ava arestimaja"
+    }
+}

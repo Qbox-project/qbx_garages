@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Sie haben keinen Zugang zu dieser Garage",
+        "no_vehicles": "Sie haben derzeit keine Fahrzeuge an diesem Standort...",
+        "not_impound": "Ihr Fahrzeug befindet sich nicht im Abschlepphof",
+        "not_owned": "Dieses Fahrzeug kann nicht gelagert werden",
+        "not_correct_type": "Sie können diesen Fahrzeugtyp hier nicht lagern",
+        "not_enough": "Nicht genug Geld",
+        "vehicle_occupied": "Sie können dieses Fahrzeug nicht lagern, da es nicht leer ist",
+        "in_vehicle": "Sie sind bereits in einem Fahrzeug..."
+    },
+    "success": {
+        "vehicle_parked": "Fahrzeug gespeichert"
+    },
+    "menu": {
+        "information": "Informationen",
+        "description": "Name: %s\nKennzeichen: %s\nStatus: %s\nAbschleppgebühr: $%s",
+        "body": "Karosserie",
+        "engine": "Motor",
+        "fuel": "Kraftstoff",
+        "take_out": "Herausnehmen",
+        "veh_impounded": "Ihr Fahrzeug wurde von der Polizei beschlagnahmt"
+    },
+    "status": {
+        "out": "Aus",
+        "garaged": "In Garage",
+        "impound": "Von der Polizei beschlagnahmt"
+    },
+    "info": {
+        "car_e": "E - Garage öffnen",
+        "park_e": "E - Fahrzeug speichern",
+        "impound_e": "E - Abschlepphof öffnen"
+    }
+}

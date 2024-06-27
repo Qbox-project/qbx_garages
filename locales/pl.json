@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Nie masz dostępu do tego garażu",
+        "no_vehicles": "Aktualnie nie masz pojazdów w tej lokalizacji...",
+        "not_impound": "Twój pojazd nie jest na parkingu policyjnym",
+        "not_owned": "Tego pojazdu nie można przechowywać",
+        "not_correct_type": "Nie możesz przechowywać tego typu pojazdu tutaj",
+        "not_enough": "Niewystarczająca ilość pieniędzy",
+        "vehicle_occupied": "Nie możesz przechować tego pojazdu, ponieważ nie jest pusty",
+        "in_vehicle": "Już jesteś w pojeździe..."
+    },
+    "success": {
+        "vehicle_parked": "Pojazd przechowany"
+    },
+    "menu": {
+        "information": "Informacje",
+        "description": "Nazwa: %s\nTablica: %s\nStatus: %s\nOpłata za holowanie: $%s",
+        "body": "Nadwozie",
+        "engine": "Silnik",
+        "fuel": "Paliwo",
+        "take_out": "Wyjmij",
+        "veh_impounded": "Twój pojazd został skonfiskowany przez policję"
+    },
+    "status": {
+        "out": "Na zewnątrz",
+        "garaged": "W garażu",
+        "impound": "Skonfiskowane przez policję"
+    },
+    "info": {
+        "car_e": "E - Otwórz garaż",
+        "park_e": "E - Przechowaj pojazd",
+        "impound_e": "E - Otwórz parking policyjny"
+    }
+}
