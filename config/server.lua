@@ -1,12 +1,15 @@
 return {
     autoRespawn = false, -- True == auto respawn cars that are outside into your garage on script restart, false == does not put them into your garage and players have to go to the impound
-    impoundFee = {
-        enable = true, -- If true, impound fee is calculated and applied. If false, no impound fee is applied and depotprice remains at 0
 
-        -- Impound fee percentage, by default, is 2% of the vehicle price but this can be changed to whatever you'd like
-        -- For example, if your car costs $1000 and this is set to 2, the impound fee will be $20 as that is 2% of the vehicle price
-        percentage = 2,
-    },
+    ---calculates the automatic impound fee.
+    ---@param vehicleId integer
+    ---@param modelName string
+    ---@return integer fee
+    calculateImpoundFee = function(vehicleId, modelName)
+        local vehCost = VEHICLES[modelName].price
+        return qbx.math.round(vehCost * 0.02) or 0
+    end,
+
     ---@class GarageBlip
     ---@field name? string -- Name of the blip. Defaults to garage label.
     ---@field sprite? number -- Sprite for the blip. Defaults to 357

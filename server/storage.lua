@@ -12,7 +12,7 @@ local function moveOutVehiclesIntoGarages()
 end
 
 ---@async
----@param vehicleId string
+---@param vehicleId integer
 ---@param depotPrice number
 local function setVehicleStateToOut(vehicleId, depotPrice)
     local state = VehicleState.OUT
