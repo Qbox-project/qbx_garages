@@ -18,7 +18,7 @@ SharedConfig = require 'config.shared'
 VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
 ---@type table<string, GarageConfig>
-Garages = SharedConfig.garages
+Garages = Config.garages
 
 lib.callback.register('qbx_garages:server:getGarages', function()
     return Garages
