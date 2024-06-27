@@ -261,77 +261,34 @@ end
 ---@param accessPointIndex integer
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
-        if not config.useTarget then
-            lib.zones.box({
-                coords = accessPoint.coords.xyz,
-                size = accessPoint.size,
-                rotation = accessPoint.coords.w,
-                onEnter = function()
-                    lib.showTextUI((garage.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
-                end,
-                onExit = function()
-                    lib.hideTextUI()
-                end,
-                inside = function()
-                    if IsControlJustReleased(0, 38) then
-                        if garage.canAccess ~= nil and not garage.canAccess() then
-                            exports.qbx_core:Notify("You don't have access to this garage", 'error')
-                            return
-                        end
-                        if cache.vehicle and garage.type ~= GarageType.DEPOT then
-                            if not isOfType(garage.vehicleType, cache.vehicle) then
-                                return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
-                            end
-                            parkVehicle(cache.vehicle, garageName)
-                        else
-                            openGarageMenu(garageName, garage, accessPointIndex)
-                        end
+        lib.zones.box({
+            coords = accessPoint.coords.xyz,
+            size = accessPoint.size,
+            rotation = accessPoint.coords.w,
+            onEnter = function()
+                lib.showTextUI((garage.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
+            end,
+            onExit = function()
+                lib.hideTextUI()
+            end,
+            inside = function()
+                if IsControlJustReleased(0, 38) then
+                    if garage.canAccess ~= nil and not garage.canAccess() then
+                        exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                        return
                     end
-                end,
-                debug = config.debugPoly,
-            })
-        else
-            exports.ox_target:addBoxZone({
-                coords = accessPoint.coords.xyz,
-                size = accessPoint.size,
-                rotation = accessPoint.coords.w,
-                debug = config.debugPoly,
-                options = {
-                    {
-                        name = 'openGarage',
-                        label = garage.type == GarageType.DEPOT and 'Open Impound' or 'Open Garage',
-                        icon = 'fas fa-car',
-                        onSelect = function()
-                            if garage.canAccess ~= nil and not garage.canAccess() then
-                                exports.qbx_core:Notify("You don't have access to this garage", 'error')
-                                return false
-                            end
-                            openGarageMenu(garageName, garage, accessPointIndex)
-                        end,
-                        distance = 10,
-                    },
-                    {
-                        name = 'storeVehicle',
-                        label = 'Store Vehicle',
-                        icon = 'fas fa-square-parking',
-                        canInteract = function()
-                            return garage.type ~= GarageType.DEPOT and cache.vehicle
-                        end,
-                        onSelect = function()
-                            if garage.canAccess ~= nil and not garage.canAccess() then
-                                exports.qbx_core:Notify("You don't have access to this garage", 'error')
-                                return false
-                            end
-                            if not isOfType(garage.vehicleType, cache.vehicle) then
-                                return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
-                            end
-                            parkVehicle(cache.vehicle, garageName)
-                        end,
-                        distance = 10,
-                    },
-                },
-            })
-        end
+                    if cache.vehicle and garage.type ~= GarageType.DEPOT then
+                        if not isOfType(garage.vehicleType, cache.vehicle) then
+                            return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
+                        end
+                        parkVehicle(cache.vehicle, garageName)
+                    else
+                        openGarageMenu(garageName, garage, accessPointIndex)
+                    end
+                end
+            end,
+            debug = config.debugPoly,
+        })
     end)
 end
 
