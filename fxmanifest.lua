@@ -1,7 +1,8 @@
 fx_version 'cerulean'
 game 'gta5'
 
-description 'qbx_garages'
+name 'qbx_garages'
+description 'Garage system for Qbox'
 repository 'https://github.com/Qbox-project/qbx_garages'
 version '1.0.0'
 
@@ -10,8 +11,6 @@ ox_lib 'locale'
 shared_scripts {
     '@ox_lib/init.lua',
     '@qbx_core/modules/lib.lua',
-    'locales/en.lua',
-    'locales/*.lua',
     'shared/*',
 }
 
@@ -29,6 +28,7 @@ server_scripts {
 files {
     'config/client.lua',
     'config/shared.lua',
+    'locales/*.json',
 }
 
 lua54 'yes'
