@@ -349,22 +349,31 @@ local function createBlips(garageInfo, accessPoint)
     EndTextCommandSetBlipName(blip)
 end
 
-local function createGarages()
-    for name, garage in pairs(sharedConfig.garages) do
-        local accessPoints = garage.accessPoints
-        for i = 1, #accessPoints do
-            local accessPoint = accessPoints[i]
+local function createGarage(name, garage)
+    local accessPoints = garage.accessPoints
+    for i = 1, #accessPoints do
+        local accessPoint = accessPoints[i]
 
-            if accessPoint.blip then
-                createBlips(garage, accessPoint)
-            end
+        if accessPoint.blip then
+            createBlips(garage, accessPoint)
+        end
 
-            if garage.groups == nil or exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
-                createZones(name, garage, accessPoint, i)
-            end
+        if garage.groups == nil or exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
+            createZones(name, garage, accessPoint, i)
         end
     end
 end
+
+local function createGarages()
+    local garages = lib.callback.await('qbx_garages:server:getGarages')
+    for name, garage in pairs(garages) do
+        createGarage(name, garage)
+    end
+end
+
+RegisterNetEvent('qbx_garages:client:garageRegistered', function(name, garage)
+    createGarage(name, garage)
+end)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     createGarages()
