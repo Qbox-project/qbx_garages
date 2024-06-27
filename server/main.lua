@@ -13,6 +13,20 @@ Config = require 'config.server'
 SharedConfig = require 'config.shared'
 VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
+Garages = SharedConfig.garages
+
+lib.callback.register('qbx_garages:server:getGarages', function()
+	return Garages
+end)
+
+---@param name string
+---@param config GarageConfig
+local function registerGarage(name, config)
+    Garages[name] = config
+	TriggerClientEvent('qbx_garages:client:garageRegistered', -1, name, config)
+end
+
+exports('RegisterGarage', registerGarage)
 
 function FindPlateOnServer(plate)
     local vehicles = GetAllVehicles()
@@ -26,7 +40,7 @@ end
 ---@param garage string
 ---@return GarageType?
 function GetGarageType(garage)
-    return SharedConfig.garages[garage]?.type
+    return Garages[garage]?.type
 end
 
 ---@class PlayerVehiclesFilters
@@ -39,7 +53,7 @@ end
 ---@return PlayerVehiclesFilters
 function GetPlayerVehicleFilter(source, garageName)
     local player = exports.qbx_core:GetPlayer(source)
-    local garage = SharedConfig.garages[garageName]
+    local garage = Garages[garageName]
     local filter = {}
     filter.citizenid = garage.shared and player.PlayerData.citizenid or nil
     filter.states = garage.states or VehicleState.GARAGED
@@ -74,7 +88,7 @@ end
 ---@return PlayerVehicle[]?
 lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, garageName)
     local player = exports.qbx_core:GetPlayer(source)
-    local garage = SharedConfig.garages[garageName]
+    local garage = Garages[garageName]
     if not getCanAccessGarage(player, garage) then return end
     local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles(filter)
@@ -82,7 +96,7 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     if not playerVehicles[1] then return end
     for _, vehicle in pairs(playerVehicles) do
         if not FindPlateOnServer(vehicle.props.plate) then
-            local vehicleType = SharedConfig.garages[garageName].vehicleType
+            local vehicleType = Garages[garageName].vehicleType
             if vehicleType == getVehicleType(vehicle) then
                 toSend[#toSend + 1] = vehicle
             end
@@ -101,7 +115,7 @@ local function isParkable(source, vehicleId, garageName)
     if garageType == GarageType.DEPOT then return false end
     assert(vehicleId ~= nil, 'owned vehicles must have vehicleid statebag set')
     local player = exports.qbx_core:GetPlayer(source)
-    local garage = SharedConfig.garages[garageName]
+    local garage = Garages[garageName]
     if not getCanAccessGarage(player, garage) then
         return false
     end
@@ -129,7 +143,7 @@ end)
 ---@param props table ox_lib vehicle props https://github.com/overextended/ox_lib/blob/master/resource/vehicleProperties/client.lua#L3
 ---@param garage string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage)
-    assert(SharedConfig.garages[garage] ~= nil, string.format('Garage %s not found in config', garage))
+    assert(Garages[garage] ~= nil, string.format('Garage %s not found. Did you register this garage?', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local owned = isParkable(source, Entity(vehicle).state.vehicleid, garage) --Check ownership
     if not owned then

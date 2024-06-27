@@ -12,7 +12,7 @@ end
 ---@param accessPoint integer
 ---@return number? netId
 lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName, accessPoint)
-    local garage = SharedConfig.garages[garageName]
+    local garage = Garages[garageName]
     local garageType = GetGarageType(garageName)
 
     local filter = GetPlayerVehicleFilter(source, garageName)
