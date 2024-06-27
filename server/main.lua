@@ -1,5 +1,9 @@
 assert(lib.checkDependency('qbx_core', '1.15.0', true))
 
+---@class ErrorResult
+---@field code string
+---@field message string
+
 ---@class PlayerVehicle
 ---@field id number
 ---@field citizenid? string
@@ -13,6 +17,7 @@ Config = require 'config.server'
 SharedConfig = require 'config.shared'
 VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
+---@type table<string, GarageConfig>
 Garages = SharedConfig.garages
 
 lib.callback.register('qbx_garages:server:getGarages', function()
@@ -27,6 +32,49 @@ local function registerGarage(name, config)
 end
 
 exports('RegisterGarage', registerGarage)
+
+---Sets the vehicle's garage. It is the caller's responsibility to make sure the vehicle is not currently spawned in the world, or else this may have no effect.
+---@param vehicleId integer
+---@param garageName string
+---@return boolean success, ErrorResult?
+local function setVehicleGarage(vehicleId, garageName)
+    local garage = Garages[garageName]
+    if not garage then
+        return false, {
+            code = 'not_found',
+            message = string.format('garage name %s not found. Did you forget to register it?', garageName)
+        }
+    end
+
+    local state = garage.type == GarageType.DEPOT and VehicleState.IMPOUNDED or VehicleState.GARAGED
+    local numRowsAffected = Storage.setVechicleGarage(vehicleId, garageName, state)
+    if numRowsAffected == 0 then
+        return false, {
+            code = 'no_rows_changed',
+            message = string.format('no rows were changed for vehicleId=%s', vehicleId)
+        }
+    end
+    return true
+end
+
+exports('SetVehicleGarage', setVehicleGarage)
+
+---Sets the vehicle's price for retrieval at a depot. Only affects vehicles that are OUT or IMPOUNDED.
+---@param vehicleId integer
+---@param depotPrice integer
+---@return boolean success, ErrorResult?
+local function setVehicleDepotPrice(vehicleId, depotPrice)
+    local numRowsAffected = Storage.setVehicleDepotPrice(vehicleId, depotPrice)
+    if numRowsAffected == 0 then
+        return false, {
+            code = 'no_rows_changed',
+            message = string.format('no rows were changed for vehicleId=%s', vehicleId)
+        }
+    end
+    return true
+end
+
+exports('SetVehicleDepotPrice', setVehicleDepotPrice)
 
 function FindPlateOnServer(plate)
     local vehicles = GetAllVehicles()
