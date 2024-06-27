@@ -16,14 +16,14 @@ Storage = require 'server.storage'
 Garages = SharedConfig.garages
 
 lib.callback.register('qbx_garages:server:getGarages', function()
-	return Garages
+    return Garages
 end)
 
 ---@param name string
 ---@param config GarageConfig
 local function registerGarage(name, config)
     Garages[name] = config
-	TriggerClientEvent('qbx_garages:client:garageRegistered', -1, name, config)
+    TriggerClientEvent('qbx_garages:client:garageRegistered', -1, name, config)
 end
 
 exports('RegisterGarage', registerGarage)
