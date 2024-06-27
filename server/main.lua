@@ -41,7 +41,7 @@ function GetPlayerVehicleFilter(source, garageName)
     local player = exports.qbx_core:GetPlayer(source)
     local garage = SharedConfig.garages[garageName]
     local filter = {}
-    filter.citizenid = garage.shared and player.PlayerData.citizenid or nil
+    filter.citizenid = not garage.shared and player.PlayerData.citizenid or nil
     filter.states = garage.states or VehicleState.GARAGED
     filter.garage = not garage.skipGarageCheck and garageName or nil
     return filter
