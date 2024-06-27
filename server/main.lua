@@ -195,7 +195,7 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local owned = isParkable(source, Entity(vehicle).state.vehicleid, garage) --Check ownership
     if not owned then
-        exports.qbx_core:Notify(source, Lang:t('error.not_owned'), 'error')
+        exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
         return
     end
 

@@ -23,9 +23,9 @@ end
 
 ---@type table<VehicleState, string>
 local stateLabels = {
-    [VehicleState.OUT] = Lang:t('status.out'),
-    [VehicleState.GARAGED] = Lang:t('status.garaged'),
-    [VehicleState.IMPOUNDED] = Lang:t('status.impound')
+    [VehicleState.OUT] = locale('status.out'),
+    [VehicleState.GARAGED] = locale('status.garaged'),
+    [VehicleState.IMPOUNDED] = locale('status.impound')
 }
 
 ---@param state VehicleState
@@ -69,7 +69,7 @@ end
 ---@param accessPoint integer
 local function takeOutOfGarage(vehicleId, garageName, accessPoint)
     if cache.vehicle then
-        exports.qbx_core:Notify('You\'re already in a vehicle...')
+        exports.qbx_core:Notify(locale('error.in_vehicle'))
         return
     end
 
@@ -97,7 +97,7 @@ local function takeOutDepot(data)
     if data.vehicle.depotPrice ~= 0 then
         local success = lib.callback.await('qbx_garages:server:payDepotPrice', false, data.vehicle.id)
         if not success then
-            exports.qbx_core:Notify(Lang:t('error.not_enough'), 'error')
+            exports.qbx_core:Notify(locale('error.not_enough'), 'error')
             return
         end
     end
@@ -120,27 +120,27 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
 
     local options = {
         {
-            title = 'Information',
+            title = locale('menu.information'),
             icon = 'circle-info',
-            description = ('Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s'):format(vehicleLabel, vehicle.props.plate, stateLabel, lib.math.groupdigits(vehicle.depotPrice)),
+            description = locale('menu.description', vehicleLabel, vehicle.props.plate, stateLabel, lib.math.groupdigits(vehicle.depotPrice)),
             readOnly = true,
         },
         {
-            title = 'Body',
+            title = locale('menu.body'),
             icon = 'car-side',
             readOnly = true,
             progress = body,
             colorScheme = bodyColor,
         },
         {
-            title = 'Engine',
+            title = locale('menu.engine'),
             icon = 'oil-can',
             readOnly = true,
             progress = engine,
             colorScheme = engineColor,
         },
         {
-            title = 'Fuel',
+            title = locale('menu.fuel'),
             icon = 'gas-pump',
             readOnly = true,
             progress = vehicle.props.fuelLevel,
@@ -172,7 +172,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
         end
     elseif vehicle.state == VehicleState.GARAGED then
         options[#options + 1] = {
-            title = 'Take out',
+            title = locale('menu.take_out'),
             icon = 'car-rear',
             arrow = true,
             onSelect = function()
@@ -181,7 +181,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
         }
     elseif vehicle.state == VehicleState.IMPOUNDED then
         options[#options + 1] = {
-            title = 'Your vehicle has been impounded by the police',
+            title = locale('menu.veh_impounded'),
             icon = 'building-shield',
             readOnly = true,
         }
@@ -205,7 +205,7 @@ local function openGarageMenu(garageName, garageInfo, accessPoint)
     local vehicleEntities = lib.callback.await('qbx_garages:server:getGarageVehicles', false, garageName)
 
     if not vehicleEntities then
-        exports.qbx_core:Notify(Lang:t('error.no_vehicles'), 'error')
+        exports.qbx_core:Notify(locale('error.no_vehicles'), 'error')
         return
     end
 
@@ -241,7 +241,7 @@ local function parkVehicle(vehicle, garageName)
         local isParkable = lib.callback.await('qbx_garages:server:isParkable', false, garageName, NetworkGetNetworkIdFromEntity(vehicle))
 
         if not isParkable then
-            exports.qbx_core:Notify(Lang:t('error.not_owned'), 'error', 5000)
+            exports.qbx_core:Notify(locale('error.not_owned'), 'error', 5000)
             return
         end
 
@@ -249,9 +249,9 @@ local function parkVehicle(vehicle, garageName)
         SetVehicleDoorsLocked(vehicle, 2)
         Wait(1500)
         lib.callback.await('qbx_garages:server:parkVehicle', false, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName)
-        exports.qbx_core:Notify(Lang:t('success.vehicle_parked'), 'primary', 4500)
+        exports.qbx_core:Notify(locale('success.vehicle_parked'), 'primary', 4500)
     else
-        exports.qbx_core:Notify(Lang:t('error.vehicle_occupied'), 'error', 3500)
+        exports.qbx_core:Notify(locale('error.vehicle_occupied'), 'error', 3500)
     end
 end
 
@@ -266,7 +266,7 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
             size = accessPoint.size,
             rotation = accessPoint.coords.w,
             onEnter = function()
-                lib.showTextUI((garage.type == GarageType.DEPOT and 'E - Open Impound') or (cache.vehicle and 'E - Store Vehicle') or 'E - Open Garage')
+                lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
             end,
             onExit = function()
                 lib.hideTextUI()
@@ -274,16 +274,16 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
             inside = function()
                 if IsControlJustReleased(0, 38) then
                     if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
-                        exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                        exports.qbx_core:Notify(locale('error.no_access'), 'error')
                         return
                     end
                     if garage.canAccess ~= nil and not garage.canAccess() then
-                        exports.qbx_core:Notify("You don't have access to this garage", 'error')
+                        exports.qbx_core:Notify(locale('error.no_access'), 'error')
                         return
                     end
                     if cache.vehicle and garage.type ~= GarageType.DEPOT then
                         if not isOfType(garage.vehicleType, cache.vehicle) then
-                            return exports.qbx_core:Notify('You can\'t park this vehicle here...', 'error')
+                            return exports.qbx_core:Notify(locale('error.not_correct_type'), 'error')
                         end
                         parkVehicle(cache.vehicle, garageName)
                     else
