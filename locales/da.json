@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Du har ikke adgang til denne garage",
+        "no_vehicles": "Du har i øjeblikket ingen køretøjer på denne placering...",
+        "not_impound": "Dit køretøj er ikke på motorvejen",
+        "not_owned": "Dette køretøj kan ikke opbevares",
+        "not_correct_type": "Du kan ikke opbevare denne type køretøj her",
+        "not_enough": "Ikke nok penge",
+        "vehicle_occupied": "Du kan ikke opbevare dette køretøj, da det ikke er tomt",
+        "in_vehicle": "Du er allerede i et køretøj..."
+    },
+    "success": {
+        "vehicle_parked": "Køretøj opbevaret"
+    },
+    "menu": {
+        "information": "Information",
+        "description": "Navn: %s\nNummerplade: %s\nStatus: %s\nGebyr for motorvej: $%s",
+        "body": "Karrosseri",
+        "engine": "Motor",
+        "fuel": "Brændstof",
+        "take_out": "Tag ud",
+        "veh_impounded": "Dit køretøj er blevet beslaglagt af politiet"
+    },
+    "status": {
+        "out": "Ude",
+        "garaged": "I garage",
+        "impound": "Beslaglagt af politiet"
+    },
+    "info": {
+        "car_e": "E - Åbn garage",
+        "park_e": "E - Opbevar køretøj",
+        "impound_e": "E - Åbn motorvej"
+    }
+}

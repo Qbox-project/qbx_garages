@@ -1,0 +1,34 @@
+{
+    "error": {
+        "no_access": "Você não tem acesso a esta garagem",
+        "no_vehicles": "Atualmente, você não tem veículos neste local...",
+        "not_impound": "Seu veículo não está no depósito",
+        "not_owned": "Este veículo não pode ser armazenado",
+        "not_correct_type": "Você não pode armazenar este tipo de veículo aqui",
+        "not_enough": "Dinheiro insuficiente",
+        "vehicle_occupied": "Você não pode armazenar este veículo, pois ele não está vazio",
+        "in_vehicle": "Você já está em um veículo..."
+    },
+    "success": {
+        "vehicle_parked": "Veículo armazenado"
+    },
+    "menu": {
+        "information": "Informações",
+        "description": "Nome: %s\nPlaca: %s\nStatus: %s\nTaxa de depósito: $%s",
+        "body": "Carroceria",
+        "engine": "Motor",
+        "fuel": "Combustível",
+        "take_out": "Retirar",
+        "veh_impounded": "Seu veículo foi apreendido pela polícia"
+    },
+    "status": {
+        "out": "Fora",
+        "garaged": "Na garagem",
+        "impound": "Apreendido pela polícia"
+    },
+    "info": {
+        "car_e": "E - Abrir garagem",
+        "park_e": "E - Armazenar veículo",
+        "impound_e": "E - Abrir depósito"
+    }
+}
