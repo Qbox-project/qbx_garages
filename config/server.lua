@@ -42,7 +42,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Motel Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -58,7 +58,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'San Andreas Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -74,7 +74,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Spanish Ave Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -90,7 +90,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Caears 24 Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -106,7 +106,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Little Seoul Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -122,7 +122,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Laguna Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -138,7 +138,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Airport Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -154,7 +154,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Beach Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -170,7 +170,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'The Motor Hotel Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -186,7 +186,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Liqour Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -202,7 +202,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Shore Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -218,7 +218,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Bell Farms Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -234,7 +234,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Dumbo Private Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -250,7 +250,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Pillbox Garage Parking',
+                        name = 'Public Parking',
                         sprite = 357,
                         color = 3,
                     },
@@ -266,7 +266,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Airport Hanger',
+                        name = 'Hangar',
                         sprite = 360,
                         color = 3,
                     },
@@ -282,7 +282,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Higgins Helitours',
+                        name = 'Hangar',
                         sprite = 360,
                         color = 3,
                     },
@@ -298,7 +298,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Sandy Shores Hangar',
+                        name = 'Hangar',
                         sprite = 360,
                         color = 3,
                     },
@@ -314,7 +314,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'LSYMC Boathouse',
+                        name = 'Boathouse',
                         sprite = 356,
                         color = 3,
                     },
@@ -330,7 +330,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Paleto Boathouse',
+                        name = 'Boathouse',
                         sprite = 356,
                         color = 3,
                     },
@@ -346,7 +346,7 @@ return {
             accessPoints = {
                 {
                     blip = {
-                        name = 'Millars Boathouse',
+                        name = 'Boathouse',
                         sprite = 356,
                         color = 3,
                     },
