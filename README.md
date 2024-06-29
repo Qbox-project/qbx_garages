@@ -1,47 +1,42 @@
 # qbx_garages
 
-**Public Garages**
-* Park owned cars in public garages.
-* You can only parks vehicles that you own in public garages. 
+Provides an API to store and retrieve vehicles from various locations around the map. Also includes an optional built-in UI
 
-![image](https://user-images.githubusercontent.com/82112471/149678987-02ec660f-76c9-4414-af7b-bac284ed58b7.png)
+## Features
 
-![image](https://user-images.githubusercontent.com/82112471/149678977-2a574ee9-8ecc-494f-a845-e17281a74594.png)
+### Built-in UI
+Optionally disabled via config. Created using ox_lib
 
+![Garage Menu](example-menu.png)
 
+Configurable Markers Denote the pickup and drop off points
+![Markers](example-markers.png)
 
-**House Garages**
-* Park owned cars in house garages. To add a house garage, you must have the realestate job and do /addgarage.
-* You can only parks vehicles from persons that have the key in a house garage. 
-* You can take every vehicle from the house garages to which you have the key. 
-* You can only parks ground vehicles in house garages. 
+### Export & Callback API
+qbx_garages is designed for 3rd party resources to easily replace the built-in UI or interface with the backend. Exports provide functionality to:
+- Register garages at runtime
+- Move vehicles between garages
+- change the depot price of a vehicle
 
-**Gang Garages**
-* Allows for gangs to have their own garages.
-* You can parks every vehicle that is owned by gang members in gang garages. 
-* You can take every vehicle from the gang garages. 
+### Access Points
+Garages can now have more than one access point. An access point is a location on the map where vehicles in that garage can be accessed.
+Access points have their own pick up, drop off, and spawn locations and an optional blip. Additionally, the pick up & drop off points can optionally be combined.
 
-**Job Garages**
-* Allows jobs to have garage specific.
-* You can parks every vehicle that is owned by someone in job garages. 
-* You can take every vehicle from the job garages. 
+### Access Control
+Can limit garage access to a list of jobs/gangs with optional minimum grades. Can also pass a custom canAccess function for more advanced access controls.
 
-**Depot Garages**
-* Allows depot cars to be retreived from here. Cops can do /depot [price] to send a car to the depot.
+### Vehicle Filtering
+- Vehicle type filter only grants access to vehicles of a specific type. So that aircraft can't be placed in car garages for example.
+- Optional vehicle state filter only grants access to vehicles in one of or a combination of vehicle states: OUT, GARAGED, IMPOUNDED
+- Shared flag optionally allows players to access all vehicles in the garage, instead of just vehicles they personally own.
+- Garage check optionally allows players to access vehicles not currently in the garage.
 
-**Auto Respawn Config**
-* If set to true, cars that are currently outside will be placed in the last garage used.
-* If set to false, cars that are currently outside will be placed in the depot.
+## Converting from QB?
+- Rather than have predefined garage types, qbx_garages has per garage config flags, allowing for greater flexibility in who can access a garage and what vehicles will be shown.
+- Several global settings are now per garage config options.
+- To support house garages, pass a custom canAccess function to check owning player
 
-**Shared garages Config**
-* If set to true, Gang and job garages are shared.
-* If set to false, Gang and Job garages are personal.
+## Dependencies
+- qbx_core
+- qbx_vehicles
 
-**Configurations**
-* You can only parks ground vehicles in garages of type "car" in config. 
-* You can only parks water vehicles in garages of type "sea" in config. 
-* You can only parks air vehicles in garages of type "air" in config. 
-* Vehicle types and jobs or gang can be mixed in config.
-
-**Blips and names**
-* Blips and names are modifiable for each garage. 
