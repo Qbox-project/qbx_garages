@@ -20,7 +20,7 @@ return {
     ---@field coords vector4 where the garage menu can be accessed from
     ---@field blip? GarageBlip
     ---@field size vector3
-    ---@field spawn vector4 where the vehicle will spawn
+    ---@field spawn? vector4 where the vehicle will spawn. Defaults to coords
 
     ---@class GarageConfig
     ---@field label string -- Label for the garage
