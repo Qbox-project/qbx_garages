@@ -209,6 +209,10 @@ local function openGarageMenu(garageName, garageInfo, accessPoint)
         return
     end
 
+    table.sort(vehicleEntities, function(a, b)
+        return a.modelName < b.modelName
+    end)
+
     local options = {}
     for i = 1, #vehicleEntities do
         local vehicleEntity = vehicleEntities[i]
