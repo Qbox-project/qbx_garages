@@ -1,5 +1,4 @@
 # qbx_garages
-
 Provides an API to store and retrieve vehicles from various locations around the map. Also includes an optional built-in UI
 
 ## Features
@@ -39,4 +38,3 @@ Can limit garage access to a list of jobs/gangs with optional minimum grades. Ca
 ## Dependencies
 - qbx_core
 - qbx_vehicles
-

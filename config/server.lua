@@ -1,5 +1,7 @@
 return {
     autoRespawn = false, -- True == auto respawn cars that are outside into your garage on script restart, false == does not put them into your garage and players have to go to the impound
+    warpInVehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
+    doorsLocked = true, -- If true, the doors will be locked upon taking the vehicle out.
 
     ---calculates the automatic impound fee.
     ---@param vehicleId integer
