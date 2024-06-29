@@ -281,12 +281,12 @@ end
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
         local dropZone, coordsZone
-        lib.points.sphere({
+        lib.zones.sphere({
             coords = accessPoint.coords,
             radius = 15,
             onEnter = function()
                 if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
-                    dropZone = lib.points.sphere({
+                    dropZone = lib.zones.sphere({
                         coords = accessPoint.dropPoint,
                         radius = 1.5,
                         onEnter = function()
@@ -306,7 +306,7 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                         debug = config.debugPoly
                     })
                 end
-                coordsZone = lib.points.sphere({
+                coordsZone = lib.zones.sphere({
                     coords = accessPoint.coords,
                     radius = 1,
                     onEnter = function()
