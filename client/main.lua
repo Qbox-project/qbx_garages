@@ -274,6 +274,41 @@ local function checkCanAccess(garage)
     return true
 end
 
+local function dropPointEnter()
+    if not cache.vehicle then return end
+    lib.showTextUI(locale('info.park_e'))
+end
+
+---@param garage GarageConfig
+---@param garageName string
+local function dropPointNearby(garage, garageName)
+    if not cache.vehicle then return end
+    if IsControlJustReleased(0, 38) then
+        if not checkCanAccess(garage) then return end
+        parkVehicle(cache.vehicle, garageName)
+    end
+end
+
+local function coordsPointEnter(dropPoint, garage)
+    if dropPoint and cache.vehicle then return end
+    lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
+end
+
+---@param garageName string
+---@param garage GarageConfig
+---@param accessPointIndex integer
+local function coordsPointNearby(dropPoint, garage, garageName, accessPointIndex)
+    if dropPoint and cache.vehicle then return end
+    if IsControlJustReleased(0, 38) then
+        if not checkCanAccess(garage) then return end
+        if cache.vehicle and garage.type ~= GarageType.DEPOT then
+            parkVehicle(cache.vehicle, garageName)
+        else
+            openGarageMenu(garageName, garage, accessPointIndex)
+        end
+    end
+end
+
 ---@param garageName string
 ---@param garage GarageConfig
 ---@param accessPoint AccessPoint
@@ -285,39 +320,25 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
             distance = 15,
         })
 
-        function point:nearby()
+        point.nearby = function(_)
             if accessPoint.dropPoint then
                 config.drawDropOffMarker(accessPoint.dropPoint)
             end
-
             config.drawGarageMarker(accessPoint.coords.xyz)
         end
 
         local dropPoint, coordsPoint
 
-        function point:onEnter()
+        point.onEnter = function(_)
             if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
                 dropPoint = lib.points.new({
                     coords = accessPoint.dropPoint,
                     distance = 1.5,
                 })
 
-                function dropPoint:onEnter()
-                    if not cache.vehicle then return end
-                    lib.showTextUI(locale('info.park_e'))
-                end
-
-                function dropPoint:onExit()
-                    lib.hideTextUI()
-                end
-
-                function dropPoint:nearby()
-                    if not cache.vehicle then return end
-                    if IsControlJustReleased(0, 38) then
-                        if not checkCanAccess(garage) then return end
-                        parkVehicle(cache.vehicle, garageName)
-                    end
-                end
+                dropPoint.onEnter = dropPointEnter()
+                dropPoint.onExit = lib.hideTextUI()
+                dropPoint.nearby = dropPointNearby(garage, garageName)
             end
 
             coordsPoint = lib.points.new({
@@ -325,26 +346,9 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                 distance = 1,
             })
 
-            function coordsPoint:onEnter()
-                if accessPoint.dropPoint and cache.vehicle then return end
-                lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
-            end
-
-            function coordsPoint:onExit()
-                lib.hideTextUI()
-            end
-
-            function coordsPoint:nearby()
-                if accessPoint.dropPoint and cache.vehicle then return end
-                if IsControlJustReleased(0, 38) then
-                    if not checkCanAccess(garage) then return end
-                    if cache.vehicle and garage.type ~= GarageType.DEPOT then
-                        parkVehicle(cache.vehicle, garageName)
-                    else
-                        openGarageMenu(garageName, garage, accessPointIndex)
-                    end
-                end
-            end
+            coordsPoint.onEnter = coordsPointEnter()
+            coordsPoint.onExit = lib.hideTextUI()
+            coordsPoint.nearby = coordsPointNearby(accessPoint.dropPoint, garage, garageName, accessPointIndex)
         end
 
         function point:oxExit()
