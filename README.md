@@ -9,7 +9,7 @@ Optionally disabled via config. Created using ox_lib
 ![Garage Menu](.github/example-menu.png)
 
 Configurable Markers Denote the pickup and drop off points
-![Markers](example-markers.png)
+![Markers](.github/example-markers.png)
 
 ### Export & Callback API
 qbx_garages is designed for 3rd party resources to easily replace the built-in UI or interface with the backend. Exports provide functionality to:
