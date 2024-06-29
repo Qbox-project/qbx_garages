@@ -15,7 +15,6 @@ assert(lib.checkDependency('qbx_vehicles', '1.1.0', true))
 ---@field props table ox_lib properties table
 
 Config = require 'config.server'
-SharedConfig = require 'config.shared'
 VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
 ---@type table<string, GarageConfig>

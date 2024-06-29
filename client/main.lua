@@ -1,6 +1,5 @@
 local config = require 'config.client'
 if not config.enableClient then return end
-local sharedConfig = require 'config.shared'
 local VEHICLES = exports.qbx_core:GetVehiclesByName()
 
 ---@enum ProgressColor
@@ -88,7 +87,7 @@ local function takeOutOfGarage(vehicleId, garageName, accessPoint)
         return
     end
 
-    if not sharedConfig.takeOut.engineOff then
+    if config.engineOn then
         SetVehicleEngineOn(veh, true, true, false)
     end
 end
