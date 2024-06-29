@@ -1,4 +1,5 @@
 return {
+    debugPoly = false,
     enableClient = true, -- disable to create your own client interface
 
     --- called every frame when player is near the garage and there is a separate drop off marker

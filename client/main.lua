@@ -274,91 +274,78 @@ local function checkCanAccess(garage)
     return true
 end
 
-local function dropPointEnter()
-    if not cache.vehicle then return end
-    lib.showTextUI(locale('info.park_e'))
-end
-
----@param garage GarageConfig
----@param garageName string
-local function dropPointNearby(garage, garageName)
-    if not cache.vehicle then return end
-    if IsControlJustReleased(0, 38) then
-        if not checkCanAccess(garage) then return end
-        parkVehicle(cache.vehicle, garageName)
-    end
-end
-
-local function coordsPointEnter(dropPoint, garage)
-    if dropPoint and cache.vehicle then return end
-    lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
-end
-
----@param garageName string
----@param garage GarageConfig
----@param accessPointIndex integer
-local function coordsPointNearby(dropPoint, garage, garageName, accessPointIndex)
-    if dropPoint and cache.vehicle then return end
-    if IsControlJustReleased(0, 38) then
-        if not checkCanAccess(garage) then return end
-        if cache.vehicle and garage.type ~= GarageType.DEPOT then
-            parkVehicle(cache.vehicle, garageName)
-        else
-            openGarageMenu(garageName, garage, accessPointIndex)
-        end
-    end
-end
-
 ---@param garageName string
 ---@param garage GarageConfig
 ---@param accessPoint AccessPoint
 ---@param accessPointIndex integer
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
-        local point = lib.points.new({
+        local dropZone, coordsZone
+        lib.points.sphere({
             coords = accessPoint.coords,
-            distance = 15,
-        })
-
-        point.nearby = function(_)
-            if accessPoint.dropPoint then
-                config.drawDropOffMarker(accessPoint.dropPoint)
-            end
-            config.drawGarageMarker(accessPoint.coords.xyz)
-        end
-
-        local dropPoint, coordsPoint
-
-        point.onEnter = function(_)
-            if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
-                dropPoint = lib.points.new({
-                    coords = accessPoint.dropPoint,
-                    distance = 1.5,
+            radius = 15,
+            onEnter = function()
+                if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
+                    dropZone = lib.points.sphere({
+                        coords = accessPoint.dropPoint,
+                        radius = 1.5,
+                        onEnter = function()
+                            if not cache.vehicle then return end
+                            lib.showTextUI(locale('info.park_e'))
+                        end,
+                        onExit = function()
+                            lib.hideTextUI()
+                        end,
+                        inside = function()
+                            if not cache.vehicle then return end
+                            if IsControlJustReleased(0, 38) then
+                                if not checkCanAccess(garage) then return end
+                                parkVehicle(cache.vehicle, garageName)
+                            end
+                        end,
+                        debug = config.debugPoly
+                    })
+                end
+                coordsZone = lib.points.sphere({
+                    coords = accessPoint.coords,
+                    radius = 1,
+                    onEnter = function()
+                        if accessPoint.dropPoint and cache.vehicle then return end
+                        lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
+                    end,
+                    onExit = function()
+                        lib.hideTextUI()
+                    end,
+                    inside = function()
+                        if accessPoint.dropPoint and cache.vehicle then return end
+                        if IsControlJustReleased(0, 38) then
+                            if not checkCanAccess(garage) then return end
+                            if cache.vehicle and garage.type ~= GarageType.DEPOT then
+                                parkVehicle(cache.vehicle, garageName)
+                            else
+                                openGarageMenu(garageName, garage, accessPointIndex)
+                            end
+                        end
+                    end,
+                    debug = config.debugPoly
                 })
-
-                dropPoint.onEnter = dropPointEnter()
-                dropPoint.onExit = lib.hideTextUI()
-                dropPoint.nearby = dropPointNearby(garage, garageName)
-            end
-
-            coordsPoint = lib.points.new({
-                coords = accessPoint.coords,
-                distance = 1,
-            })
-
-            coordsPoint.onEnter = coordsPointEnter()
-            coordsPoint.onExit = lib.hideTextUI()
-            coordsPoint.nearby = coordsPointNearby(accessPoint.dropPoint, garage, garageName, accessPointIndex)
-        end
-
-        function point:oxExit()
-            if dropPoint then
-                dropPoint:remove()
-            end
-            if coordsPoint then
-                coordsPoint:remove()
-            end
-        end
+            end,
+            onExit = function()
+                if dropZone then
+                    dropZone:remove()
+                end
+                if coordsZone then
+                    coordsZone:remove()
+                end
+            end,
+            inside = function()
+                if accessPoint.dropPoint then
+                    config.drawDropOffMarker(accessPoint.dropPoint)
+                end
+                config.drawGarageMarker(accessPoint.coords.xyz)
+            end,
+            debug = config.debugPoly,
+        })
     end)
 end
 
