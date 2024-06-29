@@ -295,7 +295,7 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
 
         local dropPoint, coordsPoint
 
-        function point:onEnter(_)
+        function point:onEnter()
             if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
                 dropPoint = lib.points.new({
                     coords = accessPoint.dropPoint,
