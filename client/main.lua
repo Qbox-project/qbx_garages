@@ -256,44 +256,105 @@ local function parkVehicle(vehicle, garageName)
     end
 end
 
+---@param garage GarageConfig
+---@return boolean
+local function checkCanAccess(garage)
+    if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
+        exports.qbx_core:Notify(locale('error.no_access'), 'error')
+        return false
+    end
+    if garage.canAccess ~= nil and not garage.canAccess() then
+        exports.qbx_core:Notify(locale('error.no_access'), 'error')
+        return false
+    end
+    if cache.vehicle and not isOfType(garage.vehicleType, cache.vehicle) then
+        exports.qbx_core:Notify(locale('error.not_correct_type'), 'error')
+        return false
+    end
+    return true
+end
+
 ---@param garageName string
 ---@param garage GarageConfig
 ---@param accessPoint AccessPoint
 ---@param accessPointIndex integer
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
-        lib.zones.box({
-            coords = accessPoint.coords.xyz,
-            size = accessPoint.size,
-            rotation = accessPoint.coords.w,
-            onEnter = function()
+        local point = lib.points.new({
+            coords = accessPoint.coords,
+            distance = 15,
+        })
+
+        function point:nearby()
+            if accessPoint.dropPoint then
+                config.drawDropOffMarker(accessPoint.dropPoint)
+            end
+
+            config.drawGarageMarker(accessPoint.coords.xyz)
+        end
+
+        local dropPoint, coordsPoint
+
+        function point:onEnter()
+            if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
+                dropPoint = lib.points.new({
+                    coords = accessPoint.dropPoint,
+                    distance = 1.5,
+                })
+
+                function dropPoint:onEnter()
+                    if not cache.vehicle then return end
+                    lib.showTextUI(locale('info.park_e'))
+                end
+
+                function dropPoint:onExit()
+                    lib.hideTextUI()
+                end
+
+                function dropPoint:nearby()
+                    if not cache.vehicle then return end
+                    if IsControlJustReleased(0, 38) then
+                        if not checkCanAccess(garage) then return end
+                        parkVehicle(cache.vehicle, garageName)
+                    end
+                end
+            end
+
+            coordsPoint = lib.points.new({
+                coords = accessPoint.coords,
+                distance = 1,
+            })
+
+            function coordsPoint:onEnter()
+                if accessPoint.dropPoint and cache.vehicle then return end
                 lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
-            end,
-            onExit = function()
+            end
+
+            function coordsPoint:onExit()
                 lib.hideTextUI()
-            end,
-            inside = function()
+            end
+
+            function coordsPoint:nearby()
+                if accessPoint.dropPoint and cache.vehicle then return end
                 if IsControlJustReleased(0, 38) then
-                    if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
-                        exports.qbx_core:Notify(locale('error.no_access'), 'error')
-                        return
-                    end
-                    if garage.canAccess ~= nil and not garage.canAccess() then
-                        exports.qbx_core:Notify(locale('error.no_access'), 'error')
-                        return
-                    end
+                    if not checkCanAccess(garage) then return end
                     if cache.vehicle and garage.type ~= GarageType.DEPOT then
-                        if not isOfType(garage.vehicleType, cache.vehicle) then
-                            return exports.qbx_core:Notify(locale('error.not_correct_type'), 'error')
-                        end
                         parkVehicle(cache.vehicle, garageName)
                     else
                         openGarageMenu(garageName, garage, accessPointIndex)
                     end
                 end
-            end,
-            debug = config.debugPoly,
-        })
+            end
+        end
+
+        function point:oxExit()
+            if dropPoint then
+                dropPoint:remove()
+            end
+            if coordsPoint then
+                coordsPoint:remove()
+            end
+        end
     end)
 end
 
