@@ -25,7 +25,8 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
 
     local warpPed = SharedConfig.takeOut.warpInVehicle and GetPlayerPed(source)
-    local netId, veh = qbx.spawnVehicle({ spawnSource = garage.accessPoints[accessPoint].spawn, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
+    local spawnCoords = garage.accessPoints[accessPoint].spawn or garage.accessPoints[accessPoint].coords
+    local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
     if SharedConfig.takeOut.doorsLocked then
         SetVehicleDoorsLocked(veh, 2)
