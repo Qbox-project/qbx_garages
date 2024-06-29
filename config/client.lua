@@ -1,6 +1,7 @@
 return {
-    debugPoly = false,
     enableClient = true, -- disable to create your own client interface
+    engineOn = true, -- If true, the engine will be on upon taking the vehicle out.
+    debugPoly = false,
 
     --- called every frame when player is near the garage and there is a separate drop off marker
     ---@param coords vector3
