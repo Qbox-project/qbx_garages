@@ -8,10 +8,15 @@ end
 ---@param source number
 ---@param vehicleId integer
 ---@param garageName string
----@param accessPoint integer
+---@param accessPointIndex integer
 ---@return number? netId
-lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName, accessPoint)
+lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName, accessPointIndex)
     local garage = Garages[garageName]
+    local accessPoint = garage.accessPoints[accessPointIndex]
+    if #(GetEntityCoords(GetPlayerPed(source)) - accessPoint.coords) > 3 then
+        lib.print.error(string.format("player %s attempted to spawn a vehicle but was too far from the access point", source))
+        return
+    end
     local garageType = GetGarageType(garageName)
 
     local filter = GetPlayerVehicleFilter(source, garageName)
@@ -25,7 +30,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
 
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)
-    local spawnCoords = garage.accessPoints[accessPoint].spawn or garage.accessPoints[accessPoint].coords
+    local spawnCoords = garage.accessPoints[accessPointIndex].spawn or garage.accessPoints[accessPointIndex].coords
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
     if Config.doorsLocked then
