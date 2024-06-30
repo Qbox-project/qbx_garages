@@ -30,7 +30,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
 
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)
-    local spawnCoords = garage.accessPoints[accessPointIndex].spawn or garage.accessPoints[accessPointIndex].coords
+    local spawnCoords = accessPoint.spawn or accessPoint.coords
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
     if Config.doorsLocked then
