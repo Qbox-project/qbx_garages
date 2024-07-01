@@ -182,7 +182,7 @@ end
 
 lib.callback.register('qbx_garages:server:isParkable', function(source, garage, netId)
     local vehicle = NetworkGetEntityFromNetworkId(netId)
-    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdFromPlate(GetVehicleNumberPlateText(vehicle))
+    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
     return isParkable(source, vehicleId, garage)
 end)
 
@@ -193,7 +193,7 @@ end)
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage)
     assert(Garages[garage] ~= nil, string.format('Garage %s not found. Did you register this garage?', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
-    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdFromPlate(GetVehicleNumberPlateText(vehicle))
+    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
     local owned = isParkable(source, vehicleId, garage) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
