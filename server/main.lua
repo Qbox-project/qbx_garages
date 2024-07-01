@@ -161,7 +161,7 @@ local function isParkable(source, vehicleId, garageName)
     local garageType = GetGarageType(garageName)
     --- DEPOTS are only for retrieving, not storing
     if garageType == GarageType.DEPOT then return false end
-    assert(vehicleId ~= nil, 'vehicle does not have a vehicleId')
+    if not vehicleId then return false end
     local player = exports.qbx_core:GetPlayer(source)
     local garage = Garages[garageName]
     if not getCanAccessGarage(player, garage) then
