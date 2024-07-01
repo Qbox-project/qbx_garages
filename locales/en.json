@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Information",
-        "description": "Name: %s\nPlate: %s\nStatus: %s\nImpound Fee: $%s",
+        "description": "Name: %s\nPlate: %s\nImpound Fee: $%s",
         "body": "Body",
         "engine": "Engine",
         "fuel": "Fuel",
         "take_out": "Take Out",
         "veh_impounded": "Your vehicle has been impounded by the police"
-    },
-    "status": {
-        "out": "Out",
-        "garaged": "Garaged",
-        "impound": "Impounded By Police"
     },
     "info": {
         "car_e": "E - Open Garage",
