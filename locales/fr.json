@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informations",
-        "description": "Nom: %s\nPlaque: %s\nStatut: %s\nFrais de fourrière: $%s",
+        "description": "Nom: %s\nPlaque: %s\nFrais de fourrière: $%s",
         "body": "Carrosserie",
         "engine": "Moteur",
         "fuel": "Carburant",
         "take_out": "Sortir",
         "veh_impounded": "Votre véhicule a été mis en fourrière par la police"
-    },
-    "status": {
-        "out": "Dehors",
-        "garaged": "En garage",
-        "impound": "Mis en fourrière par la police"
     },
     "info": {
         "car_e": "E - Ouvrir le garage",

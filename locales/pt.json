@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informações",
-        "description": "Nome: %s\nPlaca: %s\nStatus: %s\nTaxa de depósito: $%s",
+        "description": "Nome: %s\nPlaca: %s\nTaxa de depósito: $%s",
         "body": "Carroceria",
         "engine": "Motor",
         "fuel": "Combustível",
         "take_out": "Retirar",
         "veh_impounded": "Seu veículo foi apreendido pela polícia"
-    },
-    "status": {
-        "out": "Fora",
-        "garaged": "Na garagem",
-        "impound": "Apreendido pela polícia"
     },
     "info": {
         "car_e": "E - Abrir garagem",

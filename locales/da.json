@@ -14,18 +14,14 @@
     },
     "menu": {
         "information": "Information",
-        "description": "Navn: %s\nNummerplade: %s\nStatus: %s\nGebyr for motorvej: $%s",
+        "description": "Navn: %s\nNummerplade: %s\nGebyr for motorvej: $%s",
         "body": "Karrosseri",
         "engine": "Motor",
         "fuel": "Brændstof",
         "take_out": "Tag ud",
         "veh_impounded": "Dit køretøj er blevet beslaglagt af politiet"
     },
-    "status": {
-        "out": "Ude",
-        "garaged": "I garage",
-        "impound": "Beslaglagt af politiet"
-    },
+
     "info": {
         "car_e": "E - Åbn garage",
         "park_e": "E - Opbevar køretøj",

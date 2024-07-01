@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Bilgi",
-        "description": "Adı: %s\nPlaka: %s\nDurum: %s\nÇekme Ücreti: $%s",
+        "description": "Adı: %s\nPlaka: %s\nÇekme Ücreti: $%s",
         "body": "Gövde",
         "engine": "Motor",
         "fuel": "Yakıt",
         "take_out": "Çıkar",
         "veh_impounded": "Aracınız polis tarafından çekildi"
-    },
-    "status": {
-        "out": "Dışarıda",
-        "garaged": "Garajda",
-        "impound": "Polis Tarafından Çekildi"
     },
     "info": {
         "car_e": "E - Garajı Aç",

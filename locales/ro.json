@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informații",
-        "description": "Nume: %s\nNumăr de înmatriculare: %s\nStatus: %s\nTaxă de parcare: $%s",
+        "description": "Nume: %s\nNumăr de înmatriculare: %s\nTaxă de parcare: $%s",
         "body": "Caroserie",
         "engine": "Motor",
         "fuel": "Combustibil",
         "take_out": "Scoateți",
         "veh_impounded": "Vehiculul dvs. a fost confiscat de poliție"
-    },
-    "status": {
-        "out": "Afară",
-        "garaged": "În garaj",
-        "impound": "Confiscat de poliție"
     },
     "info": {
         "car_e": "E - Deschide garajul",

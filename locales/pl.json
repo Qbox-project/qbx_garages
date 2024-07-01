@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informacje",
-        "description": "Nazwa: %s\nTablica: %s\nStatus: %s\nOpłata za holowanie: $%s",
+        "description": "Nazwa: %s\nTablica: %s\nOpłata za holowanie: $%s",
         "body": "Nadwozie",
         "engine": "Silnik",
         "fuel": "Paliwo",
         "take_out": "Wyjmij",
         "veh_impounded": "Twój pojazd został skonfiskowany przez policję"
-    },
-    "status": {
-        "out": "Na zewnątrz",
-        "garaged": "W garażu",
-        "impound": "Skonfiskowane przez policję"
     },
     "info": {
         "car_e": "E - Otwórz garaż",

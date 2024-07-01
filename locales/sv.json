@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Information",
-        "description": "Namn: %s\nRegistreringsskylt: %s\nStatus: %s\nUpplagsavgift: $%s",
+        "description": "Namn: %s\nRegistreringsskylt: %s\nUpplagsavgift: $%s",
         "body": "Kaross",
         "engine": "Motor",
         "fuel": "Bränsle",
         "take_out": "Ta ut",
         "veh_impounded": "Ditt fordon har beslagtagits av polisen"
-    },
-    "status": {
-        "out": "Ute",
-        "garaged": "I garage",
-        "impound": "Beslagtagen av polisen"
     },
     "info": {
         "car_e": "E - Öppna garage",
