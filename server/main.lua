@@ -1,5 +1,5 @@
 assert(lib.checkDependency('qbx_core', '1.15.0', true))
-assert(lib.checkDependency('qbx_vehicles', '1.1.0', true))
+assert(lib.checkDependency('qbx_vehicles', '1.2.0', true))
 
 ---@class ErrorResult
 ---@field code string
@@ -161,7 +161,7 @@ local function isParkable(source, vehicleId, garageName)
     local garageType = GetGarageType(garageName)
     --- DEPOTS are only for retrieving, not storing
     if garageType == GarageType.DEPOT then return false end
-    assert(vehicleId ~= nil, 'owned vehicles must have vehicleid statebag set')
+    assert(vehicleId ~= nil, 'vehicle does not have a vehicleId')
     local player = exports.qbx_core:GetPlayer(source)
     local garage = Garages[garageName]
     if not getCanAccessGarage(player, garage) then
@@ -182,7 +182,7 @@ end
 
 lib.callback.register('qbx_garages:server:isParkable', function(source, garage, netId)
     local vehicle = NetworkGetEntityFromNetworkId(netId)
-    local vehicleId = Entity(vehicle).state.vehicleid
+    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdFromPlate(GetVehicleNumberPlateText(vehicle))
     return isParkable(source, vehicleId, garage)
 end)
 
@@ -193,13 +193,13 @@ end)
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage)
     assert(Garages[garage] ~= nil, string.format('Garage %s not found. Did you register this garage?', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
-    local owned = isParkable(source, Entity(vehicle).state.vehicleid, garage) --Check ownership
+    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdFromPlate(GetVehicleNumberPlateText(vehicle))
+    local owned = isParkable(source, vehicleId, garage) --Check ownership
     if not owned then
         exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
         return
     end
 
-    local vehicleId = Entity(vehicle).state.vehicleid
     Storage.saveVehicle(vehicleId, props, garage)
     DeleteEntity(vehicle)
 end)
