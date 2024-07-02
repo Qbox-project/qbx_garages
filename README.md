@@ -8,8 +8,6 @@ Provides an API to store and retrieve vehicles from various locations around the
 ### Built-in UI
 Optionally disabled via config. Created using ox_lib
 
-![Garage Menu](.github/example-menu.png)
-
 Configurable Markers Denote the pickup and drop off points
 ![Markers](.github/example-markers.png)
 
