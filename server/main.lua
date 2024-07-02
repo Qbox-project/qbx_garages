@@ -1,5 +1,5 @@
-assert(lib.checkDependency('qbx_core', '1.15.0', true))
-assert(lib.checkDependency('qbx_vehicles', '1.2.0', true))
+assert(lib.checkDependency('qbx_core', '1.15.1', true))
+assert(lib.checkDependency('qbx_vehicles', '1.3.1', true))
 
 ---@class ErrorResult
 ---@field code string
@@ -208,7 +208,12 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
         return
     end
 
-    Storage.saveVehicle(vehicleId, props, garage)
+    exports.qbx_vehicles:SaveVehicle(vehicle, {
+        garage = garage,
+        state = VehicleState.GARAGED,
+        props = props
+    })
+
     DeleteEntity(vehicle)
 end)
 

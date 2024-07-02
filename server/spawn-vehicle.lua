@@ -1,8 +1,11 @@
 ---@param vehicleId integer
 ---@param modelName string
-local function setVehicleStateToOut(vehicleId, modelName)
+local function setVehicleStateToOut(vehicleId, vehicle, modelName)
     local depotPrice = Config.calculateImpoundFee(vehicleId, modelName) or 0
-    Storage.setVehicleStateToOut(vehicleId, depotPrice)
+    exports.qbx_vehicles:SaveVehicle(vehicle, {
+        state = VehicleState.OUT,
+        depotPrice = depotPrice
+    })
 end
 
 ---@param source number
@@ -40,6 +43,6 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, playerVehicle.props.plate)
 
     Entity(veh).state:set('vehicleid', vehicleId, false)
-    setVehicleStateToOut(vehicleId, playerVehicle.modelName)
+    setVehicleStateToOut(vehicleId, veh, playerVehicle.modelName)
     return netId
 end)
