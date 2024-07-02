@@ -1,3 +1,5 @@
+![qbx_garages](https://github.com/Qbox-project/qbx_garages/assets/22198949/434b951d-032c-4390-9351-819e2b8cd0cb)
+
 # qbx_garages
 Provides an API to store and retrieve vehicles from various locations around the map. Also includes an optional built-in UI
 
@@ -5,8 +7,6 @@ Provides an API to store and retrieve vehicles from various locations around the
 
 ### Built-in UI
 Optionally disabled via config. Created using ox_lib
-
-![Garage Menu](.github/example-menu.png)
 
 Configurable Markers Denote the pickup and drop off points
 ![Markers](.github/example-markers.png)
