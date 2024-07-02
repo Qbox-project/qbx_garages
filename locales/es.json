@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Información",
-        "description": "Nombre: %s\nMatrícula: %s\nEstado: %s\nTarifa de depósito: $%s",
+        "description": "Nombre: %s\nMatrícula: %s\nTarifa de depósito: $%s",
         "body": "Carrocería",
         "engine": "Motor",
         "fuel": "Combustible",
         "take_out": "Sacar",
         "veh_impounded": "Tu vehículo ha sido embargado por la policía"
-    },
-    "status": {
-        "out": "Fuera",
-        "garaged": "En garaje",
-        "impound": "Embargado por la policía"
     },
     "info": {
         "car_e": "E - Abrir garaje",

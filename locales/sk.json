@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informácie",
-        "description": "Názov: %s\nŠPZ: %s\nStatus: %s\nPoplatok za odťah: $%s",
+        "description": "Názov: %s\nŠPZ: %s\nPoplatok za odťah: $%s",
         "body": "Karoséria",
         "engine": "Motor",
         "fuel": "Palivo",
         "take_out": "Vybrať",
         "veh_impounded": "Vaše vozidlo bolo zabavené políciou"
-    },
-    "status": {
-        "out": "Vonku",
-        "garaged": "V garáži",
-        "impound": "Zabavené políciou"
     },
     "info": {
         "car_e": "E - Otvoriť garáž",

@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informationen",
-        "description": "Name: %s\nKennzeichen: %s\nStatus: %s\nAbschleppgebühr: $%s",
+        "description": "Name: %s\nKennzeichen: %s\nAbschleppgebühr: $%s",
         "body": "Karosserie",
         "engine": "Motor",
         "fuel": "Kraftstoff",
         "take_out": "Herausnehmen",
         "veh_impounded": "Ihr Fahrzeug wurde von der Polizei beschlagnahmt"
-    },
-    "status": {
-        "out": "Aus",
-        "garaged": "In Garage",
-        "impound": "Von der Polizei beschlagnahmt"
     },
     "info": {
         "car_e": "E - Garage öffnen",

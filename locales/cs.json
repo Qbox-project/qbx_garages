@@ -14,17 +14,12 @@
     },
     "menu": {
         "information": "Informace",
-        "description": "Název: %s\nSPZ: %s\nStatus: %s\nPoplatek za záchytné stání: $%s",
+        "description": "Název: %s\nSPZ: %s\nPoplatek za záchytné stání: $%s",
         "body": "Karoserie",
         "engine": "Motor",
         "fuel": "Palivo",
         "take_out": "Vyjmout",
         "veh_impounded": "Vaše vozidlo bylo zabaveno policií"
-    },
-    "status": {
-        "out": "Venku",
-        "garaged": "V garáži",
-        "impound": "Zabaveno policií"
     },
     "info": {
         "car_e": "E - Otevřít garáž",

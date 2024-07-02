@@ -21,19 +21,6 @@ local function getProgressColor(percent)
     end
 end
 
----@type table<VehicleState, string>
-local stateLabels = {
-    [VehicleState.OUT] = locale('status.out'),
-    [VehicleState.GARAGED] = locale('status.garaged'),
-    [VehicleState.IMPOUNDED] = locale('status.impound')
-}
-
----@param state VehicleState
----@return string
-local function getStateLabel(state)
-    return stateLabels[state] or 'Unknown'
-end
-
 local VehicleCategory = {
     all = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
     car = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 19, 20, 22},
@@ -115,14 +102,13 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
     local engineColor = getProgressColor(engine)
     local bodyColor = getProgressColor(body)
     local fuelColor = getProgressColor(vehicle.props.fuelLevel)
-    local stateLabel = getStateLabel(vehicle.state)
     local vehicleLabel = ('%s %s'):format(VEHICLES[vehicle.modelName].brand, VEHICLES[vehicle.modelName].name)
 
     local options = {
         {
             title = locale('menu.information'),
             icon = 'circle-info',
-            description = locale('menu.description', vehicleLabel, vehicle.props.plate, stateLabel, lib.math.groupdigits(vehicle.depotPrice)),
+            description = locale('menu.description', vehicleLabel, vehicle.props.plate, lib.math.groupdigits(vehicle.depotPrice)),
             readOnly = true,
         },
         {
@@ -217,11 +203,10 @@ local function openGarageMenu(garageName, garageInfo, accessPoint)
     for i = 1, #vehicleEntities do
         local vehicleEntity = vehicleEntities[i]
         local vehicleLabel = ('%s %s'):format(VEHICLES[vehicleEntity.modelName].brand, VEHICLES[vehicleEntity.modelName].name)
-        local stateLabel = getStateLabel(vehicleEntity.state)
 
         options[#options + 1] = {
             title = vehicleLabel,
-            description = ('%s | %s'):format(stateLabel, vehicleEntity.props.plate),
+            description = vehicleEntity.props.plate,
             arrow = true,
             onSelect = function()
                 displayVehicleInfo(vehicleEntity, garageName, garageInfo, accessPoint)
