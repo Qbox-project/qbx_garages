@@ -24,6 +24,13 @@ lib.callback.register('qbx_garages:server:getGarages', function()
     return Garages
 end)
 
+---Returns garages for use server side.
+local function getGarages()
+    return Garages
+end
+exports('GetGarages', getGarages)
+
+
 ---@param name string
 ---@param config GarageConfig
 local function registerGarage(name, config)
