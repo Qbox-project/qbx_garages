@@ -36,6 +36,7 @@ exports('GetGarages', getGarages)
 local function registerGarage(name, config)
     Garages[name] = config
     TriggerClientEvent('qbx_garages:client:garageRegistered', -1, name, config)
+    TriggerEvent('qbx_garages:server:garageRegistered', name, config)
 end
 
 exports('RegisterGarage', registerGarage)
