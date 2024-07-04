@@ -32,7 +32,7 @@ return {
     ---@field shared? boolean defaults to false. Shared garages give all players with access to the garage access to all vehicles in it. If shared is off, the garage will only give access to player's vehicles which they own.
     ---@field states? VehicleState | VehicleState[] if set, only vehicles in the given states will be retrievable from the garage. Defaults to GARAGED.
     ---@field skipGarageCheck? boolean if true, returns vehicles for retrieval regardless of if that vehicle's garage matches this garage's name
-    ---@field canAccess? fun(source?: number): boolean runs on both client & server to check access as an additional guard clause. Other filter fields still need to pass in addition to this function.
+    ---@field canAccess? fun(source: number): boolean checks access as an additional guard clause. Other filter fields still need to pass in addition to this function.
     ---@field accessPoints AccessPoint[]
 
     ---@type table<string, GarageConfig>
