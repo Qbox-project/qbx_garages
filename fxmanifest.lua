@@ -1,11 +1,11 @@
 fx_version 'cerulean'
 game 'gta5'
-version '1.0.0'
+version '1.0.1'
 
 name 'qbx_garages'
 description 'Garage system for Qbox'
 repository 'https://github.com/Qbox-project/qbx_garages'
-version '1.0.0'
+version '1.0.1'
 
 ox_lib 'locale'
 
