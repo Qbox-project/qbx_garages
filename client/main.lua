@@ -251,10 +251,6 @@ local function checkCanAccess(garage)
         exports.qbx_core:Notify(locale('error.no_access'), 'error')
         return false
     end
-    if garage.canAccess ~= nil and not garage.canAccess() then
-        exports.qbx_core:Notify(locale('error.no_access'), 'error')
-        return false
-    end
     if cache.vehicle and not isOfType(garage.vehicleType, cache.vehicle) then
         exports.qbx_core:Notify(locale('error.not_correct_type'), 'error')
         return false
