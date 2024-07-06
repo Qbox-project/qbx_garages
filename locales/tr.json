@@ -3,14 +3,14 @@
         "no_access": "Bu garaja erişiminiz yok",
         "no_vehicles": "Şu anda bu konumda aracınız yok...",
         "not_impound": "Aracınız çekilmemiş",
-        "not_owned": "Bu araç depolanamaz",
-        "not_correct_type": "Bu tür aracı burada depolayamazsınız",
-        "not_enough": "Yeterli para yok",
-        "vehicle_occupied": "Bu aracı depolayamazsınız çünkü boş değil",
+        "not_owned": "Bu aracın sahibi değilsiniz",
+        "not_correct_type": "Bu tür aracı buraya park edemezsiniz",
+        "not_enough": "Yeterli paran yok",
+        "vehicle_occupied": "Aracı park etmek için, içinde sadece sürücü olmalıdır",
         "in_vehicle": "Zaten bir araçtasınız..."
     },
     "success": {
-        "vehicle_parked": "Araç depolandı"
+        "vehicle_parked": "Araç park edildi"
     },
     "menu": {
         "information": "Bilgi",
@@ -18,12 +18,12 @@
         "body": "Gövde",
         "engine": "Motor",
         "fuel": "Yakıt",
-        "take_out": "Çıkar",
+        "take_out": "Aracı Çıkar",
         "veh_impounded": "Aracınız polis tarafından çekildi"
     },
     "info": {
         "car_e": "E - Garajı Aç",
-        "park_e": "E - Aracı Depola",
-        "impound_e": "E - Çekme Alanını Aç"
+        "park_e": "E - Aracı Park Et",
+        "impound_e": "E - Çekilen Araçlar"
     }
 }
