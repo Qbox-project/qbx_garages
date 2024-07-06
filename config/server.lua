@@ -343,7 +343,7 @@ return {
         police = {
             label = 'Police',
             vehicleType = VehicleType.CAR,
-            group = 'police',
+            groups = 'police',
             accessPoints = {
                 {
                     coords = vec4(454.6, -1017.4, 28.4, 0),
@@ -356,7 +356,7 @@ return {
         ballas = {
             label = 'Ballas',
             vehicleType = VehicleType.CAR,
-            group = 'ballas',
+            groups = 'ballas',
             accessPoints = {
                 {
                     coords = vec4(98.50, -1954.49, 20.84, 0),
@@ -367,7 +367,7 @@ return {
         families = {
             label = 'La Familia',
             vehicleType = VehicleType.CAR,
-            group = 'families',
+            groups = 'families',
             accessPoints = {
                 {
                     coords = vec4(-811.65, 187.49, 72.48, 0),
@@ -378,7 +378,7 @@ return {
         lostmc = {
             label = 'Lost MC',
             vehicleType = VehicleType.CAR,
-            group = 'lostmc',
+            groups = 'lostmc',
             accessPoints = {
                 {
                     coords = vec4(957.25, -129.63, 74.39, 0),
@@ -389,7 +389,7 @@ return {
         cartel = {
             label = 'Cartel',
             vehicleType = VehicleType.CAR,
-            group = 'cartel',
+            groups = 'cartel',
             accessPoints = {
                 {
                     coords = vec4(1407.18, 1118.04, 114.84, 0),
