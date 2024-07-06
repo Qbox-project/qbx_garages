@@ -118,7 +118,7 @@ function GetPlayerVehicleFilter(source, garageName)
 end
 
 local function getCanAccessGarage(player, garage)
-    if garage.groups and not exports.qbx_core:HasPrimaryGroup(garage.groups, QBX.PlayerData) then
+    if garage.groups and not exports.qbx_core:HasPrimaryGroup(player.PlayerData.source, garage.groups) then
         return false
     end
     if garage.canAccess ~= nil and not garage.canAccess(player.PlayerData.source) then
