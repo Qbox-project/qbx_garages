@@ -51,32 +51,42 @@ local function kickOutPeds(vehicle)
     end
 end
 
+local spawnLock = false
+
 ---@param vehicleId number
 ---@param garageName string
 ---@param accessPoint integer
 local function takeOutOfGarage(vehicleId, garageName, accessPoint)
-    if cache.vehicle then
-        exports.qbx_core:Notify(locale('error.in_vehicle'))
-        return
+    if spawnLock then
+        exports.qbx_core:Notify(locale('error.spawn_in_progress'))
     end
+    spawnLock = true
+    local success, result = pcall(function()
+        if cache.vehicle then
+            exports.qbx_core:Notify(locale('error.in_vehicle'))
+            return
+        end
 
-    local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName, accessPoint)
-    if not netId then return end
+        local netId = lib.callback.await('qbx_garages:server:spawnVehicle', false, vehicleId, garageName, accessPoint)
+        if not netId then return end
 
-    local veh = lib.waitFor(function()
-        if NetworkDoesEntityExistWithNetworkId(netId) then
-            return NetToVeh(netId)
+        local veh = lib.waitFor(function()
+            if NetworkDoesEntityExistWithNetworkId(netId) then
+                return NetToVeh(netId)
+            end
+        end)
+
+        if veh == 0 then
+            exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
+            return
+        end
+
+        if config.engineOn then
+            SetVehicleEngineOn(veh, true, true, false)
         end
     end)
-
-    if veh == 0 then
-        exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
-        return
-    end
-
-    if config.engineOn then
-        SetVehicleEngineOn(veh, true, true, false)
-    end
+    spawnLock = false
+    assert(success, result)
 end
 
 ---@param data {vehicle: PlayerVehicle, garageName: string, accessPoint: integer}

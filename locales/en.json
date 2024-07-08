@@ -7,7 +7,8 @@
         "not_correct_type": "You can't store this type of vehicle here",
         "not_enough": "Not enough money",
         "vehicle_occupied": "You can't store this vehicle as it is not empty",
-        "in_vehicle": "You're already in a vehicle..."
+        "in_vehicle": "You're already in a vehicle...",
+        "spawn_in_progress": "Still waiting for the first vehicle to spawn..."
     },
     "success": {
         "vehicle_parked": "Vehicle Stored"
