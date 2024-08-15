@@ -22,6 +22,12 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
     local garageType = GetGarageType(garageName)
 
+    local spawnCoords = accessPoint.spawn or accessPoint.coords
+    if lib.getClosestVehicle(vec3(spawnCoords.x,spawnCoords.y,spawnCoords.z), 5.0, false) ~= nil then
+        exports.qbx_core:Notify(source, locale('error.no_space'), 'error', 5000)
+        return
+    end
+    
     local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
     if not playerVehicle then
