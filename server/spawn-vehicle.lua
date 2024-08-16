@@ -23,7 +23,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     local garageType = GetGarageType(garageName)
 
     local spawnCoords = accessPoint.spawn or accessPoint.coords
-    if Config.distanceCheck then 
+    if Config.distanceCheck then
         local vec3Coords = vec3(spawnCoords.x, spawnCoords.y, spawnCoords.z)
         local nearbyVehicle = lib.getClosestVehicle(vec3Coords, Config.distanceCheck, false)
         if nearbyVehicle then
