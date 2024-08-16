@@ -1,5 +1,6 @@
 {
     "error": {
+        "no_space": "Another vehicle has occupied the space.",
         "no_access": "You don't have access to this garage",
         "no_vehicles": "You currently have no vehicles at this location...",
         "not_impound": "Your vehicle is not in impound",

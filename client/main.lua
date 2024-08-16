@@ -274,6 +274,7 @@ end
 ---@param accessPointIndex integer
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
+        accessPoint.dropPoint = accessPoint.dropPoint or accessPoint.spawn
         local dropZone, coordsZone
         lib.zones.sphere({
             coords = accessPoint.coords,
