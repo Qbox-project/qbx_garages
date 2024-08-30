@@ -44,8 +44,9 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
 
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
+    local vehicleCategory = exports.qbx_core:GetVehiclesByName()[playerVehicle.modelName].category
 
-    if Config.doorsLocked then
+    if Config.doorsLocked and not lib.table.contains(Config.noLockCategories, vehicleCategory) then
         SetVehicleDoorsLocked(veh, 2)
     end
 
