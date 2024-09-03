@@ -20,6 +20,8 @@ Storage = require 'server.storage'
 ---@type table<string, GarageConfig>
 Garages = Config.garages
 
+local triggerEventHooks = lib.load('@qbx_core.modules.hooks')
+
 lib.callback.register('qbx_garages:server:getGarages', function()
     return Garages
 end)
@@ -211,6 +213,15 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     exports.qbx_vehicles:SaveVehicle(vehicle, {
         garage = garage,
         state = VehicleState.GARAGED,
+        props = props
+    })
+
+    triggerEventHooks('garages:parkVehicle', {
+        source = source,
+        vehicleId = vehicleId,
+        garageName = garage,
+        netId = netId,
+        vehicle = vehicle,
         props = props
     })
 
