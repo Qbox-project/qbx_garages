@@ -36,7 +36,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicl
 
     -- Trigger the hook and allow it to modify the payload (optional)
     if triggerEventHooks('garages:spawnVehicle', hookPayload) == false then
-        lib.print.warn("Vehicle spawn was canceled by a hook.")
+        lib.print.debug("Vehicle spawn was canceled by a hook.")
         if hookPayload.Notify.description then
             return exports.qbx_core:Notify(source, hookPayload.Notify.description, hookPayload.Notify.type)
         end
