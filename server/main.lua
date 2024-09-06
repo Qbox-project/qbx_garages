@@ -1,6 +1,12 @@
 assert(lib.checkDependency('qbx_core', '1.15.1', true))
 assert(lib.checkDependency('qbx_vehicles', '1.3.1', true))
 
+local triggerEventHooks = lib.load('@qbx_core.modules.hooks')
+
+function GaragesHooks(...) -- anti-dubliquate, avoid deleting the parkVehicle hook and use it in 'spawn-vehicle.lua'.
+    return triggerEventHooks(...)
+end
+
 ---@class ErrorResult
 ---@field code string
 ---@field message string
@@ -205,6 +211,20 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
     local owned = isParkable(source, vehicleId, garage) --Check ownership
+    local payloadPark = {
+        source = source,
+        netId = netId,
+        props = props,
+        garageName = garage,
+        vehicleId = vehicleId,
+        owned = owned,
+        vehicle = vehicle,
+    }
+
+    if GaragesHooks('parkVehicle', payloadPark) then
+        lib.print.debug("Vehicle park hook executed.")
+    end
+
     if not owned then
         exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
         return
@@ -213,15 +233,6 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     exports.qbx_vehicles:SaveVehicle(vehicle, {
         garage = garage,
         state = VehicleState.GARAGED,
-        props = props
-    })
-
-    triggerEventHooks('garages:parkVehicle', {
-        source = source,
-        vehicleId = vehicleId,
-        garageName = garage,
-        netId = netId,
-        vehicle = vehicle,
         props = props
     })
 
