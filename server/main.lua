@@ -210,7 +210,8 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     assert(Garages[garage] ~= nil, string.format('Garage %s not found. Did you register this garage?', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
-    local owned = isParkable(source, vehicleId, garage) --Check ownership
+    local owned = isParkable(source, vehicleId, garage)
+
     local payloadPark = {
         source = source,
         netId = netId,
@@ -221,8 +222,9 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
         vehicle = vehicle,
     }
 
-    if GaragesHooks('parkVehicle', payloadPark) then
-        lib.print.debug("Vehicle park hook executed.")
+    if GaragesHooks('parkVehicle', payloadPark) == false then
+        lib.print.debug("Vehicle park was canceled by a hook.")
+        return
     end
 
     if not owned then

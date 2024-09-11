@@ -3,6 +3,7 @@ return {
     warpInVehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
     doorsLocked = true, -- If true, the doors will be locked upon taking the vehicle out.
     distanceCheck = 5.0, -- The distance that needs to bee clear to let the vehicle spawn, this prevents vehicles stacking on top of each other
+    giveKeys = false, -- If true, gives vehicle keys (requires qbx_vehiclekeys).
     ---calculates the automatic impound fee.
     ---@param vehicleId integer
     ---@param modelName string
