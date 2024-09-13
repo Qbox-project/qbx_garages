@@ -18,14 +18,14 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicl
     local accessPoint = garage.accessPoints[accessPointIndex]
     local garageType = GetGarageType(garageName)
     local spawnCoords = accessPoint.spawn or accessPoint.coords
+    local warpPed = Config.warpInVehicle and GetPlayerPed(source)
+    local filter = GetPlayerVehicleFilter(source, garageName)
 
     local hookPayload = {
         source = source,
         vehicleId = vehicleId,
         garage = garage,
-        garageName = garageName,
         accessPointIndex = accessPointIndex,
-        garageType = garageType,
         spawnCoords = spawnCoords,
         distanceCheck = Config.distanceCheck,
         doorsLocked = Config.doorsLocked,
@@ -33,14 +33,20 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicl
         vehiclekeys = Config.giveKeys,
     }
 
-    local parkZone = lib.callback.await('qbx_garages:client:getParkZoneByAccessPointIndex', accessPointIndex)
-
-    if not parkZone or not parkZone:contains(vec3(1, 1, 1)) then
-        lib.print.error(string.format("Le joueur %s a essayé de faire spawn un véhicule mais est trop loin du point d'accès", source))
+    if #(GetEntityCoords(GetPlayerPed(source)) - accessPoint.coords.xyz) > 3 then
+        lib.print.error(string.format("player %s attempted to spawn a vehicle but was too far from the access point", source))
         return
     end
 
-    local filter = GetPlayerVehicleFilter(source, garageName)
+    if Config.distanceCheck then
+        local vec3Coords = vec3(spawnCoords.x, spawnCoords.y, spawnCoords.z)
+        local nearbyVehicle = lib.getClosestVehicle(vec3Coords, Config.distanceCheck, false)
+        if nearbyVehicle then
+            exports.qbx_core:Notify(source, locale('error.no_space'), 'error')
+            return
+        end
+    end
+
     local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
     if not playerVehicle then
         exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
@@ -58,7 +64,6 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicl
         return
     end
 
-    local warpPed = hookPayload.warpPed and GetPlayerPed(source)
     local netId, veh = qbx.spawnVehicle({
         spawnSource = spawnCoords,
         model = playerVehicle.props.model,
@@ -70,6 +75,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicl
     hookPayload.veh = veh
 
     if GaragesHooks('spawnedVehicle', hookPayload) == false then
+        lib.print.debug("Vehicle spawned was canceled by a hook.")
         DeleteEntity(veh)
         return
     end
