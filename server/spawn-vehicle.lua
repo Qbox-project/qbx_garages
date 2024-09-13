@@ -33,11 +33,22 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicl
         vehiclekeys = Config.giveKeys,
     }
 
+    local parkZone = lib.callback.await('qbx_garages:client:getParkZoneByAccessPointIndex', accessPointIndex)
+
+    if not parkZone or not parkZone:contains(vec3(1, 1, 1)) then
+        lib.print.error(string.format("Le joueur %s a essayé de faire spawn un véhicule mais est trop loin du point d'accès", source))
+        return
+    end
+
     local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId, filter)
     if not playerVehicle then
         exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
         return
+    end
+
+    if garageType == GarageType.DEPOT and FindPlateOnServer(playerVehicle.props.plate) then -- If depot, check if vehicle is not already spawned on the map
+        return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error', 5000)
     end
 
     hookPayload.playerVehicle = playerVehicle

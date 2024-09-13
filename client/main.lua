@@ -268,8 +268,6 @@ local function checkCanAccess(garage)
     return true
 end
 
-local allZones = {}
-
 ---@param garageName string
 ---@param garage GarageConfig
 ---@param accessPoint AccessPoint
@@ -277,8 +275,8 @@ local allZones = {}
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
         accessPoint.dropPoint = accessPoint.dropPoint or accessPoint.spawn
-        local parkZone, dropZone, coordsZone
-        parkZone = lib.zones.sphere({
+        local dropZone, coordsZone
+        lib.zones.sphere({
             coords = accessPoint.coords,
             radius = 15,
             onEnter = function()
@@ -343,7 +341,6 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
             end,
             debug = config.debugPoly,
         })
-        table.insert(allZones, {spherePark = parkZone, garageName = garageName, garage = garage, accessPoint = accessPoint, accessPointIndex = accessPointIndex})
     end)
 end
 
@@ -380,17 +377,6 @@ local function createGarages()
         createGarage(name, garage)
     end
 end
-
----@param accessPointIndex integer
----@return table|nil
-lib.callback.register('qbx_garages:client:getParkZoneByAccessPointIndex', function(accessPointIndex)
-    for _, zoneData in ipairs(allZones) do
-        if zoneData.accessPointIndex == accessPointIndex then
-            return zoneData.spherePark
-        end
-    end
-    return nil
-end)
 
 RegisterNetEvent('qbx_garages:client:garageRegistered', function(name, garage)
     createGarage(name, garage)

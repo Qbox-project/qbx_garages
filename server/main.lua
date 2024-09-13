@@ -1,12 +1,6 @@
 assert(lib.checkDependency('qbx_core', '1.15.1', true))
 assert(lib.checkDependency('qbx_vehicles', '1.3.1', true))
 
-local triggerEventHooks = lib.load('@qbx_core.modules.hooks')
-
-function GaragesHooks(...) -- anti-dubliquate, avoid deleting the parkVehicle hook and use it in 'spawn-vehicle.lua'.
-    return triggerEventHooks(...)
-end
-
 ---@class ErrorResult
 ---@field code string
 ---@field message string
@@ -25,8 +19,7 @@ VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
 ---@type table<string, GarageConfig>
 Garages = Config.garages
-
-local triggerEventHooks = lib.load('@qbx_core.modules.hooks')
+GaragesHooks = lib.load('@qbx_core.modules.hooks')
 
 lib.callback.register('qbx_garages:server:getGarages', function()
     return Garages
@@ -222,7 +215,7 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
         vehicle = vehicle,
     }
 
-    if GaragesHooks('parkVehicle', payloadPark) == false then
+    if not GaragesHooks('parkVehicle', payloadPark) then
         lib.print.debug("Vehicle park was canceled by a hook.")
         return
     end
