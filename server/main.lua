@@ -1,4 +1,4 @@
-assert(lib.checkDependency('qbx_core', '1.15.1', true))
+assert(lib.checkDependency('qbx_core', '1.19.0', true))
 assert(lib.checkDependency('qbx_vehicles', '1.3.1', true))
 
 ---@class ErrorResult
@@ -214,7 +214,7 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
         props = props
     })
 
-    DeleteEntity(vehicle)
+    exports.qbx_core:DeleteVehicle(vehicle)
 end)
 
 AddEventHandler('onResourceStart', function(resource)
