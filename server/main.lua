@@ -55,7 +55,7 @@ local function setVehicleGarage(vehicleId, garageName)
     end
 
     local state = garage.type == GarageType.DEPOT and VehicleState.IMPOUNDED or VehicleState.GARAGED
-    local numRowsAffected = Storage.setVechicleGarage(vehicleId, garageName, state)
+    local numRowsAffected = Storage.setVehicleGarage(vehicleId, garageName, state)
     if numRowsAffected == 0 then
         return false, {
             code = 'no_rows_changed',
