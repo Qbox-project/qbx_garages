@@ -8,7 +8,7 @@ end
 ---@param state VehicleState
 ---@return integer numRowsAffected
 local function setVehicleGarage(vehicleId, garageName, state)
-    return MySQL.update('UPDATE player_vehicles SET garage = ? state = ? WHERE id = ?', {
+    return MySQL.update('UPDATE player_vehicles SET garage = ?, state = ? WHERE id = ?', {
         garageName,
         state,
         vehicleId
