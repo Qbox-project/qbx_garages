@@ -1,0 +1,31 @@
+{
+    "error": {
+        "no_space": "Un altro veicolo ha occupato il punto spawn.",
+        "no_access": "Non hai accesso a questo garage",
+        "no_vehicles": "Non hai veicoli in questo garage...",
+        "not_impound": "Il tuo veicolo non è stato sequestrato",
+        "not_owned": "Questo veicolo non può essere depositato",
+        "not_correct_type": "Non puoi depositare questo tipo di veicoli qui",
+        "not_enough": "Non hai abbastanza denaro",
+        "vehicle_occupied": "Non puoi depositare questo veicolo perchè non è vuoto",
+        "in_vehicle": "Sei già in un veicolo...",
+        "spawn_in_progress": "Aspetta che il tuo veicolo venga consegnato..."
+    },
+    "success": {
+        "vehicle_parked": "Veicolo Depositato"
+    },
+    "menu": {
+        "information": "Informazioni",
+        "description": "Nome: %s\nTarga: %s\nTassa Dissequestro: $%s",
+        "body": "Telaio",
+        "engine": "Motore",
+        "fuel": "Carburante",
+        "take_out": "Porta Fuori",
+        "veh_impounded": "Il tuo veicolo è stato sequestrato dalla polizia"
+    },
+    "info": {
+        "car_e": "E - Apri Garage",
+        "park_e": "E - Deposita Veicolo",
+        "impound_e": "E - Apri Dissequestro"
+    }
+}
