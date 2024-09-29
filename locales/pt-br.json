@@ -3,7 +3,7 @@
         "no_space": "Outro veículo já ocupou o espaço.",
         "no_access": "Você não tem acesso a esta garagem",
         "no_vehicles": "Você atualmente não tem veículos neste local...",
-        "not_impound": "Seu veículo não está no pátio",
+        "not_impound": "Você não possui nenhum veículo apreendido",
         "not_owned": "Este veículo não pode ser guardado",
         "not_correct_type": "Você não pode guardar este tipo de veículo aqui",
         "not_enough": "Dinheiro insuficiente",
