@@ -12,7 +12,7 @@
         "spawn_in_progress": "Por favor, aguarde enquanto seu veículo é entregue..."
     },
     "success": {
-        "vehicle_parked": "Veículo guardado"
+        "vehicle_parked": "Você estacionou seu veículo"
     },
     "menu": {
         "information": "Informação",
