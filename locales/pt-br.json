@@ -1,0 +1,31 @@
+{
+    "error": {
+        "no_space": "Outro veículo já ocupou o espaço.",
+        "no_access": "Você não tem acesso a esta garagem",
+        "no_vehicles": "Você atualmente não tem veículos neste local...",
+        "not_impound": "Você não possui nenhum veículo apreendido",
+        "not_owned": "Você não é o dono deste veiculo",
+        "not_correct_type": "Você não pode guardar este tipo de veículo aqui",
+        "not_enough": "Dinheiro insuficiente",
+        "vehicle_occupied": "Você não pode guardar este veículo pois ele não está vazio",
+        "in_vehicle": "Você já está em um veículo...",
+        "spawn_in_progress": "Por favor, aguarde enquanto seu veículo é entregue..."
+    },
+    "success": {
+        "vehicle_parked": "Você estacionou seu veículo"
+    },
+    "menu": {
+        "information": "Informação",
+        "description": "Nome: %s\nPlaca: %s\nTaxa de Pátio: $%s",
+        "body": "Carroceria",
+        "engine": "Motor",
+        "fuel": "Combustível",
+        "take_out": "Retirar",
+        "veh_impounded": "Seu veículo foi apreendido pela polícia"
+    },
+    "info": {
+        "car_e": "E - Abrir Garagem",
+        "park_e": "E - Guardar Veículo",
+        "impound_e": "E - Abrir Pátio"
+    }
+}
