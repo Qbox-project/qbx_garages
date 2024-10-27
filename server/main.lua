@@ -20,6 +20,7 @@ VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
 ---@type table<string, GarageConfig>
 Garages = Config.garages
+GaragesHooks = lib.load('@qbx_core.modules.hooks')
 
 lib.callback.register('qbx_garages:server:getGarages', function()
     return Garages
@@ -203,7 +204,23 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     assert(Garages[garage] ~= nil, string.format('Garage %s not found. Did you register this garage?', garage))
     local vehicle = NetworkGetEntityFromNetworkId(netId)
     local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
-    local owned = isParkable(source, vehicleId, garage) --Check ownership
+    local owned = isParkable(source, vehicleId, garage)
+
+    local payloadPark = {
+        source = source,
+        netId = netId,
+        props = props,
+        garageName = garage,
+        vehicleId = vehicleId,
+        owned = owned,
+        vehicle = vehicle,
+    }
+
+    if not GaragesHooks('parkVehicle', payloadPark) then
+        lib.print.debug("Vehicle park was canceled by a hook.")
+        return
+    end
+
     if not owned then
         exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
         return
