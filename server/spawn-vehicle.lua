@@ -46,7 +46,11 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
     if Config.doorsLocked then
-        SetVehicleDoorsLocked(veh, 2)
+        if GetResourceState('qbx_vehiclekeys') == 'started' then
+            TriggerEvent('qb-vehiclekeys:server:setVehLockState', netId, 2)
+        else
+            SetVehicleDoorsLocked(veh, 2)
+        end
     end
 
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, playerVehicle.props.plate)
