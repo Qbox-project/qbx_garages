@@ -4,7 +4,7 @@ game 'gta5'
 name 'qbx_garages'
 description 'Garage system for Qbox'
 repository 'https://github.com/Qbox-project/qbx_garages'
-version '1.1.3'
+version '1.1.4'
 
 ox_lib 'locale'
 
