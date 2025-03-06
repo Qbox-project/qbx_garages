@@ -382,11 +382,6 @@ RegisterNetEvent('qbx_garages:client:garageRegistered', function(name, garage)
     createGarage(name, garage)
 end)
 
-AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-    createGarages()
-end)
-
-AddEventHandler('onResourceStart', function(resource)
-    if resource ~= cache.resource then return end
+CreateThread(function()
     createGarages()
 end)
