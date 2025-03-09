@@ -1,5 +1,6 @@
 {
     "error": {
+        "no_space": "Başka bir araç bu alanı işgal etti.",
         "no_access": "Bu garaja erişiminiz yok",
         "no_vehicles": "Şu anda bu konumda aracınız yok...",
         "not_impound": "Aracınız çekilmemiş",
@@ -7,7 +8,8 @@
         "not_correct_type": "Bu tür aracı buraya park edemezsiniz",
         "not_enough": "Yeterli paran yok",
         "vehicle_occupied": "Aracı park etmek için, içinde sadece sürücü olmalıdır",
-        "in_vehicle": "Zaten bir araçtasınız..."
+        "in_vehicle": "Zaten bir araçtasınız...",
+        "spawn_in_progress": "Lütfen aracının teslim edilmesini bekle..."
     },
     "success": {
         "vehicle_parked": "Araç park edildi"
