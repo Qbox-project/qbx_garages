@@ -225,22 +225,3 @@ AddEventHandler('onResourceStart', function(resource)
         Storage.moveOutVehiclesIntoGarages()
     end
 end)
-
----@param vehicleId string
----@return boolean? success true if successfully paid
-lib.callback.register('qbx_garages:server:payDepotPrice', function(source, vehicleId)
-    local player = exports.qbx_core:GetPlayer(source)
-    local cashBalance = player.PlayerData.money.cash
-    local bankBalance = player.PlayerData.money.bank
-
-    local vehicle = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
-    local depotPrice = vehicle.depotPrice
-    if not depotPrice or depotPrice == 0 then return true end
-    if cashBalance >= depotPrice then
-        player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')
-        return true
-    elseif bankBalance >= depotPrice then
-        player.Functions.RemoveMoney('bank', depotPrice, 'paid-depot')
-        return true
-    end
-end)
