@@ -8,6 +8,22 @@ local function setVehicleStateToOut(vehicleId, vehicle, modelName)
     })
 end
 
+---@param player table
+---@param depotPrice integer
+local function payDepotPrice(player, depotPrice)
+    local cashBalance = player.PlayerData.money.cash
+    local bankBalance = player.PlayerData.money.bank
+
+    if cashBalance >= depotPrice then
+        player.Functions.RemoveMoney('cash', depotPrice, 'paid-depot')
+        return true
+    elseif bankBalance >= depotPrice then
+        player.Functions.RemoveMoney('bank', depotPrice, 'paid-depot')
+        return true
+    end
+    return false
+end
+
 ---@param source number
 ---@param vehicleId integer
 ---@param garageName string
@@ -40,6 +56,16 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
     if garageType == GarageType.DEPOT and FindPlateOnServer(playerVehicle.props.plate) then -- If depot, check if vehicle is not already spawned on the map
         return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error', 5000)
+    end
+
+    if garageType == GarageType.DEPOT and playerVehicle.depotPrice and playerVehicle.depotPrice > 0 then
+        local player = exports.qbx_core:GetPlayer(source)
+        local canPay = payDepotPrice(player, playerVehicle.depotPrice)
+
+        if not canPay then
+            exports.qbx_core:Notify(source, locale('error.not_enough'), 'error')
+            return
+        end
     end
 
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)

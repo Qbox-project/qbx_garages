@@ -89,19 +89,6 @@ local function takeOutOfGarage(vehicleId, garageName, accessPoint)
     assert(success, result)
 end
 
----@param data {vehicle: PlayerVehicle, garageName: string, accessPoint: integer}
-local function takeOutDepot(data)
-    if data.vehicle.depotPrice ~= 0 then
-        local success = lib.callback.await('qbx_garages:server:payDepotPrice', false, data.vehicle.id)
-        if not success then
-            exports.qbx_core:Notify(locale('error.not_enough'), 'error')
-            return
-        end
-    end
-
-    takeOutOfGarage(data.vehicle.id, data.garageName, data.accessPoint)
-end
-
 ---@param vehicle PlayerVehicle
 ---@param garageName string
 ---@param garageInfo GarageConfig
@@ -152,11 +139,7 @@ local function displayVehicleInfo(vehicle, garageName, garageInfo, accessPoint)
                 description = ('$%s'):format(lib.math.groupdigits(vehicle.depotPrice)),
                 arrow = true,
                 onSelect = function()
-                    takeOutDepot({
-                        vehicle = vehicle,
-                        garageName = garageName,
-                        accessPoint = accessPoint,
-                    })
+                    takeOutOfGarage(vehicle.id, garageName, accessPoint)
                 end,
             }
         else
