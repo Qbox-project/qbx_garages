@@ -60,7 +60,9 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
 
     if garageType == GarageType.DEPOT and playerVehicle.depotPrice and playerVehicle.depotPrice > 0 then
         local player = exports.qbx_core:GetPlayer(source)
-        if not payDepotPrice(player, playerVehicle.depotPrice) then
+        local canPay = payDepotPrice(player, playerVehicle.depotPrice)
+
+        if not canPay then
             exports.qbx_core:Notify(source, locale('error.not_enough'), 'error')
             return
         end
