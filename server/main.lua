@@ -197,7 +197,7 @@ end)
 
 ---@param source number
 ---@param netId number
----@param props table ox_lib vehicle props https://github.com/overextended/ox_lib/blob/master/resource/vehicleProperties/client.lua#L3
+---@param props table ox_lib vehicle props https://github.com/communityox/ox_lib/blob/master/resource/vehicleProperties/client.lua#L3
 ---@param garage string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage)
     assert(Garages[garage] ~= nil, string.format('Garage %s not found. Did you register this garage?', garage))
