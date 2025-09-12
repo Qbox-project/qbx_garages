@@ -383,7 +383,7 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                     if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
                         dropZone = lib.zones.sphere({
                             coords = accessPoint.dropPoint,
-                            radius = 10,
+                            radius = 1.5,
                             onEnter = function()
                                 if not cache.vehicle then return end
                                 AddRadialOption(PARK, garageName, garage, accessPoint, accessPointIndex)
@@ -399,7 +399,7 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                     end
                     coordsZone = lib.zones.sphere({
                         coords = accessPoint.coords,
-                        radius = 10,
+                        radius = 1,
                         onEnter = function()
                             if accessPoint.dropPoint and cache.vehicle then return end
                             if not checkCanAccess(garage) then return end
