@@ -269,7 +269,7 @@ local function AddRadialOption(IsCar, garageName, garage, accessPoint, accessPoi
         lib.addRadialItem({
         {
         id = 'qbx_garages-garageMenu',
-        label = locale('info.garage_radial'),
+        label = locale('info.car_radial'),,
         icon = 'warehouse',
         onSelect = function()
             openGarageMenu(garageName, garage, accessPointIndex)
