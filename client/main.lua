@@ -360,7 +360,7 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                         dropZone:remove()
                     end
                     if coordsZone then
-                        coordsZone:remove()
+                    coordsZone:remove()
                     end
                 end,
                 inside = function()
