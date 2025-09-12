@@ -253,8 +253,8 @@ end
 local PARK = 0
 local GARAGE = 1
 local DEPOT = 2
-local function AddRadialOption(IsCar, garageName, garage, accessPoint, accessPointIndex)
-    if(IsCar == PARK) then
+local function AddRadialOption(isCar, garageName, garage, accessPoint, accessPointIndex)
+    if(isCar == PARK) then
     lib.addRadialItem({
     {
         id = 'qbx_garages-park',
@@ -265,7 +265,7 @@ local function AddRadialOption(IsCar, garageName, garage, accessPoint, accessPoi
         end
         }
     })
-    elseif(IsCar == GARAGE) then
+    elseif(isCar == GARAGE) then
         lib.addRadialItem({
         {
         id = 'qbx_garages-garageMenu',
@@ -276,7 +276,7 @@ local function AddRadialOption(IsCar, garageName, garage, accessPoint, accessPoi
         end
         }
     })
-    elseif(IsCar == DEPOT) then
+    elseif(isCar == DEPOT) then
     lib.addRadialItem({
         {
         id = 'qbx_garages-depotMenu',
