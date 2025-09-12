@@ -2,7 +2,7 @@ return {
     enableClient = true, -- disable to create your own client interface
     engineOn = true, -- If true, the engine will be on upon taking the vehicle out.
     debugPoly = false,
-
+    interact = "radialmenu", -- "text", "radialmenu", text is the default - with E interact, "radialmenu" works with the ox_lib radialmenu
     --- called every frame when player is near the garage and there is a separate drop off marker
     ---@param coords vector3
     drawDropOffMarker = function(coords)
