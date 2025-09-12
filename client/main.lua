@@ -278,7 +278,7 @@ local function AddRadialOption(IsCar, garageName, garage, accessPoint, accessPoi
     })
     elseif(IsCar == DEPOT) then
     lib.addRadialItem({
-        {     
+        {
         id = 'qbx_garages-depotMenu',
         label = locale('info.impound_radial'),
         icon = 'warehouse',
