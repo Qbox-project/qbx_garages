@@ -258,72 +258,98 @@ end
 local function createZones(garageName, garage, accessPoint, accessPointIndex)
     CreateThread(function()
         accessPoint.dropPoint = accessPoint.dropPoint or accessPoint.spawn
+        local drawRadius = accessPoint.drawRadius or 60
+        local dropDrawRadius = accessPoint.dropDrawRadius or 60
+        local useRadius = accessPoint.useRadius or 1
+        local dropUseRadius = accessPoint.dropUseRadius or 1.5
         local dropZone, coordsZone
+        local function createDropZone()
+            if dropZone then return end
+            dropZone = lib.zones.sphere({
+                coords = accessPoint.dropPoint,
+                radius = dropUseRadius,
+                onEnter = function()
+                    if not cache.vehicle then return end
+                    lib.showTextUI(locale('info.park_e'))
+                end,
+                onExit = function()
+                    lib.hideTextUI()
+                end,
+                inside = function()
+                    if not cache.vehicle then return end
+                    if IsControlJustReleased(0, 38) then
+                        if not checkCanAccess(garage) then return end
+                        parkVehicle(cache.vehicle, garageName)
+                    end
+                end,
+                debug = config.debugPoly
+            })
+        end
+
+        local function createCoordsZone()
+            if coordsZone then return end
+            coordsZone = lib.zones.sphere({
+                coords = accessPoint.coords,
+                radius = useRadius,
+                onEnter = function()
+                    if accessPoint.dropPoint and cache.vehicle then return end
+                    lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
+                end,
+                onExit = function()
+                    lib.hideTextUI()
+                end,
+                inside = function()
+                    if accessPoint.dropPoint and cache.vehicle then return end
+                    if IsControlJustReleased(0, 38) then
+                        if not checkCanAccess(garage) then return end
+                        if cache.vehicle and garage.type ~= GarageType.DEPOT then
+                            parkVehicle(cache.vehicle, garageName)
+                        else
+                            openGarageMenu(garageName, garage, accessPointIndex)
+                        end
+                    end
+                end,
+                debug = config.debugPoly
+            })
+        end
+
         lib.zones.sphere({
             coords = accessPoint.coords,
-            radius = 15,
+            radius = drawRadius,
             onEnter = function()
-                if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
-                    dropZone = lib.zones.sphere({
-                        coords = accessPoint.dropPoint,
-                        radius = 1.5,
-                        onEnter = function()
-                            if not cache.vehicle then return end
-                            lib.showTextUI(locale('info.park_e'))
-                        end,
-                        onExit = function()
-                            lib.hideTextUI()
-                        end,
-                        inside = function()
-                            if not cache.vehicle then return end
-                            if IsControlJustReleased(0, 38) then
-                                if not checkCanAccess(garage) then return end
-                                parkVehicle(cache.vehicle, garageName)
-                            end
-                        end,
-                        debug = config.debugPoly
-                    })
-                end
-                coordsZone = lib.zones.sphere({
-                    coords = accessPoint.coords,
-                    radius = 1,
-                    onEnter = function()
-                        if accessPoint.dropPoint and cache.vehicle then return end
-                        lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
-                    end,
-                    onExit = function()
-                        lib.hideTextUI()
-                    end,
-                    inside = function()
-                        if accessPoint.dropPoint and cache.vehicle then return end
-                        if IsControlJustReleased(0, 38) then
-                            if not checkCanAccess(garage) then return end
-                            if cache.vehicle and garage.type ~= GarageType.DEPOT then
-                                parkVehicle(cache.vehicle, garageName)
-                            else
-                                openGarageMenu(garageName, garage, accessPointIndex)
-                            end
-                        end
-                    end,
-                    debug = config.debugPoly
-                })
+                createCoordsZone()
             end,
             onExit = function()
-                if dropZone then
-                    dropZone:remove()
-                end
                 if coordsZone then
                     coordsZone:remove()
+                    coordsZone = nil
                 end
             end,
             inside = function()
-                if accessPoint.dropPoint then
-                    config.drawDropOffMarker(accessPoint.dropPoint)
-                end
-                config.drawGarageMarker(accessPoint.coords.xyz)
+                config.drawGarageMarker(accessPoint.coords.xyz, useRadius)
             end,
             debug = config.debugPoly,
         })
+
+        if accessPoint.dropPoint and garage.type ~= GarageType.DEPOT then
+            lib.zones.sphere({
+                coords = accessPoint.dropPoint,
+                radius = dropDrawRadius,
+                onEnter = function()
+                    createDropZone()
+                end,
+                onExit = function()
+                    if dropZone then
+                        dropZone:remove()
+                        dropZone = nil
+                end
+            end,
+            inside = function()
+                config.drawDropOffMarker(accessPoint.dropPoint, dropUseRadius)
+            end,
+            debug = config.debugPoly,
+        })
+        end
     end)
 end
 

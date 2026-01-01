@@ -1,0 +1,31 @@
+{
+    "error": {
+        "no_space": "他の車両がスペースを占有しています",
+        "no_access": "このガレージにアクセスできません",
+        "no_vehicles": "この場所には車両がありません...",
+        "not_impound": "車両は押収保管所にありません",
+        "not_owned": "この車両は保管できません",
+        "not_correct_type": "この種類の車両はここに保管できません",
+        "not_enough": "所持金が足りません",
+        "vehicle_occupied": "車両が空ではないため保管できません",
+        "in_vehicle": "すでに車両に乗っています...",
+        "spawn_in_progress": "車両の配達中です。しばらくお待ちください..."
+    },
+    "success": {
+        "vehicle_parked": "車両を保管しました"
+    },
+    "menu": {
+        "information": "情報",
+        "description": "車名: %s\nナンバー: %s\n押収料: $%s",
+        "body": "ボディ",
+        "engine": "エンジン",
+        "fuel": "燃料",
+        "take_out": "取り出す",
+        "veh_impounded": "車両は警察に押収されています"
+    },
+    "info": {
+        "car_e": "E - ガレージを開く",
+        "park_e": "E - 車両を保管",
+        "impound_e": "E - 押収保管所を開く"
+    }
+}
