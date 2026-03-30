@@ -68,6 +68,8 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
         end
     end
 
+    playerVehicle.props.lockState = 1 -- Modify the veh props lock state here to avoid conflicts with the vehicleConfig.noLock system.
+    
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
