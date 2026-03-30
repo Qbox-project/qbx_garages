@@ -26,6 +26,9 @@
     "info": {
         "car_e": "E - Open Garage",
         "park_e": "E - Store Vehicle",
-        "impound_e": "E - Open Impound"
+        "impound_e": "E - Open Impound",
+        "car_radial": "Garage",
+        "park_radial": "Park",
+        "impound_radial": "Impound"
     }
 }
