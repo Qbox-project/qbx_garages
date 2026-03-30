@@ -288,14 +288,14 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                     coords = accessPoint.coords,
                     radius = 1,
                     onEnter = function()
-                        if accessPoint.dropPoint and cache.vehicle then return end
+                        if not accessPointIndex or not accessPoint.dropPoint or not garage or not garageName then return end
                         lib.showTextUI((garage.type == GarageType.DEPOT and locale('info.impound_e')) or (cache.vehicle and locale('info.park_e')) or locale('info.car_e'))
                     end,
                     onExit = function()
                         lib.hideTextUI()
                     end,
                     inside = function()
-                        if accessPoint.dropPoint and cache.vehicle then return end
+                        if not accessPointIndex or not accessPoint.dropPoint or not garage or not garageName then return end
                         if IsControlJustReleased(0, 38) then
                             if not checkCanAccess(garage) then return end
                             if cache.vehicle and garage.type ~= GarageType.DEPOT then
@@ -320,7 +320,9 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                 if accessPoint.dropPoint then
                     config.drawDropOffMarker(accessPoint.dropPoint)
                 end
-                config.drawGarageMarker(accessPoint.coords.xyz)
+                if accessPoint.coords then
+                    config.drawGarageMarker(accessPoint.coords.xyz)
+                end
             end,
             debug = config.debugPoly,
         })
