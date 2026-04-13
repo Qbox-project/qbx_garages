@@ -11,6 +11,12 @@ return {
         local vehCost = VEHICLES[modelName].price
         return qbx.math.round(vehCost * 0.02) or 0
     end,
+    logging = {
+        webhook = {
+            error = nil,
+            anticheat = nil,
+        },
+    },
 
     ---@class GarageBlip
     ---@field name? string -- Name of the blip. Defaults to garage label.

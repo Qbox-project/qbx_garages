@@ -9,6 +9,7 @@
         "not_enough": "Not enough money",
         "vehicle_occupied": "You can't store this vehicle as it is not empty",
         "in_vehicle": "You're already in a vehicle...",
+        "spawn_failed": "Something went wrong spawning the vehicle",
         "spawn_in_progress": "Please wait for your vehicle to be delivered..."
     },
     "success": {
