@@ -58,8 +58,9 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
         return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error', 5000)
     end
 
-    if garageType == GarageType.DEPOT and playerVehicle.depotPrice and playerVehicle.depotPrice > 0 then
+    if garageType == GarageType.DEPOT and playerVehicle.depotPrice then
         local player = exports.qbx_core:GetPlayer(source)
+        OverrideFreeDepotPriceForOutVehicle(playerVehicle)
         local canPay = payDepotPrice(player, playerVehicle.depotPrice)
 
         if not canPay then
@@ -69,7 +70,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
 
     playerVehicle.props.lockState = 1 -- Modify the veh props lock state here to avoid conflicts with the vehicleConfig.noLock system.
-    
+
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
@@ -88,3 +89,10 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     TriggerEvent('qbx_garages:server:vehicleSpawned', veh)
     return netId
 end)
+
+function OverrideFreeDepotPriceForOutVehicle(vehicle)
+    if VehicleState.OUT ~= vehicle.state then return end
+    if vehicle.depotPrice and vehicle.depotPrice > 0 then return end
+
+    vehicle.depotPrice = Config.calculateImpoundFee(vehicle.id, vehicle.modelName)
+end
