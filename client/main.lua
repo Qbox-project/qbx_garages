@@ -51,16 +51,16 @@ local function kickOutPeds(vehicle)
     end
 end
 
-local spawnLock = false
-
+local mutex = require 'client/mutex' ()
 ---@param vehicleId number
 ---@param garageName string
 ---@param accessPoint integer
 local function takeOutOfGarage(vehicleId, garageName, accessPoint)
-    if spawnLock then
+    if not mutex:acquire() then
         exports.qbx_core:Notify(locale('error.spawn_in_progress'))
+        return
     end
-    spawnLock = true
+
     local success, result = pcall(function()
         if cache.vehicle then
             exports.qbx_core:Notify(locale('error.in_vehicle'))
@@ -85,7 +85,8 @@ local function takeOutOfGarage(vehicleId, garageName, accessPoint)
             SetVehicleEngineOn(veh, true, true, false)
         end
     end)
-    spawnLock = false
+
+    mutex:release()
     assert(success, result)
 end
 
