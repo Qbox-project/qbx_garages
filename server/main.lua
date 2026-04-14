@@ -151,10 +151,12 @@ lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, g
     local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles(filter)
     local toSend = {}
     if not playerVehicles[1] then return end
+
+    local vehicleType = garage.vehicleType
     for _, vehicle in pairs(playerVehicles) do
         if not FindPlateOnServer(vehicle.props.plate) then
-            local vehicleType = Garages[garageName].vehicleType
             if vehicleType == getVehicleType(vehicle) then
+                OverrideFreeDepotPriceForOutVehicle(vehicle)
                 toSend[#toSend + 1] = vehicle
             end
         end
