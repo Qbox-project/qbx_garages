@@ -16,6 +16,7 @@ shared_scripts {
 
 client_scripts {
     '@qbx_core/modules/playerdata.lua',
+    'client/mutex.lua',
     'client/main.lua',
 }
 
