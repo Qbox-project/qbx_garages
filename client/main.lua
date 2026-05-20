@@ -58,12 +58,14 @@ local spawnLock = false
 ---@param accessPoint integer
 local function takeOutOfGarage(vehicleId, garageName, accessPoint)
     if spawnLock then
-        exports.qbx_core:Notify(locale('error.spawn_in_progress'))
+        exports.qbx_core:Notify(locale('error.spawn_in_progress'), 'error')
+        return
     end
     spawnLock = true
+
     local success, result = pcall(function()
         if cache.vehicle then
-            exports.qbx_core:Notify(locale('error.in_vehicle'))
+            exports.qbx_core:Notify(locale('error.in_vehicle'), 'error')
             return
         end
 
@@ -77,7 +79,7 @@ local function takeOutOfGarage(vehicleId, garageName, accessPoint)
         end)
 
         if veh == 0 then
-            exports.qbx_core:Notify('Something went wrong spawning the vehicle', 'error')
+            exports.qbx_core:Notify(locale('error.spawn_failed'), 'error')
             return
         end
 

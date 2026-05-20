@@ -1,3 +1,5 @@
+local logger = require '@qbx_core.modules.logger'
+
 assert(lib.checkDependency('qbx_core', '1.19.0', true))
 assert(lib.checkDependency('qbx_vehicles', '1.3.1', true))
 lib.versionCheck('Qbox-project/qbx_garages')
@@ -30,7 +32,6 @@ local function getGarages()
     return Garages
 end
 exports('GetGarages', getGarages)
-
 
 ---@param name string
 ---@param config GarageConfig
@@ -118,6 +119,25 @@ function GetPlayerVehicleFilter(source, garageName)
     return filter
 end
 
+---@param source number
+---@param garageName string
+---@return GarageConfig?
+function TryGetGarage(source, garageName)
+    local garage = Garages[garageName]
+    if garage then return garage end
+
+    logger.log({
+        source = source,
+        event = 'error',
+        message = string.format(
+            'Attempted to spawn a vehicle from a non-existent garage: %s',
+            garageName
+        ),
+        webhook = Config.logging.webhook.error,
+        color = 'red'
+    })
+end
+
 local function getCanAccessGarage(player, garage)
     if garage.groups and not exports.qbx_core:HasPrimaryGroup(player.PlayerData.source, garage.groups) then
         return false
@@ -145,7 +165,8 @@ end
 ---@return PlayerVehicle[]?
 lib.callback.register('qbx_garages:server:getGarageVehicles', function(source, garageName)
     local player = exports.qbx_core:GetPlayer(source)
-    local garage = Garages[garageName]
+    local garage = TryGetGarage(source, garageName)
+    if not garage then return end
     if not getCanAccessGarage(player, garage) then return end
     local filter = GetPlayerVehicleFilter(source, garageName)
     local playerVehicles = exports.qbx_vehicles:GetPlayerVehicles(filter)
