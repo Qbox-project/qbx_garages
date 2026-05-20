@@ -1,8 +1,8 @@
 return {
-    autoRespawn = false, -- True == auto respawn cars that are outside into your garage on script restart, false == does not put them into your garage and players have to go to the impound
+    autoRespawn = false,   -- True == auto respawn cars that are outside into your garage on script restart, false == does not put them into your garage and players have to go to the impound
     warpInVehicle = false, -- If false, player will no longer warp into vehicle upon taking the vehicle out.
-    doorsLocked = true, -- If true, the doors will be locked upon taking the vehicle out.
-    distanceCheck = 5.0, -- The distance that needs to bee clear to let the vehicle spawn, this prevents vehicles stacking on top of each other
+    doorsLocked = true,    -- If true, the doors will be locked upon taking the vehicle out.
+    distanceCheck = 5.0,   -- The distance that needs to bee clear to let the vehicle spawn, this prevents vehicles stacking on top of each other
     ---calculates the automatic impound fee.
     ---@param vehicleId integer
     ---@param modelName string
@@ -23,6 +23,10 @@ return {
     ---@field blip? GarageBlip
     ---@field spawn? vector4 where the vehicle will spawn. Defaults to coords
     ---@field dropPoint? vector3 where a vehicle can be stored, Defaults to spawn or coords
+    ---@field drawRadius? number draw distance for the garage marker (default: 60)
+    ---@field dropDrawRadius? number draw distance for the drop-off marker (default: 60)
+    ---@field useRadius? number interaction distance for the garage marker (default: 1)
+    ---@field dropUseRadius? number interaction distance for the drop-off marker (default: 1.5)
 
     ---@class GarageConfig
     ---@field label string -- Label for the garage
@@ -36,6 +40,7 @@ return {
     ---@field accessPoints AccessPoint[]
 
     ---@type table<string, GarageConfig>
+
     garages = {
         -- Public Garages
         motelgarage = {
@@ -260,6 +265,10 @@ return {
                     },
                     coords = vec4(-1025.34, -3017.0, 13.95, 331.99),
                     spawn = vec4(-979.2, -2995.51, 13.95, 52.19),
+                    useRadius = 2.0,
+                    dropUseRadius = 4.0,
+                    drawRadius = 100,
+                    dropDrawRadius = 250,
                 }
             },
         },
@@ -275,6 +284,10 @@ return {
                     },
                     coords = vec4(-722.12, -1472.74, 5.0, 140.0),
                     spawn = vec4(-724.83, -1443.89, 5.0, 140.0),
+                    useRadius = 2.0,
+                    dropUseRadius = 4.0,
+                    drawRadius = 100,
+                    dropDrawRadius = 250,
                 }
             },
         },
@@ -290,6 +303,10 @@ return {
                     },
                     coords = vec4(1757.74, 3296.13, 41.15, 142.6),
                     spawn = vec4(1740.88, 3278.99, 41.09, 189.46),
+                    useRadius = 2.0,
+                    dropUseRadius = 4.0,
+                    drawRadius = 100,
+                    dropDrawRadius = 250,
                 }
             },
         },
@@ -305,6 +322,8 @@ return {
                     },
                     coords = vec4(-794.64, -1510.89, 1.6, 201.55),
                     spawn = vec4(-793.58, -1501.4, 0.12, 111.5),
+                    dropUseRadius = 3.0,
+                    dropDrawRadius = 100,
                 }
             },
         },
@@ -320,6 +339,8 @@ return {
                     },
                     coords = vec4(-277.4, 6637.01, 7.5, 40.51),
                     spawn = vec4(-289.2, 6637.96, 1.01, 45.5),
+                    dropUseRadius = 3.0,
+                    dropDrawRadius = 100,
                 }
             },
         },
@@ -335,6 +356,8 @@ return {
                     },
                     coords = vec4(1299.02, 4216.42, 33.91, 166.8),
                     spawn = vec4(1296.78, 4203.76, 30.12, 169.03),
+                    dropUseRadius = 3.0,
+                    dropDrawRadius = 100,
                 }
             },
         },
@@ -402,7 +425,7 @@ return {
         impoundlot = {
             label = 'Impound Lot',
             type = GarageType.DEPOT,
-            states = {VehicleState.OUT, VehicleState.IMPOUNDED},
+            states = { VehicleState.OUT, VehicleState.IMPOUNDED },
             skipGarageCheck = true,
             vehicleType = VehicleType.CAR,
             accessPoints = {
@@ -420,7 +443,7 @@ return {
         airdepot = {
             label = 'Air Depot',
             type = GarageType.DEPOT,
-            states = {VehicleState.OUT, VehicleState.IMPOUNDED},
+            states = { VehicleState.OUT, VehicleState.IMPOUNDED },
             skipGarageCheck = true,
             vehicleType = VehicleType.AIR,
             accessPoints = {
@@ -438,7 +461,7 @@ return {
         seadepot = {
             label = 'LSYMC Depot',
             type = GarageType.DEPOT,
-            states = {VehicleState.OUT, VehicleState.IMPOUNDED},
+            states = { VehicleState.OUT, VehicleState.IMPOUNDED },
             skipGarageCheck = true,
             vehicleType = VehicleType.SEA,
             accessPoints = {
