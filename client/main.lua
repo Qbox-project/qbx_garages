@@ -342,13 +342,13 @@ local function createZones(garageName, garage, accessPoint, accessPointIndex)
                     if dropZone then
                         dropZone:remove()
                         dropZone = nil
-                end
-            end,
-            inside = function()
-                config.drawDropOffMarker(accessPoint.dropPoint, dropUseRadius)
-            end,
-            debug = config.debugPoly,
-        })
+                    end
+                end,
+                inside = function()
+                    config.drawDropOffMarker(accessPoint.dropPoint, dropUseRadius)
+                end,
+                debug = config.debugPoly,
+            })
         end
     end)
 end
