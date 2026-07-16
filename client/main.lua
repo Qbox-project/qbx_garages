@@ -232,8 +232,10 @@ local function parkVehicle(vehicle, garageName)
         kickOutPeds(vehicle)
         SetVehicleDoorsLocked(vehicle, 2)
         Wait(1500)
-        lib.callback.await('qbx_garages:server:parkVehicle', false, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName)
-        exports.qbx_core:Notify(locale('success.vehicle_parked'), 'primary', 4500)
+        local parked = lib.callback.await('qbx_garages:server:parkVehicle', false, NetworkGetNetworkIdFromEntity(vehicle), lib.getVehicleProperties(vehicle), garageName)
+        if parked then
+            exports.qbx_core:Notify(locale('success.vehicle_parked'), 'primary', 4500)
+        end
     else
         exports.qbx_core:Notify(locale('error.vehicle_occupied'), 'error', 3500)
     end
