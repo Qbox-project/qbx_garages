@@ -1,5 +1,6 @@
 {
     "error": {
+        "no_space": "Een ander voertuig heeft de ruimte bezet.",
         "no_access": "Je hebt geen toegang tot deze garage",
         "no_vehicles": "Je hebt momenteel geen voertuigen op deze locatie...",
         "not_impound": "Je voertuig is niet in beslag genomen",
@@ -7,7 +8,9 @@
         "not_correct_type": "Je kunt dit type voertuig hier niet opslaan",
         "not_enough": "Niet genoeg geld",
         "vehicle_occupied": "Je kunt dit voertuig niet opslaan omdat het niet leeg is",
-        "in_vehicle": "Je zit al in een voertuig..."
+        "in_vehicle": "Je zit al in een voertuig...",
+        "spawn_failed": "Er is iets misgegaan bij het tevoorschijn halen van het voertuig",
+        "spawn_in_progress": "Wacht tot je voertuig is afgeleverd..."
     },
     "success": {
         "vehicle_parked": "Voertuig opgeslagen"
