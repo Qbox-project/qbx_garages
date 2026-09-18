@@ -9,8 +9,8 @@
         "not_enough": "Niet genoeg geld",
         "vehicle_occupied": "Je kunt dit voertuig niet opslaan omdat het niet leeg is",
         "in_vehicle": "Je zit al in een voertuig...",
-        "spawn_failed": "Er is iets misgegaan bij het voortbrengen van het voertuig",
-        "spawn_in_progress": "Wacht tot uw voertuig wordt afgeleverd..."
+        "spawn_failed": "Er is iets misgegaan bij het tevoorschijn halen van het voertuig",
+        "spawn_in_progress": "Wacht tot je voertuig is afgeleverd..."
     },
     "success": {
         "vehicle_parked": "Voertuig opgeslagen"
