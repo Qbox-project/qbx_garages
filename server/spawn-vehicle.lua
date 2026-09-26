@@ -110,6 +110,8 @@ local function spawnVehicle(source, vehicleId, garageName, accessPointIndex)
         return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error')
     end
 
+    if not GaragesHooks('spawnVehicle', {source = source, vehicleId = vehicleId, garageName = garageName}) then return end
+
     local paidFrom
     local depotPrice
     if garageType == GarageType.DEPOT then
@@ -142,6 +144,12 @@ local function spawnVehicle(source, vehicleId, garageName, accessPointIndex)
         if paidFrom then
             player.Functions.AddMoney(paidFrom, depotPrice, 'depot-spawn-refund')
         end
+        return
+    end
+
+    if not GaragesHooks('spawnedVehicle', {source = source, vehicleId = vehicleId, vehicle = veh, garageName = garageName}) then
+        exports.qbx_core:DeleteVehicle(veh)
+        if paidFrom then player.Functions.AddMoney(paidFrom, depotPrice, 'depot-spawn-refund') end
         return
     end
 
