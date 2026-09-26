@@ -18,7 +18,7 @@ end
 ---@param modelName string
 local function setVehicleStateToOut(vehicleId, vehicle, modelName)
     local depotPrice = Config.calculateImpoundFee(vehicleId, modelName) or 0
-    exports.qbx_vehicles:SaveVehicle(vehicle, {
+    return exports.qbx_vehicles:SaveVehicle(vehicle, {
         state = VehicleState.OUT,
         depotPrice = depotPrice
     })
@@ -43,7 +43,7 @@ end
 ---@param garageName string
 ---@param accessPointIndex integer
 ---@return number? netId
-lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName, accessPointIndex)
+local function spawnVehicle(source, vehicleId, garageName, accessPointIndex)
     if type(vehicleId) ~= 'number' or vehicleId % 1 ~= 0 then return end
     if type(garageName) ~= 'string' then return end
     if type(accessPointIndex) ~= 'number' or accessPointIndex % 1 ~= 0 then return end
@@ -110,23 +110,18 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
         return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error')
     end
 
-    if spawningVehicles[vehicleId] then return end
-    spawningVehicles[vehicleId] = true
-
     local paidFrom
     local depotPrice
     if garageType == GarageType.DEPOT then
         OverrideFreeDepotPriceForOutVehicle(playerVehicle)
         depotPrice = tonumber(playerVehicle.depotPrice) or 0
         if depotPrice ~= depotPrice or depotPrice < 0 or depotPrice > 100000000 then
-            spawningVehicles[vehicleId] = nil
             return
         end
 
         if depotPrice > 0 then
             paidFrom = payDepotPrice(player, depotPrice)
             if not paidFrom then
-                spawningVehicles[vehicleId] = nil
                 exports.qbx_core:Notify(source, locale('error.not_enough'), 'error')
                 return
             end
@@ -142,12 +137,19 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
         props = playerVehicle.props,
         warp = warpPed,
     })
-    spawningVehicles[vehicleId] = nil
 
     if not success or not netId or not veh or veh == 0 or not DoesEntityExist(veh) then
         if paidFrom then
             player.Functions.AddMoney(paidFrom, depotPrice, 'depot-spawn-refund')
         end
+        return
+    end
+
+    Entity(veh).state:set('vehicleid', vehicleId, false)
+    local saved, result = pcall(setVehicleStateToOut, vehicleId, veh, playerVehicle.modelName)
+    if not saved or not result then
+        exports.qbx_core:DeleteVehicle(veh)
+        if paidFrom then player.Functions.AddMoney(paidFrom, depotPrice, 'depot-spawn-refund') end
         return
     end
 
@@ -161,10 +163,20 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
 
     TriggerClientEvent('vehiclekeys:client:SetOwner', source, playerVehicle.props.plate)
 
-    Entity(veh).state:set('vehicleid', vehicleId, false)
-    setVehicleStateToOut(vehicleId, veh, playerVehicle.modelName)
     TriggerEvent('qbx_garages:server:vehicleSpawned', veh)
     return netId
+end
+
+lib.callback.register('qbx_garages:server:spawnVehicle', function(source, vehicleId, garageName, accessPointIndex)
+    if type(vehicleId) ~= 'number' or vehicleId % 1 ~= 0 or spawningVehicles[vehicleId] then return end
+    spawningVehicles[vehicleId] = true
+    local success, result = pcall(spawnVehicle, source, vehicleId, garageName, accessPointIndex)
+    spawningVehicles[vehicleId] = nil
+    if not success then
+        lib.print.error(result)
+        return
+    end
+    return result
 end)
 
 function OverrideFreeDepotPriceForOutVehicle(vehicle)

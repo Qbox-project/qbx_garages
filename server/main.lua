@@ -22,6 +22,8 @@ VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
 ---@type table<string, GarageConfig>
 Garages = Config.garages
+local parkingAuthorizations = {}
+local parkingVehicles = {}
 
 lib.callback.register('qbx_garages:server:getGarages', function()
     return Garages
@@ -234,20 +236,17 @@ local function getDrivenVehicle(source, netId)
     return vehicle
 end
 
----@param source number
+---@param vehicle number
 ---@param garage GarageConfig
 ---@return boolean
-local function isNearGarageDropPoint(source, garage)
-    local playerPed = GetPlayerPed(source)
-    if playerPed <= 0 then return false end
-
-    local playerCoords = GetEntityCoords(playerPed)
+local function isNearGarageDropPoint(vehicle, garage)
+    local vehicleCoords = GetEntityCoords(vehicle)
     for i = 1, #garage.accessPoints do
         local accessPoint = garage.accessPoints[i]
         local dropPoint = accessPoint.dropPoint or accessPoint.spawn or accessPoint.coords
         local hasDropPoint = accessPoint.dropPoint or accessPoint.spawn
         local radius = hasDropPoint and accessPoint.dropUseRadius or accessPoint.useRadius
-        if #(playerCoords - dropPoint.xyz) <= (radius or 1.5) + 1.0 then
+        if #(vehicleCoords - dropPoint.xyz) <= (radius or 1.5) + 1.0 then
             return true
         end
     end
@@ -273,11 +272,15 @@ local function areValidProperties(props, vehicle)
 end
 
 lib.callback.register('qbx_garages:server:isParkable', function(source, garage, netId)
+    parkingAuthorizations[source] = nil
     local vehicle = getDrivenVehicle(source, netId)
-    if not vehicle then return false end
+    local garageConfig = type(garage) == 'string' and Garages[garage]
+    if not vehicle or not garageConfig or not isNearGarageDropPoint(vehicle, garageConfig) then return false end
 
     local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
-    return isParkable(source, vehicleId, garage)
+    if not isParkable(source, vehicleId, garage) then return false end
+    parkingAuthorizations[source] = {vehicle = vehicle, garage = garage, expires = os.time() + 15}
+    return true
 end)
 
 ---@param source number
@@ -285,27 +288,41 @@ end)
 ---@param props table ox_lib vehicle props https://github.com/overextended/ox_lib/blob/master/resource/vehicleProperties/client.lua#L3
 ---@param garage string
 lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, props, garage)
+    local authorization = parkingAuthorizations[source]
+    parkingAuthorizations[source] = nil
+    if not authorization or authorization.expires < os.time() or authorization.garage ~= garage then return false end
+    if type(netId) ~= 'number' or netId % 1 ~= 0 then return false end
+    local vehicle = NetworkGetEntityFromNetworkId(netId)
+    if vehicle ~= authorization.vehicle or not DoesEntityExist(vehicle) or parkingVehicles[vehicle] then return false end
+    local ped = GetPlayerPed(source)
+    if ped <= 0 or #(GetEntityCoords(ped) - GetEntityCoords(vehicle)) > 10.0 then return false end
+    if GetEntityRoutingBucket(vehicle) ~= GetPlayerRoutingBucket(source) then return false end
+
     local garageConfig = type(garage) == 'string' and Garages[garage]
-    if not garageConfig or not isNearGarageDropPoint(source, garageConfig) then return false end
+    if not garageConfig or not isNearGarageDropPoint(vehicle, garageConfig) or not areValidProperties(props, vehicle) then return false end
 
-    local vehicle = getDrivenVehicle(source, netId)
-    if not vehicle or not areValidProperties(props, vehicle) then return false end
+    parkingVehicles[vehicle] = true
+    local success, parked = pcall(function()
+        local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
+        if not isParkable(source, vehicleId, garage) then return false end
 
-    local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
-    local owned = isParkable(source, vehicleId, garage) --Check ownership
-    if not owned then
-        exports.qbx_core:Notify(source, locale('error.not_owned'), 'error')
-        return false
-    end
+        local saved = exports.qbx_vehicles:SaveVehicle(vehicle, {
+            garage = garage,
+            state = VehicleState.GARAGED,
+            props = props
+        })
+        if not saved then return false end
 
-    exports.qbx_vehicles:SaveVehicle(vehicle, {
-        garage = garage,
-        state = VehicleState.GARAGED,
-        props = props
-    })
+        exports.qbx_core:DeleteVehicle(vehicle)
+        return true
+    end)
+    parkingVehicles[vehicle] = nil
+    if not success then lib.print.error(parked) end
+    return success and parked == true
+end)
 
-    exports.qbx_core:DeleteVehicle(vehicle)
-    return true
+AddEventHandler('playerDropped', function()
+    parkingAuthorizations[source] = nil
 end)
 
 AddEventHandler('onResourceStart', function(resource)
