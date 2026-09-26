@@ -20,7 +20,14 @@ local function getProgressColor(percent)
         return ProgressColor.RED
     end
 end
+
 local VehicleCategory = {
+	all = {
+		[0] = true, [1] = true, [2] = true, [3] = true, [4] = true, [5] = true,
+		[6] = true, [7] = true, [8] = true, [9] = true, [10] = true, [11] = true,
+		[12] = true, [13] = true, [14] = true, [15] = true, [16] = true, [17] = true,
+		[18] = true, [19] = true, [20] = true, [21] = true, [22] = true,
+	},
 	car = {
 		[0] = true,
 		[1] = true,
@@ -46,12 +53,12 @@ local VehicleCategory = {
 	sea = { [14] = true },
 }
 
-
 ---@param category VehicleType
 ---@param vehicle number
 ---@return boolean
 local function isOfType(category, vehicle)
-	return VehicleCategory[category] and VehicleCategory[category][GetVehicleClass(vehicle)] == true
+	local classes = VehicleCategory[category]
+	return classes ~= nil and classes[GetVehicleClass(vehicle)] == true
 end
 
 ---@param vehicle number
