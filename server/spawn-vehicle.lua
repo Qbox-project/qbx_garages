@@ -1,3 +1,5 @@
+local logger = require '@qbx_core.modules.logger'
+
 ---@param vehicleId integer
 ---@param modelName string
 local function setVehicleStateToOut(vehicleId, vehicle, modelName)
@@ -30,18 +32,48 @@ end
 ---@param accessPointIndex integer
 ---@return number? netId
 lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehicleId, garageName, accessPointIndex)
-    local garage = Garages[garageName]
+    local garage = TryGetGarage(source, garageName)
+    if not garage then return end
+
     local accessPoint = garage.accessPoints[accessPointIndex]
-    if #(GetEntityCoords(GetPlayerPed(source)) - accessPoint.coords.xyz) > 3 then
-        lib.print.error(string.format("player %s attempted to spawn a vehicle but was too far from the access point", source))
+    if not accessPoint then
+        logger.log({
+            source = source,
+            message = string.format(
+                'Attempted to spawn a vehicle from a non-existent access point index: %d for garage: %s',
+                accessPointIndex,
+                garageName
+            ),
+            webhook = Config.logging.webhook.error,
+            event = 'error',
+            color = 'red'
+        })
+
+        return
+    end
+
+    local distanceBetweenPlayerAndAccessPoint = #(GetEntityCoords(GetPlayerPed(source)) - accessPoint.coords.xyz)
+    if distanceBetweenPlayerAndAccessPoint > 3 then
+        logger.log({
+            source = source,
+            message = string.format(
+                'Player attempted to spawn a vehicle but was too far from the access point. Distance: %.2f, Access Point Index: %d, Garage: %s',
+                distanceBetweenPlayerAndAccessPoint,
+                accessPointIndex,
+                garageName
+            ),
+            webhook = Config.logging.webhook.anticheat,
+            event = 'suspicious',
+            color = 'white'
+        })
+
         return
     end
     local garageType = GetGarageType(garageName)
 
     local spawnCoords = accessPoint.spawn or accessPoint.coords
     if Config.distanceCheck then
-        local vec3Coords = vec3(spawnCoords.x, spawnCoords.y, spawnCoords.z)
-        local nearbyVehicle = lib.getClosestVehicle(vec3Coords, Config.distanceCheck, false)
+        local nearbyVehicle = lib.getClosestVehicle(spawnCoords.xyz, Config.distanceCheck, false)
         if nearbyVehicle then
             exports.qbx_core:Notify(source, locale('error.no_space'), 'error')
             return
@@ -55,11 +87,12 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
         return
     end
     if garageType == GarageType.DEPOT and FindPlateOnServer(playerVehicle.props.plate) then -- If depot, check if vehicle is not already spawned on the map
-        return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error', 5000)
+        return exports.qbx_core:Notify(source, locale('error.not_impound'), 'error')
     end
 
-    if garageType == GarageType.DEPOT and playerVehicle.depotPrice and playerVehicle.depotPrice > 0 then
+    if garageType == GarageType.DEPOT and playerVehicle.depotPrice then
         local player = exports.qbx_core:GetPlayer(source)
+        OverrideFreeDepotPriceForOutVehicle(playerVehicle)
         local canPay = payDepotPrice(player, playerVehicle.depotPrice)
 
         if not canPay then
@@ -69,7 +102,7 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     end
 
     playerVehicle.props.lockState = 1 -- Modify the veh props lock state here to avoid conflicts with the vehicleConfig.noLock system.
-    
+
     local warpPed = Config.warpInVehicle and GetPlayerPed(source)
     local netId, veh = qbx.spawnVehicle({ spawnSource = spawnCoords, model = playerVehicle.props.model, props = playerVehicle.props, warp = warpPed})
 
@@ -88,3 +121,10 @@ lib.callback.register('qbx_garages:server:spawnVehicle', function (source, vehic
     TriggerEvent('qbx_garages:server:vehicleSpawned', veh)
     return netId
 end)
+
+function OverrideFreeDepotPriceForOutVehicle(vehicle)
+    if VehicleState.OUT ~= vehicle.state then return end
+    if vehicle.depotPrice and vehicle.depotPrice > 0 then return end
+
+    vehicle.depotPrice = Config.calculateImpoundFee(vehicle.id, vehicle.modelName)
+end
