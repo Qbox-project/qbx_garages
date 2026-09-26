@@ -22,6 +22,7 @@ VEHICLES = exports.qbx_core:GetVehiclesByName()
 Storage = require 'server.storage'
 ---@type table<string, GarageConfig>
 Garages = Config.garages
+GaragesHooks = lib.load('@qbx_core.modules.hooks')
 local parkingAuthorizations = {}
 local parkingVehicles = {}
 
@@ -305,6 +306,7 @@ lib.callback.register('qbx_garages:server:parkVehicle', function(source, netId, 
     local success, parked = pcall(function()
         local vehicleId = Entity(vehicle).state.vehicleid or exports.qbx_vehicles:GetVehicleIdByPlate(GetVehicleNumberPlateText(vehicle))
         if not isParkable(source, vehicleId, garage) then return false end
+        if not GaragesHooks('parkVehicle', {source = source, vehicleId = vehicleId, vehicle = vehicle, garageName = garage}) then return false end
 
         local saved = exports.qbx_vehicles:SaveVehicle(vehicle, {
             garage = garage,
